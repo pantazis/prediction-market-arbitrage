@@ -19,6 +19,7 @@ from predarb.detectors.exclusivesum import ExclusiveSumDetector
 from predarb.detectors.timelag import TimeLagDetector
 from predarb.detectors.consistency import ConsistencyDetector
 from predarb.notifier import TelegramNotifier
+from predarb.filtering import filter_markets, rank_markets, FilterSettings
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,21 @@ class Engine:
             except Exception as e:
                 logger.warning("Notifier startup failed: %s", e)
 
-        markets = self.client.fetch_markets()
+        all_markets = self.client.fetch_markets()
+        logger.info(f"Fetched {len(all_markets)} total markets")
+        
+        # Filter markets for arbitrage scanning (hard eligibility filters)
+        eligible_markets = filter_markets(all_markets)
+        logger.info(f"Filtered to {len(eligible_markets)} eligible markets")
+        
+        # Rank eligible markets by liquidity quality
+        ranked_markets = rank_markets(eligible_markets)
+        logger.info(f"Ranked {len(ranked_markets)} markets by liquidity score")
+        
+        # Only search qualified markets (higher probability of real opportunities)
+        markets = [m for m, score in ranked_markets if score > 70]
+        logger.info(f"Searching {len(markets)} high-quality markets (score > 70)")
+        
         market_lookup: Dict[str, Market] = {m.id: m for m in markets}
         opportunities: List[Opportunity] = []
         for detector in self.detectors:

@@ -1,28 +1,28 @@
-polymarket_api_url: "https://gamma-api.polymarket.com"
 polymarket:
   host: "https://clob.polymarket.com"
-  # Authentication credentials should be set in .env file
-  # key: "" 
-  # passphrase: ""
-  chain_id: 137 # Polygon Mainnet
-  funder: "" # Address of the funder (needed for some auth types)
-
-  passphrase: "" 
-
-telegram:
-  enabled: false  # Set via TELEGRAM_ENABLED env var
-
-paper_trading: true
-
-refresh_interval_seconds: 30
-
 risk:
-  max_capital_per_market: 50.0
-  max_open_markets: 5
-  min_liquidity: 500.0
-  min_edge: 0.005 # 0.5% edge
-
+  max_allocation_per_market: 0.05
+  max_open_positions: 20
+  min_liquidity_usd: 500.0
+  min_net_edge_threshold: 0.005
+  kill_switch_drawdown: 0.2
 broker:
-  initial_cash: 1000.0
-  fee_bps: 0.0 # Paper trading usually 0 or small for testing
-  slippage_bps: 20.0 # 0.2% slippage assumption
+  initial_cash: 10000.0
+  fee_bps: 10.0
+  slippage_bps: 20.0
+  depth_fraction: 0.05
+engine:
+  refresh_seconds: 1.0
+  iterations: 10
+  report_path: "reports/paper_trades.csv"
+detectors:
+  parity_threshold: 0.99
+  duplicate_price_diff_threshold: 0.05
+  exclusive_sum_tolerance: 0.03
+  ladder_tolerance: 0.0
+  timelag_price_jump: 0.05
+  timelag_persistence_minutes: 5
+telegram:
+  enabled: true
+  bot_token: ""
+  chat_id: ""

@@ -1,54 +1,190 @@
 [
-    {
-        "id": "m1_clean_arb",
-        "question": "Will BTC > 100k?",
-        "outcomes": [
-            "No",
-            "Yes"
-        ],
-        "outcomePrices": [
-            "0.45",
-            "0.45"
-        ],
-        "liquidity": "10000",
-        "volume": "5000"
-    },
-    {
-        "id": "m2_no_arb",
-        "question": "Will ETH > 5k?",
-        "outcomes": [
-            "No",
-            "Yes"
-        ],
-        "outcomePrices": [
-            "0.60",
-            "0.40"
-        ],
-        "liquidity": "10000",
-        "volume": "100"
-    },
-    {
-        "id": "m3_low_liq",
-        "question": "Will SOL > 500?",
-        "outcomes": [
-            "No",
-            "Yes"
-        ],
-        "outcomePrices": [
-            "0.45",
-            "0.45"
-        ],
-        "liquidity": "10",
-        "volume": "0"
-    },
-    {
-        "id": "m4_malformed",
-        "question": "Bad Market",
-        "outcomes": [
-            "No"
-        ],
-        "outcomePrices": [
-            "0.5"
-        ]
-    }
+  {
+    "id": "m1",
+    "question": "Will BTC be above 90k by Dec 31 2026?",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 1500,
+    "volume": 10000,
+    "outcomes": [
+      {"id": "m1y", "label": "Yes", "price": 0.55},
+      {"id": "m1n", "label": "No", "price": 0.45}
+    ]
+  },
+  {
+    "id": "m2",
+    "question": "Will BTC be above 100k by Dec 31 2026?",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 1500,
+    "volume": 10000,
+    "outcomes": [
+      {"id": "m2y", "label": "Yes", "price": 0.60},
+      {"id": "m2n", "label": "No", "price": 0.40}
+    ]
+  },
+  {
+    "id": "m3",
+    "question": "Will BTC be above 110k by Dec 31 2026?",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 1500,
+    "volume": 10000,
+    "outcomes": [
+      {"id": "m3y", "label": "Yes", "price": 0.35},
+      {"id": "m3n", "label": "No", "price": 0.65}
+    ]
+  },
+  {
+    "id": "m4",
+    "question": "Who wins the 2025 box office?",
+    "end_date": "2025-12-31T00:00:00Z",
+    "liquidity": 900,
+    "volume": 5000,
+    "outcomes": [
+      {"id": "m4a", "label": "StudioA", "price": 0.4},
+      {"id": "m4b", "label": "StudioB", "price": 0.3},
+      {"id": "m4c", "label": "StudioC", "price": 0.37}
+    ]
+  },
+  {
+    "id": "m5",
+    "question": "Will team X win the championship?",
+    "end_date": "2024-06-01T00:00:00Z",
+    "liquidity": 600,
+    "volume": 4000,
+    "outcomes": [
+      {"id": "m5y", "label": "Yes", "price": 0.52},
+      {"id": "m5n", "label": "No", "price": 0.48}
+    ]
+  },
+  {
+    "id": "m6",
+    "question": "Will BTC be above 90k by Dec 31 2026? (duplicate)",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 1200,
+    "volume": 8000,
+    "outcomes": [
+      {"id": "m6y", "label": "Yes", "price": 0.45},
+      {"id": "m6n", "label": "No", "price": 0.55}
+    ]
+  },
+  {
+    "id": "m7",
+    "question": "Will BTC be under 90k by Dec 31 2026?",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 800,
+    "volume": 3000,
+    "outcomes": [
+      {"id": "m7y", "label": "Yes", "price": 0.52},
+      {"id": "m7n", "label": "No", "price": 0.48}
+    ]
+  },
+  {
+    "id": "m8",
+    "question": "Will BTC be over $90,000 by Dec 31 2026?",
+    "end_date": "2026-12-31T00:00:00Z",
+    "liquidity": 700,
+    "volume": 2500,
+    "outcomes": [
+      {"id": "m8y", "label": "Yes", "price": 0.52},
+      {"id": "m8n", "label": "No", "price": 0.48}
+    ]
+  },
+  {
+    "id": "m9",
+    "question": "Will ETH be above 5k by Jan 1 2025?",
+    "end_date": "2025-01-01T00:00:00Z",
+    "liquidity": 1000,
+    "volume": 4000,
+    "outcomes": [
+      {"id": "m9y", "label": "Yes", "price": 0.49},
+      {"id": "m9n", "label": "No", "price": 0.51}
+    ]
+  },
+  {
+    "id": "m10",
+    "question": "Will ETH be above 4k by Jan 1 2025?",
+    "end_date": "2025-01-01T00:00:00Z",
+    "liquidity": 1000,
+    "volume": 4000,
+    "outcomes": [
+      {"id": "m10y", "label": "Yes", "price": 0.55},
+      {"id": "m10n", "label": "No", "price": 0.45}
+    ]
+  },
+  {
+    "id": "m11",
+    "question": "Will ETH be above 6k by Jan 1 2025?",
+    "end_date": "2025-01-01T00:00:00Z",
+    "liquidity": 1000,
+    "volume": 4000,
+    "outcomes": [
+      {"id": "m11y", "label": "Yes", "price": 0.35},
+      {"id": "m11n", "label": "No", "price": 0.65}
+    ]
+  },
+  {
+    "id": "m12",
+    "question": "Will ETF be approved by March 2025?",
+    "end_date": "2025-03-31T00:00:00Z",
+    "liquidity": 1100,
+    "volume": 3000,
+    "outcomes": [
+      {"id": "m12y", "label": "Yes", "price": 0.2},
+      {"id": "m12n", "label": "No", "price": 0.8}
+    ]
+  },
+  {
+    "id": "m13",
+    "question": "Will ETF be filed by March 2025?",
+    "end_date": "2025-03-31T00:00:00Z",
+    "liquidity": 1100,
+    "volume": 3000,
+    "outcomes": [
+      {"id": "m13y", "label": "Yes", "price": 0.7},
+      {"id": "m13n", "label": "No", "price": 0.3}
+    ]
+  },
+  {
+    "id": "m14",
+    "question": "Will quirky market missing No?",
+    "end_date": "2025-01-01T00:00:00Z",
+    "liquidity": 100,
+    "volume": 200,
+    "outcomes": [
+      {"id": "m14y", "label": "Yes", "price": 0.8}
+    ]
+  },
+  {
+    "id": "m15",
+    "question": "Will ACME revenue exceed $1,000,000 by Dec 2025?",
+    "end_date": "2025-12-31T00:00:00Z",
+    "liquidity": 1200,
+    "volume": 5000,
+    "outcomes": [
+      {"id": "m15y", "label": "Yes", "price": 0.48},
+      {"id": "m15n", "label": "No", "price": 0.52}
+    ]
+  },
+  {
+    "id": "m16",
+    "question": "Will ACME revenue exceed $900,000 by Dec 2025?",
+    "end_date": "2025-12-31T00:00:00Z",
+    "liquidity": 1200,
+    "volume": 5000,
+    "outcomes": [
+      {"id": "m16y", "label": "Yes", "price": 0.75},
+      {"id": "m16n", "label": "No", "price": 0.25}
+    ]
+  },
+  {
+    "id": "m17",
+    "question": "Which color wins?",
+    "end_date": "2025-05-01T00:00:00Z",
+    "liquidity": 1000,
+    "volume": 1000,
+    "outcomes": [
+      {"id": "m17a", "label": "Red", "price": 0.4},
+      {"id": "m17b", "label": "Blue", "price": 0.35},
+      {"id": "m17c", "label": "Green", "price": 0.32}
+    ]
+  }
 ]

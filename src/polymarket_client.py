@@ -41,26 +41,33 @@ class ClobPolymarketClient:
         We'll use get_markets and filter/parse.
         """
         try:
-            # next_cursor is used for pagination, here we just fetch one batch or loop if needed
-            # For simplicity in this step, we fetch a simplified list or specific tokens if possible.
-            # However, CLOB 'get_markets' might expect specific tokens. 
-            # 'get_markets' in py-clob-client often returns a list of markets.
-            # Checking library usage: client.get_markets(next_cursor="")
-            
-            resp = self.client.get_markets()
-            
-            # resp is typically a dictionary with 'data' and 'next_cursor'
-            markets_data = resp.get('data', []) if isinstance(resp, dict) else resp
-
+            # Paginate through all markets because the first page is oldest/closed.
             markets = []
-            for m_data in markets_data:
-                try:
-                    m = self._parse_market(m_data)
-                    if m:
-                        markets.append(m)
-                except Exception as e:
-                    logger.warning(f"Failed to parse clob market {m_data.get('condition_id')}: {e}")
-            
+            cursor = "MA=="  # default cursor used by the SDK
+            max_pages = 50   # safety guard to avoid unbounded calls
+            pages = 0
+
+            while cursor and pages < max_pages:
+                resp = self.client.get_markets(next_cursor=cursor)
+                pages += 1
+
+                # resp is typically a dictionary with 'data' and 'next_cursor'
+                markets_data = resp.get('data', []) if isinstance(resp, dict) else resp
+
+                for m_data in markets_data:
+                    try:
+                        m = self._parse_market(m_data)
+                        if m:
+                            markets.append(m)
+                    except Exception as e:
+                        logger.warning(f"Failed to parse clob market {m_data.get('condition_id')}: {e}")
+
+                cursor = resp.get('next_cursor') if isinstance(resp, dict) else None
+
+                # If we already found at least one active market, stop paginating early
+                if markets:
+                    break
+
             return markets
         except Exception as e:
             import traceback

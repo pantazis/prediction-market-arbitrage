@@ -78,6 +78,17 @@ class Engine:
         markets = [m for m, score in ranked_markets if score >= self.min_rank_score]
         logger.info(f"Searching {len(markets)} high-quality markets (score >= {self.min_rank_score})")
         
+        if self.notifier:
+            try:
+                self.notifier.notify_filtering(
+                    total=len(all_markets),
+                    eligible=len(eligible_markets),
+                    ranked=len(ranked_markets),
+                    high_quality=len(markets)
+                )
+            except Exception as e:
+                logger.warning("Notifier filtering failed: %s", e)
+        
         market_lookup: Dict[str, Market] = {m.id: m for m in markets}
         opportunities: List[Opportunity] = []
         for detector in self.detectors:

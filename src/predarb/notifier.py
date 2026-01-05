@@ -45,3 +45,13 @@ class TelegramNotifier:
 
     def notify_trade_summary(self, count: int):
         self._post(f"✅ Executed {count} opportunities this iteration.")
+
+    def notify_filtering(self, total: int, eligible: int, ranked: int, high_quality: int):
+        lines = [
+            "🔍 Market Filtering Results",
+            f"Total markets: {total}",
+            f"Eligible markets: {eligible}",
+            f"Ranked markets: {ranked}",
+            f"High-quality markets: {high_quality}",
+        ]
+        self._post("\n".join(lines))

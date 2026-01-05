@@ -1,0 +1,13 @@
+polymarket_api_url: "https://gamma-api.polymarket.com"
+refresh_interval_seconds: 30
+
+risk:
+  max_capital_per_market: 50.0
+  max_open_markets: 5
+  min_liquidity: 500.0
+  min_edge: 0.005 # 0.5% edge
+
+broker:
+  initial_cash: 1000.0
+  fee_bps: 0.0 # Paper trading usually 0 or small for testing
+  slippage_bps: 20.0 # 0.2% slippage assumption

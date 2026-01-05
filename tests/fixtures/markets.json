@@ -1,0 +1,54 @@
+[
+    {
+        "id": "m1_clean_arb",
+        "question": "Will BTC > 100k?",
+        "outcomes": [
+            "No",
+            "Yes"
+        ],
+        "outcomePrices": [
+            "0.45",
+            "0.45"
+        ],
+        "liquidity": "10000",
+        "volume": "5000"
+    },
+    {
+        "id": "m2_no_arb",
+        "question": "Will ETH > 5k?",
+        "outcomes": [
+            "No",
+            "Yes"
+        ],
+        "outcomePrices": [
+            "0.60",
+            "0.40"
+        ],
+        "liquidity": "10000",
+        "volume": "100"
+    },
+    {
+        "id": "m3_low_liq",
+        "question": "Will SOL > 500?",
+        "outcomes": [
+            "No",
+            "Yes"
+        ],
+        "outcomePrices": [
+            "0.45",
+            "0.45"
+        ],
+        "liquidity": "10",
+        "volume": "0"
+    },
+    {
+        "id": "m4_malformed",
+        "question": "Bad Market",
+        "outcomes": [
+            "No"
+        ],
+        "outcomePrices": [
+            "0.5"
+        ]
+    }
+]

@@ -35054,3 +35054,903 @@ nohup: ignoring input
 2026-01-05 16:19:29,531 INFO predarb.engine - Filtered to 0 eligible markets
 2026-01-05 16:19:29,531 INFO predarb.engine - Ranked 0 markets by liquidity score
 2026-01-05 16:19:29,531 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:30,534 INFO predarb.engine - Iteration 7012
+2026-01-05 16:19:31,166 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:31,184 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:31,185 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:31,185 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:32,188 INFO predarb.engine - Iteration 7013
+2026-01-05 16:19:32,735 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:32,752 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:32,752 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:32,752 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:33,755 INFO predarb.engine - Iteration 7014
+2026-01-05 16:19:34,258 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:34,276 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:34,276 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:34,276 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:35,279 INFO predarb.engine - Iteration 7015
+2026-01-05 16:19:35,836 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:35,854 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:35,854 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:35,854 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:36,857 INFO predarb.engine - Iteration 7016
+2026-01-05 16:19:37,416 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:37,443 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:37,443 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:37,443 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:38,446 INFO predarb.engine - Iteration 7017
+2026-01-05 16:19:39,006 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:39,023 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:39,024 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:39,024 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:40,026 INFO predarb.engine - Iteration 7018
+2026-01-05 16:19:40,620 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:40,638 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:40,638 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:40,638 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:41,641 INFO predarb.engine - Iteration 7019
+2026-01-05 16:19:42,197 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:42,220 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:42,220 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:42,220 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:43,223 INFO predarb.engine - Iteration 7020
+2026-01-05 16:19:43,761 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:43,779 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:43,779 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:43,779 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:44,783 INFO predarb.engine - Iteration 7021
+2026-01-05 16:19:45,462 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:45,486 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:45,486 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:45,486 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:46,489 INFO predarb.engine - Iteration 7022
+2026-01-05 16:19:47,070 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:47,086 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:47,086 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:47,086 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:48,089 INFO predarb.engine - Iteration 7023
+2026-01-05 16:19:48,799 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:48,824 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:48,824 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:48,824 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:49,827 INFO predarb.engine - Iteration 7024
+2026-01-05 16:19:50,378 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:50,403 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:50,403 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:50,403 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:51,405 INFO predarb.engine - Iteration 7025
+2026-01-05 16:19:51,971 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:51,986 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:51,986 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:51,986 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:52,990 INFO predarb.engine - Iteration 7026
+2026-01-05 16:19:53,638 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:53,665 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:53,665 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:53,665 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:54,668 INFO predarb.engine - Iteration 7027
+2026-01-05 16:19:55,361 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:55,411 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:55,411 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:55,411 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:56,414 INFO predarb.engine - Iteration 7028
+2026-01-05 16:19:57,010 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:57,030 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:57,030 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:57,030 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:58,034 INFO predarb.engine - Iteration 7029
+2026-01-05 16:19:58,609 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:19:58,626 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:19:58,626 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:19:58,626 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:19:59,629 INFO predarb.engine - Iteration 7030
+2026-01-05 16:20:00,196 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:00,212 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:00,212 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:00,212 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:01,215 INFO predarb.engine - Iteration 7031
+2026-01-05 16:20:01,843 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:01,870 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:01,870 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:01,870 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:02,874 INFO predarb.engine - Iteration 7032
+2026-01-05 16:20:03,445 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:03,463 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:03,464 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:03,464 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:04,466 INFO predarb.engine - Iteration 7033
+2026-01-05 16:20:05,199 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:05,224 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:05,225 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:05,225 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:06,227 INFO predarb.engine - Iteration 7034
+2026-01-05 16:20:06,767 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:06,784 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:06,785 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:06,785 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:07,787 INFO predarb.engine - Iteration 7035
+2026-01-05 16:20:08,342 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:08,368 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:08,369 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:08,369 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:09,372 INFO predarb.engine - Iteration 7036
+2026-01-05 16:20:09,935 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:09,950 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:09,950 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:09,950 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:10,952 INFO predarb.engine - Iteration 7037
+2026-01-05 16:20:11,573 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:11,598 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:11,598 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:11,598 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:12,604 INFO predarb.engine - Iteration 7038
+2026-01-05 16:20:13,209 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:13,227 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:13,227 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:13,227 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:14,231 INFO predarb.engine - Iteration 7039
+2026-01-05 16:20:14,830 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:14,847 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:14,847 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:14,847 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:15,850 INFO predarb.engine - Iteration 7040
+2026-01-05 16:20:16,469 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:16,488 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:16,489 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:16,489 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:17,491 INFO predarb.engine - Iteration 7041
+2026-01-05 16:20:18,088 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:18,104 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:18,104 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:18,104 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:19,107 INFO predarb.engine - Iteration 7042
+2026-01-05 16:20:19,860 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:19,876 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:19,876 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:19,876 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:20,879 INFO predarb.engine - Iteration 7043
+2026-01-05 16:20:21,545 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:21,570 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:21,571 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:21,571 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:22,574 INFO predarb.engine - Iteration 7044
+2026-01-05 16:20:23,148 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:23,173 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:23,174 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:23,174 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:24,177 INFO predarb.engine - Iteration 7045
+2026-01-05 16:20:24,847 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:24,870 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:24,870 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:24,870 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:25,873 INFO predarb.engine - Iteration 7046
+2026-01-05 16:20:26,494 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:26,510 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:26,511 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:26,511 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:27,513 INFO predarb.engine - Iteration 7047
+2026-01-05 16:20:28,050 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:28,065 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:28,065 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:28,065 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:29,067 INFO predarb.engine - Iteration 7048
+2026-01-05 16:20:29,628 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:29,646 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:29,646 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:29,646 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:30,648 INFO predarb.engine - Iteration 7049
+2026-01-05 16:20:31,233 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:31,250 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:31,251 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:31,251 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:32,253 INFO predarb.engine - Iteration 7050
+2026-01-05 16:20:32,847 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:32,862 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:32,862 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:32,862 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:33,864 INFO predarb.engine - Iteration 7051
+2026-01-05 16:20:34,393 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:34,410 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:34,410 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:34,410 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:35,412 INFO predarb.engine - Iteration 7052
+2026-01-05 16:20:36,039 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:36,055 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:36,055 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:36,055 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:37,057 INFO predarb.engine - Iteration 7053
+2026-01-05 16:20:37,762 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:37,788 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:37,788 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:37,788 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:38,791 INFO predarb.engine - Iteration 7054
+2026-01-05 16:20:39,345 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:39,362 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:39,362 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:39,362 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:40,365 INFO predarb.engine - Iteration 7055
+2026-01-05 16:20:40,944 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:40,959 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:40,959 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:40,959 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:41,961 INFO predarb.engine - Iteration 7056
+2026-01-05 16:20:42,640 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:42,664 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:42,664 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:42,664 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:43,667 INFO predarb.engine - Iteration 7057
+2026-01-05 16:20:44,314 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:44,338 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:44,339 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:44,339 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:45,342 INFO predarb.engine - Iteration 7058
+2026-01-05 16:20:45,900 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:45,926 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:45,926 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:45,926 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:46,929 INFO predarb.engine - Iteration 7059
+2026-01-05 16:20:47,540 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:47,564 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:47,564 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:47,564 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:48,567 INFO predarb.engine - Iteration 7060
+2026-01-05 16:20:49,151 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:49,168 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:49,168 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:49,168 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:50,170 INFO predarb.engine - Iteration 7061
+2026-01-05 16:20:50,772 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:50,792 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:50,793 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:50,793 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:51,795 INFO predarb.engine - Iteration 7062
+2026-01-05 16:20:52,447 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:52,470 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:52,471 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:52,471 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:53,474 INFO predarb.engine - Iteration 7063
+2026-01-05 16:20:54,090 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:54,115 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:54,115 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:54,115 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:55,118 INFO predarb.engine - Iteration 7064
+2026-01-05 16:20:55,826 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:55,851 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:55,851 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:55,851 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:56,854 INFO predarb.engine - Iteration 7065
+2026-01-05 16:20:57,428 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:57,455 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:57,455 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:57,455 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:20:58,458 INFO predarb.engine - Iteration 7066
+2026-01-05 16:20:59,209 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:20:59,228 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:20:59,228 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:20:59,228 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:00,232 INFO predarb.engine - Iteration 7067
+2026-01-05 16:21:00,860 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:00,878 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:00,878 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:00,878 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:01,881 INFO predarb.engine - Iteration 7068
+2026-01-05 16:21:02,561 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:02,580 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:02,580 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:02,580 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:03,583 INFO predarb.engine - Iteration 7069
+2026-01-05 16:21:04,358 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:04,384 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:04,384 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:04,384 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:05,387 INFO predarb.engine - Iteration 7070
+2026-01-05 16:21:06,121 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:06,143 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:06,143 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:06,143 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:07,146 INFO predarb.engine - Iteration 7071
+2026-01-05 16:21:07,767 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:07,783 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:07,783 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:07,783 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:08,785 INFO predarb.engine - Iteration 7072
+2026-01-05 16:21:09,370 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:09,395 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:09,396 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:09,396 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:10,399 INFO predarb.engine - Iteration 7073
+2026-01-05 16:21:10,976 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:10,995 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:10,995 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:10,995 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:11,997 INFO predarb.engine - Iteration 7074
+2026-01-05 16:21:12,558 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:12,584 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:12,584 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:12,584 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:13,587 INFO predarb.engine - Iteration 7075
+2026-01-05 16:21:14,175 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:14,199 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:14,199 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:14,199 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:15,203 INFO predarb.engine - Iteration 7076
+2026-01-05 16:21:15,812 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:15,840 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:15,840 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:15,840 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:16,844 INFO predarb.engine - Iteration 7077
+2026-01-05 16:21:17,432 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:17,450 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:17,450 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:17,450 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:18,453 INFO predarb.engine - Iteration 7078
+2026-01-05 16:21:19,022 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:19,043 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:19,043 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:19,043 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:20,046 INFO predarb.engine - Iteration 7079
+2026-01-05 16:21:20,651 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:20,675 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:20,675 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:20,675 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:21,679 INFO predarb.engine - Iteration 7080
+2026-01-05 16:21:22,258 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:22,282 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:22,282 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:22,282 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:23,285 INFO predarb.engine - Iteration 7081
+2026-01-05 16:21:23,867 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:23,891 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:23,891 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:23,891 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:24,894 INFO predarb.engine - Iteration 7082
+2026-01-05 16:21:25,465 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:25,480 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:25,480 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:25,480 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:26,482 INFO predarb.engine - Iteration 7083
+2026-01-05 16:21:27,044 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:27,067 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:27,067 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:27,067 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:28,070 INFO predarb.engine - Iteration 7084
+2026-01-05 16:21:28,656 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:28,673 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:28,673 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:28,673 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:29,676 INFO predarb.engine - Iteration 7085
+2026-01-05 16:21:30,263 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:30,280 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:30,280 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:30,280 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:31,283 INFO predarb.engine - Iteration 7086
+2026-01-05 16:21:31,854 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:31,872 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:31,872 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:31,872 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:32,876 INFO predarb.engine - Iteration 7087
+2026-01-05 16:21:33,533 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:33,554 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:33,554 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:33,554 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:34,557 INFO predarb.engine - Iteration 7088
+2026-01-05 16:21:35,124 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:35,142 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:35,142 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:35,142 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:36,144 INFO predarb.engine - Iteration 7089
+2026-01-05 16:21:36,684 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:36,699 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:36,699 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:36,699 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:37,701 INFO predarb.engine - Iteration 7090
+2026-01-05 16:21:38,236 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:38,251 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:38,251 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:38,251 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:39,253 INFO predarb.engine - Iteration 7091
+2026-01-05 16:21:39,790 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:39,807 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:39,807 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:39,807 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:40,810 INFO predarb.engine - Iteration 7092
+2026-01-05 16:21:41,394 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:41,419 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:41,420 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:41,420 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:42,423 INFO predarb.engine - Iteration 7093
+2026-01-05 16:21:43,020 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:43,038 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:43,039 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:43,039 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:44,042 INFO predarb.engine - Iteration 7094
+2026-01-05 16:21:44,848 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:44,864 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:44,864 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:44,865 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:45,868 INFO predarb.engine - Iteration 7095
+2026-01-05 16:21:46,398 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:46,414 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:46,414 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:46,414 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:47,416 INFO predarb.engine - Iteration 7096
+2026-01-05 16:21:48,069 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:48,094 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:48,094 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:48,094 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:49,098 INFO predarb.engine - Iteration 7097
+2026-01-05 16:21:49,632 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:49,649 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:49,649 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:49,649 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:50,652 INFO predarb.engine - Iteration 7098
+2026-01-05 16:21:51,265 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:51,290 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:51,291 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:51,291 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:52,293 INFO predarb.engine - Iteration 7099
+2026-01-05 16:21:52,828 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:52,851 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:52,851 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:52,851 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:53,854 INFO predarb.engine - Iteration 7100
+2026-01-05 16:21:54,483 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:54,505 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:54,505 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:54,506 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:55,510 INFO predarb.engine - Iteration 7101
+2026-01-05 16:21:56,031 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:56,056 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:56,056 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:56,056 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:57,060 INFO predarb.engine - Iteration 7102
+2026-01-05 16:21:57,649 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:57,675 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:57,675 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:57,675 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:21:58,678 INFO predarb.engine - Iteration 7103
+2026-01-05 16:21:59,249 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:21:59,273 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:21:59,274 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:21:59,274 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:00,277 INFO predarb.engine - Iteration 7104
+2026-01-05 16:22:00,894 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:00,912 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:00,912 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:00,912 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:01,915 INFO predarb.engine - Iteration 7105
+2026-01-05 16:22:02,492 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:02,520 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:02,520 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:02,520 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:03,524 INFO predarb.engine - Iteration 7106
+2026-01-05 16:22:04,205 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:04,226 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:04,226 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:04,226 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:05,232 INFO predarb.engine - Iteration 7107
+2026-01-05 16:22:05,843 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:05,869 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:05,869 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:05,869 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:06,872 INFO predarb.engine - Iteration 7108
+2026-01-05 16:22:07,401 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:07,420 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:07,420 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:07,420 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:08,422 INFO predarb.engine - Iteration 7109
+2026-01-05 16:22:09,013 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:09,033 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:09,033 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:09,033 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:10,037 INFO predarb.engine - Iteration 7110
+2026-01-05 16:22:10,660 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:10,683 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:10,684 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:10,684 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:11,688 INFO predarb.engine - Iteration 7111
+2026-01-05 16:22:12,216 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:12,234 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:12,235 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:12,235 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:13,237 INFO predarb.engine - Iteration 7112
+2026-01-05 16:22:13,953 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:13,976 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:13,976 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:13,976 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:14,978 INFO predarb.engine - Iteration 7113
+2026-01-05 16:22:15,534 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:15,559 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:15,559 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:15,559 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:16,562 INFO predarb.engine - Iteration 7114
+2026-01-05 16:22:17,093 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:17,112 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:17,112 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:17,112 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:18,117 INFO predarb.engine - Iteration 7115
+2026-01-05 16:22:18,700 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:18,716 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:18,716 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:18,716 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:19,719 INFO predarb.engine - Iteration 7116
+2026-01-05 16:22:20,288 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:20,309 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:20,309 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:20,309 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:21,312 INFO predarb.engine - Iteration 7117
+2026-01-05 16:22:21,941 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:21,972 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:21,973 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:21,973 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:22,976 INFO predarb.engine - Iteration 7118
+2026-01-05 16:22:23,626 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:23,646 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:23,646 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:23,646 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:24,649 INFO predarb.engine - Iteration 7119
+2026-01-05 16:22:25,276 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:25,302 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:25,303 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:25,303 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:26,306 INFO predarb.engine - Iteration 7120
+2026-01-05 16:22:26,920 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:26,937 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:26,937 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:26,937 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:27,940 INFO predarb.engine - Iteration 7121
+2026-01-05 16:22:28,544 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:28,564 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:28,564 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:28,564 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:29,566 INFO predarb.engine - Iteration 7122
+2026-01-05 16:22:30,285 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:30,309 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:30,309 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:30,309 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:31,313 INFO predarb.engine - Iteration 7123
+2026-01-05 16:22:32,114 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:32,140 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:32,140 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:32,140 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:33,143 INFO predarb.engine - Iteration 7124
+2026-01-05 16:22:33,758 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:33,773 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:33,773 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:33,773 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:34,775 INFO predarb.engine - Iteration 7125
+2026-01-05 16:22:35,614 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:35,639 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:35,639 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:35,639 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:36,642 INFO predarb.engine - Iteration 7126
+2026-01-05 16:22:37,302 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:37,330 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:37,330 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:37,330 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:38,334 INFO predarb.engine - Iteration 7127
+2026-01-05 16:22:38,924 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:38,941 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:38,942 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:38,942 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:39,944 INFO predarb.engine - Iteration 7128
+2026-01-05 16:22:40,658 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:40,675 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:40,675 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:40,675 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:41,680 INFO predarb.engine - Iteration 7129
+2026-01-05 16:22:42,303 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:42,324 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:42,324 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:42,324 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:43,328 INFO predarb.engine - Iteration 7130
+2026-01-05 16:22:43,905 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:43,922 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:43,922 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:43,922 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:44,925 INFO predarb.engine - Iteration 7131
+2026-01-05 16:22:45,540 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:45,556 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:45,556 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:45,556 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:46,558 INFO predarb.engine - Iteration 7132
+2026-01-05 16:22:47,086 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:47,102 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:47,102 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:47,102 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:48,105 INFO predarb.engine - Iteration 7133
+2026-01-05 16:22:48,662 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:48,690 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:48,690 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:48,690 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:49,693 INFO predarb.engine - Iteration 7134
+2026-01-05 16:22:50,266 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:50,282 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:50,282 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:50,282 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:51,284 INFO predarb.engine - Iteration 7135
+2026-01-05 16:22:51,867 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:51,883 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:51,883 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:51,883 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:52,886 INFO predarb.engine - Iteration 7136
+2026-01-05 16:22:53,485 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:53,502 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:53,502 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:53,502 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:54,504 INFO predarb.engine - Iteration 7137
+2026-01-05 16:22:55,068 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:55,084 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:55,084 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:55,084 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:56,086 INFO predarb.engine - Iteration 7138
+2026-01-05 16:22:56,662 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:56,688 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:56,688 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:56,688 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:57,692 INFO predarb.engine - Iteration 7139
+2026-01-05 16:22:58,241 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:58,259 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:58,259 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:58,259 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:22:59,262 INFO predarb.engine - Iteration 7140
+2026-01-05 16:22:59,817 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:22:59,836 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:22:59,836 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:22:59,836 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:00,839 INFO predarb.engine - Iteration 7141
+2026-01-05 16:23:01,483 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:01,500 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:01,500 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:01,500 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:02,503 INFO predarb.engine - Iteration 7142
+2026-01-05 16:23:03,139 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:03,164 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:03,164 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:03,164 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:04,168 INFO predarb.engine - Iteration 7143
+2026-01-05 16:23:04,734 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:04,749 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:04,749 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:04,749 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:05,751 INFO predarb.engine - Iteration 7144
+2026-01-05 16:23:06,377 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:06,402 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:06,402 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:06,403 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:07,406 INFO predarb.engine - Iteration 7145
+2026-01-05 16:23:07,949 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:07,965 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:07,966 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:07,966 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:08,968 INFO predarb.engine - Iteration 7146
+2026-01-05 16:23:09,668 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:09,686 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:09,686 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:09,686 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:10,689 INFO predarb.engine - Iteration 7147
+2026-01-05 16:23:11,290 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:11,315 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:11,315 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:11,315 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:12,318 INFO predarb.engine - Iteration 7148
+2026-01-05 16:23:12,911 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:12,932 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:12,932 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:12,932 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:13,934 INFO predarb.engine - Iteration 7149
+2026-01-05 16:23:14,622 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:14,646 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:14,647 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:14,647 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:15,651 INFO predarb.engine - Iteration 7150
+2026-01-05 16:23:16,242 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:16,259 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:16,259 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:16,259 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:17,262 INFO predarb.engine - Iteration 7151
+2026-01-05 16:23:17,816 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:17,840 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:17,840 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:17,840 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:18,843 INFO predarb.engine - Iteration 7152
+2026-01-05 16:23:19,490 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:19,515 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:19,515 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:19,515 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:20,518 INFO predarb.engine - Iteration 7153
+2026-01-05 16:23:21,065 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:21,084 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:21,085 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:21,085 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:22,088 INFO predarb.engine - Iteration 7154
+2026-01-05 16:23:22,790 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:22,814 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:22,814 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:22,814 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:23,817 INFO predarb.engine - Iteration 7155
+2026-01-05 16:23:24,411 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:24,429 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:24,429 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:24,429 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:25,432 INFO predarb.engine - Iteration 7156
+2026-01-05 16:23:26,157 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:26,182 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:26,182 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:26,182 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:27,185 INFO predarb.engine - Iteration 7157
+2026-01-05 16:23:27,754 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:27,778 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:27,778 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:27,778 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:28,780 INFO predarb.engine - Iteration 7158
+2026-01-05 16:23:29,377 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:29,400 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:29,400 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:29,400 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:30,403 INFO predarb.engine - Iteration 7159
+2026-01-05 16:23:30,963 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:30,979 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:30,979 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:30,979 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:31,981 INFO predarb.engine - Iteration 7160
+2026-01-05 16:23:32,543 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:32,574 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:32,574 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:32,574 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:33,576 INFO predarb.engine - Iteration 7161
+2026-01-05 16:23:34,164 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:34,189 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:34,189 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:34,189 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:35,192 INFO predarb.engine - Iteration 7162
+2026-01-05 16:23:35,859 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:35,883 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:35,883 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:35,883 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:36,886 INFO predarb.engine - Iteration 7163
+2026-01-05 16:23:37,483 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:37,507 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:37,507 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:37,507 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:38,510 INFO predarb.engine - Iteration 7164
+2026-01-05 16:23:39,106 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:39,125 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:39,126 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:39,126 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:40,128 INFO predarb.engine - Iteration 7165
+2026-01-05 16:23:40,646 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:40,663 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:40,663 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:40,663 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:41,665 INFO predarb.engine - Iteration 7166
+2026-01-05 16:23:42,200 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:42,217 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:42,217 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:42,218 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:43,220 INFO predarb.engine - Iteration 7167
+2026-01-05 16:23:43,829 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:43,845 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:43,845 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:43,845 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:44,847 INFO predarb.engine - Iteration 7168
+2026-01-05 16:23:45,471 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:45,495 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:45,495 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:45,495 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:46,498 INFO predarb.engine - Iteration 7169
+2026-01-05 16:23:47,099 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:47,117 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:47,117 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:47,117 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:48,119 INFO predarb.engine - Iteration 7170
+2026-01-05 16:23:48,794 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:48,812 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:48,812 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:48,812 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:49,817 INFO predarb.engine - Iteration 7171
+2026-01-05 16:23:50,448 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:50,469 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:50,470 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:50,470 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:51,473 INFO predarb.engine - Iteration 7172
+2026-01-05 16:23:52,127 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:52,147 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:52,147 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:52,147 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:53,150 INFO predarb.engine - Iteration 7173
+2026-01-05 16:23:53,687 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:53,704 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:53,704 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:53,704 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:54,706 INFO predarb.engine - Iteration 7174
+2026-01-05 16:23:55,319 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:55,344 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:55,344 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:55,344 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:56,348 INFO predarb.engine - Iteration 7175
+2026-01-05 16:23:56,917 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:56,932 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:56,932 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:56,932 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:57,934 INFO predarb.engine - Iteration 7176
+2026-01-05 16:23:58,515 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:23:58,531 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:23:58,532 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:23:58,532 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:23:59,534 INFO predarb.engine - Iteration 7177
+2026-01-05 16:24:00,221 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:00,249 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:00,249 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:00,249 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:01,252 INFO predarb.engine - Iteration 7178
+2026-01-05 16:24:01,804 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:01,823 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:01,823 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:01,823 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:02,828 INFO predarb.engine - Iteration 7179
+2026-01-05 16:24:03,534 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:03,549 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:03,550 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:03,550 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:04,554 INFO predarb.engine - Iteration 7180
+2026-01-05 16:24:05,288 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:05,306 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:05,306 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:05,307 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:06,309 INFO predarb.engine - Iteration 7181
+2026-01-05 16:24:06,850 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:06,866 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:06,866 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:06,866 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:07,868 INFO predarb.engine - Iteration 7182
+2026-01-05 16:24:08,463 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:08,486 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:08,486 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:08,486 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:09,488 INFO predarb.engine - Iteration 7183
+2026-01-05 16:24:10,033 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:10,059 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:10,059 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:10,059 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:11,062 INFO predarb.engine - Iteration 7184
+2026-01-05 16:24:11,693 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:11,716 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:11,716 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:11,716 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:12,719 INFO predarb.engine - Iteration 7185
+2026-01-05 16:24:13,282 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:13,299 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:13,299 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:13,299 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:14,301 INFO predarb.engine - Iteration 7186
+2026-01-05 16:24:14,864 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:14,879 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:14,879 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:14,879 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:15,881 INFO predarb.engine - Iteration 7187
+2026-01-05 16:24:16,428 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:16,444 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:16,444 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:16,444 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:17,447 INFO predarb.engine - Iteration 7188
+2026-01-05 16:24:17,982 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:17,999 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:17,999 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:17,999 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:19,001 INFO predarb.engine - Iteration 7189
+2026-01-05 16:24:19,580 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:19,602 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:19,602 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:19,602 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:20,606 INFO predarb.engine - Iteration 7190
+2026-01-05 16:24:21,176 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:21,194 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:21,194 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:21,194 INFO predarb.engine - Searching 0 high-quality markets (score > 70)
+2026-01-05 16:24:22,198 INFO predarb.engine - Iteration 7191
+2026-01-05 16:24:22,682 INFO predarb.engine - Fetched 1000 total markets
+2026-01-05 16:24:22,704 INFO predarb.engine - Filtered to 0 eligible markets
+2026-01-05 16:24:22,704 INFO predarb.engine - Ranked 0 markets by liquidity score
+2026-01-05 16:24:22,704 INFO predarb.engine - Searching 0 high-quality markets (score > 70)

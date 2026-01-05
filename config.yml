@@ -15,6 +15,17 @@ engine:
   refresh_seconds: 1.0
   iterations: 10
   report_path: "reports/paper_trades.csv"
+filter:
+  # Tuned for $50-$500 stakes: require decent liquidity but allow some spread
+  max_spread_pct: 0.1              # 10% spread ceiling
+  min_volume_24h: 1000             # $1k daily volume floor
+  min_liquidity: 10000             # At least $10k depth
+  min_days_to_expiry: 3            # Avoid markets closing immediately
+  min_liquidity_multiple: 20       # Need 20x your bet in depth
+  target_order_size_usd: 500       # size we want to place comfortably
+  require_resolution_source: true
+  allow_missing_end_time: false
+  min_rank_score: 20               # ignore ultra-low-quality markets
 detectors:
   parity_threshold: 0.99
   duplicate_price_diff_threshold: 0.05

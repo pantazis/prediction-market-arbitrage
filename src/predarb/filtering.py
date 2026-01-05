@@ -472,6 +472,10 @@ class MarketFilter:
         if volume <= 0:
             return 0.0
         
+        if self.settings.min_volume_24h <= 0:
+            # If threshold is disabled, any positive volume gets full credit
+            return 100.0
+        
         if volume < self.settings.min_volume_24h:
             return 0.0
         
@@ -495,6 +499,9 @@ class MarketFilter:
         liquidity = market.liquidity or 0.0
         if liquidity <= 0:
             return 0.0
+        
+        if self.settings.min_liquidity <= 0:
+            return 100.0
         
         if liquidity < self.settings.min_liquidity:
             return 0.0

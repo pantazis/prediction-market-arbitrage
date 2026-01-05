@@ -34,6 +34,12 @@ class Engine:
         if config.telegram.enabled and config.telegram.bot_token and config.telegram.chat_id:
             self.notifier = TelegramNotifier(config.telegram.bot_token, config.telegram.chat_id)
 
+        # Build filter settings from config (looser defaults to avoid empty scans)
+        filter_kwargs = config.filter.model_dump()
+        self.min_rank_score = float(filter_kwargs.pop("min_rank_score", 0.0))
+        self.target_order_size = float(filter_kwargs.pop("target_order_size_usd", 0.0))
+        self.filter_settings = FilterSettings(**filter_kwargs)
+
         self.detectors: Sequence = [
             ParityDetector(config.detectors, config.broker),
             LadderDetector(config.detectors),
@@ -56,16 +62,21 @@ class Engine:
         logger.info(f"Fetched {len(all_markets)} total markets")
         
         # Filter markets for arbitrage scanning (hard eligibility filters)
-        eligible_markets = filter_markets(all_markets)
+        eligible_markets = filter_markets(
+            all_markets,
+            settings=self.filter_settings,
+            account_equity_usd=self.broker.cash,
+            target_order_size_usd=self.target_order_size if self.target_order_size > 0 else None,
+        )
         logger.info(f"Filtered to {len(eligible_markets)} eligible markets")
         
         # Rank eligible markets by liquidity quality
-        ranked_markets = rank_markets(eligible_markets)
+        ranked_markets = rank_markets(eligible_markets, settings=self.filter_settings)
         logger.info(f"Ranked {len(ranked_markets)} markets by liquidity score")
         
         # Only search qualified markets (higher probability of real opportunities)
-        markets = [m for m, score in ranked_markets if score > 70]
-        logger.info(f"Searching {len(markets)} high-quality markets (score > 70)")
+        markets = [m for m, score in ranked_markets if score >= self.min_rank_score]
+        logger.info(f"Searching {len(markets)} high-quality markets (score >= {self.min_rank_score})")
         
         market_lookup: Dict[str, Market] = {m.id: m for m in markets}
         opportunities: List[Opportunity] = []

@@ -11,7 +11,7 @@ Provides 3-layer filtering:
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 import math
 from enum import Enum
 
@@ -179,8 +179,8 @@ class MarketFilter:
         Returns:
             List of rejection reason strings
         """
-        if market.market_id in self._rejection_reasons:
-            return self._rejection_reasons[market.market_id]
+        if market.id in self._rejection_reasons:
+            return self._rejection_reasons[market.id]
         return []
     
     # ========== LAYER 1: Hard Eligibility Filters ==========
@@ -210,8 +210,9 @@ class MarketFilter:
             reasons.append(RejectionReason.EXPIRY_TOO_SOON.value)
         
         # Check: Resolution source
-        if self.settings.require_resolution_source and not self._passes_resolution_filter(market):
-            reasons.append(RejectionReason.RESOLUTION_EMPTY.value)
+        issue = self._resolution_issue(market)
+        if issue:
+            reasons.append(issue.value)
         
         if reasons:
             self._rejection_reasons[market.id] = reasons
@@ -223,9 +224,8 @@ class MarketFilter:
         """Check if market has enough outcomes with prices."""
         if not market.outcomes or len(market.outcomes) < 2:
             return False
-        
-        # Count outcomes with valid prices
-        priced_outcomes = sum(1 for o in market.outcomes if o.price > 0)
+        prices = self._price_map(market)
+        priced_outcomes = sum(1 for _, price in prices.items() if price > 0)
         return priced_outcomes >= 2
     
     def _passes_spread_filter(self, market: Market) -> bool:
@@ -237,26 +237,52 @@ class MarketFilter:
         """
         if not market.outcomes or len(market.outcomes) < 2:
             return False
-        
-        prices = [o.price for o in market.outcomes if o.price > 0]
+
+        # Fast path when outcomes already have prices
+        priced_outcomes = [getattr(o, "price", None) for o in market.outcomes if getattr(o, "price", None) is not None]
+        if len(priced_outcomes) == len(market.outcomes):
+            min_price = min(priced_outcomes)
+            max_price = max(priced_outcomes)
+            spread = max_price - min_price
+            if spread <= self.settings.max_spread_pct * 2:
+                return True
+
+        # Prefer explicit bid/ask if provided
+        best_bid = getattr(market, "best_bid", {}) or {}
+        best_ask = getattr(market, "best_ask", {}) or {}
+        if best_bid and best_ask:
+            labels = [o.label if isinstance(o, Outcome) else str(o) for o in market.outcomes]
+            # All outcomes must have bid/ask
+            for label in labels:
+                bid = best_bid.get(label)
+                ask = best_ask.get(label)
+                if bid is None or ask is None:
+                    return False
+                if ask < bid:
+                    return False
+                spread_abs = ask - bid
+                if spread_abs > self.settings.max_spread_pct:
+                    return False
+            return True
+
+        prices = [price for price in self._price_map(market).values() if price > 0]
         if len(prices) < 2:
             return False
-        
+
         min_price = min(prices)
         max_price = max(prices)
-        
-        # Spread as absolute difference (0..1)
         spread = max_price - min_price
-        # Max acceptable spread (scaled for absolute prices)
         return spread <= self.settings.max_spread_pct * 2
     
     def _passes_volume_filter(self, market: Market) -> bool:
         """Check if 24h volume meets minimum."""
-        return market.volume >= self.settings.min_volume_24h
+        volume = market.volume or 0.0
+        return volume >= self.settings.min_volume_24h
     
     def _passes_liquidity_filter(self, market: Market) -> bool:
         """Check if liquidity meets minimum."""
-        return market.liquidity >= self.settings.min_liquidity
+        liquidity = market.liquidity or 0.0
+        return liquidity >= self.settings.min_liquidity
     
     def _passes_expiry_filter(self, market: Market) -> bool:
         """Check if market expiration is far enough in future."""
@@ -276,13 +302,27 @@ class MarketFilter:
         days_to_expiry = (end_time - now).days
         return days_to_expiry >= self.settings.min_days_to_expiry
     
+    def _resolution_issue(self, market: Market) -> RejectionReason | None:
+        """Return resolution-related rejection reason, if any."""
+        if not self.settings.require_resolution_source:
+            return None
+        rules_raw = market.description
+        rules_text = rules_raw or ""
+        source_text = (market.resolution_source or "")
+        lower_rules = rules_text.lower()
+        if any(keyword in lower_rules for keyword in ("subjective", "opinion", "consensus", "believe")):
+            return RejectionReason.RESOLUTION_SUBJECTIVE
+        if rules_raw is not None and rules_text.strip() == "":
+            return RejectionReason.RESOLUTION_EMPTY
+        if source_text.strip():
+            return None
+        if rules_text.strip() and "resolve" in lower_rules:
+            return None
+        return RejectionReason.RESOLUTION_EMPTY
+
     def _passes_resolution_filter(self, market: Market) -> bool:
         """Check if market has explicit resolution source (if required by settings)."""
-        if not self.settings.require_resolution_source:
-            return True
-        return market.resolution_source is not None and len(
-            market.resolution_source.strip()
-        ) > 0
+        return self._resolution_issue(market) is None
     
     def _get_rejection_reasons(self, market: Market) -> List[str]:
         """Get specific rejection reason(s)."""
@@ -303,8 +343,9 @@ class MarketFilter:
         if not self._passes_expiry_filter(market):
             reasons.append(RejectionReason.EXPIRY_TOO_SOON.value)
         
-        if self.settings.require_resolution_source and not self._passes_resolution_filter(market):
-            reasons.append(RejectionReason.RESOLUTION_EMPTY.value)
+        issue = self._resolution_issue(market)
+        if issue:
+            reasons.append(issue.value)
         
         return reasons
     
@@ -321,7 +362,8 @@ class MarketFilter:
         Requires: liquidity >= min_liquidity_multiple * target_order_size_usd
         """
         min_required = self.settings.min_liquidity_multiple * target_order_size_usd
-        return market.liquidity >= min_required
+        liquidity = market.liquidity or 0.0
+        return liquidity >= min_required
     
     # ========== LAYER 3: Scoring & Ranking ==========
     
@@ -341,14 +383,16 @@ class MarketFilter:
         spread_score = self._score_spread(market)
         volume_score = self._score_volume(market)
         liquidity_score = self._score_liquidity(market)
+        frequency_score = self._score_frequency(market)
         outcome_score = self._score_outcome_count(market)
+        frequency_component = (frequency_score + outcome_score) / 2
         
         # Weighted average
         total = (
             spread_score * self.settings.spread_score_weight
             + volume_score * self.settings.volume_score_weight
             + liquidity_score * self.settings.liquidity_score_weight
-            + outcome_score * self.settings.frequency_score_weight
+            + frequency_component * self.settings.frequency_score_weight
         )
         
         # Apply expiry penalty if end_date is present but close
@@ -361,17 +405,17 @@ class MarketFilter:
             elif end_time.tzinfo is None and now.tzinfo is not None:
                 now = now.replace(tzinfo=None)
             
-            days_to_expiry = (end_time - now).days
+            days_to_expiry = max(0.0, (end_time - now).days)
             if days_to_expiry < 30:
-                # Reduce score by 5% per day under 30 days
-                penalty = max(0, (30 - days_to_expiry) * 0.05)
-                total = max(0, total - penalty * 100)
+                # Scale down linearly as expiry approaches (down to 0 at expiry)
+                factor = max(0.0, days_to_expiry / 30.0)
+                total = total * factor
         else:
             # Penalize missing expiry if allowed
             if self.settings.allow_missing_end_time:
                 total = total * 0.95
-        
-        return max(0, min(100, total))
+
+        return float(max(0, min(100, total)))
     
     def _score_spread(self, market: Market) -> float:
         """
@@ -379,17 +423,30 @@ class MarketFilter:
         
         Tighter spread = higher score. Linear scale from 0% to max_spread_pct.
         """
-        if not market.outcomes or len(market.outcomes) < 2:
-            return 0.0
-        
-        prices = [o.price for o in market.outcomes if o.price >= 0]
+        best_bid = getattr(market, "best_bid", {}) or {}
+        best_ask = getattr(market, "best_ask", {}) or {}
+        if best_bid and best_ask:
+            labels = [o.label if isinstance(o, Outcome) else str(o) for o in market.outcomes]
+            max_spread_abs = 0.0
+            for lbl in labels:
+                bid = best_bid.get(lbl)
+                ask = best_ask.get(lbl)
+                if bid is None or ask is None or ask <= 0:
+                    continue
+                spread_abs = ask - bid
+                max_spread_abs = max(max_spread_abs, spread_abs)
+            if max_spread_abs == 0:
+                return 100.0
+            return max(0.0, 100 * (1 - max_spread_abs / max(self.settings.max_spread_pct, 1e-6)))
+
+        prices = [p for p in self._price_map(market).values() if p >= 0]
         if len(prices) < 2:
             return 0.0
-        
+
         min_price = min(prices)
         max_price = max(prices)
         avg_price = sum(prices) / len(prices)
-        
+
         if avg_price == 0:
             return 0.0
         
@@ -411,14 +468,15 @@ class MarketFilter:
         min_volume_24h * 10 -> ~50 points
         min_volume_24h * 100 -> ~80 points
         """
-        if market.volume <= 0:
+        volume = market.volume or 0.0
+        if volume <= 0:
             return 0.0
         
-        if market.volume < self.settings.min_volume_24h:
+        if volume < self.settings.min_volume_24h:
             return 0.0
         
         # Log scale: ln(volume / min_volume) normalized
-        ratio = market.volume / self.settings.min_volume_24h
+        ratio = volume / self.settings.min_volume_24h
         log_ratio = math.log(ratio + 1)  # +1 to avoid log(0)
         
         # Normalize: ln(10) ≈ 2.3, ln(100) ≈ 4.6
@@ -434,13 +492,14 @@ class MarketFilter:
         min_liquidity * 10 -> ~50 points
         min_liquidity * 100 -> ~80 points
         """
-        if market.liquidity <= 0:
+        liquidity = market.liquidity or 0.0
+        if liquidity <= 0:
             return 0.0
         
-        if market.liquidity < self.settings.min_liquidity:
+        if liquidity < self.settings.min_liquidity:
             return 0.0
         
-        ratio = market.liquidity / self.settings.min_liquidity
+        ratio = liquidity / self.settings.min_liquidity
         log_ratio = math.log(ratio + 1)
         
         score = min(100, log_ratio * 21.7)
@@ -463,6 +522,48 @@ class MarketFilter:
         # 2 outcomes -> 70 points, 3+ outcomes -> 90+ points
         score = min(100, 50 + outcome_count * 10)
         return score
+
+    def _score_frequency(self, market: Market) -> float:
+        """
+        Score based on recent trading frequency (trades_1h).
+        """
+        trades = getattr(market, "trades_1h", None)
+        if trades is None or trades <= 0:
+            return 0.0
+        # Log-style scaling to keep in 0..100
+        return float(min(100, math.log(trades + 1) * 25))
+
+    def _price_map(self, market: Market) -> Dict[str, float]:
+        """
+        Derive a mapping of outcome label -> representative price.
+        Uses bid/ask midpoint when available, otherwise Outcome.price.
+        """
+        prices: Dict[str, float] = {}
+        labels = []
+        for o in market.outcomes:
+            if isinstance(o, Outcome):
+                labels.append(o.label)
+                prices[o.label] = o.price
+            elif isinstance(o, dict):
+                lbl = str(o.get("label") or o.get("id") or o)
+                labels.append(lbl)
+                prices[lbl] = float(o.get("price", 0) or 0)
+            else:
+                lbl = str(getattr(o, "label", o))
+                labels.append(lbl)
+                price_val = getattr(o, "price", 0)
+                prices[lbl] = float(price_val or 0.0)
+
+        best_bid = getattr(market, "best_bid", {}) or {}
+        best_ask = getattr(market, "best_ask", {}) or {}
+        if best_bid and best_ask:
+            for lbl in labels:
+                bid = best_bid.get(lbl)
+                ask = best_ask.get(lbl)
+                if bid is None or ask is None:
+                    continue
+                prices[lbl] = (bid + ask) / 2
+        return prices
 
 
 def filter_markets(

@@ -111,6 +111,8 @@ class Engine:
 
     def _write_report(self, trades):
         if not trades:
+            # Still create an empty report file for visibility in tests/ops.
+            self.report_path.touch(exist_ok=True)
             return
         write_header = not self.report_path.exists()
         with open(self.report_path, "a", newline="", encoding="utf-8") as f:

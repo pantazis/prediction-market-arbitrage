@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -10,12 +11,12 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 class PolymarketConfig(BaseModel):
     host: str = "https://clob.polymarket.com"
-    api_key: Optional[str] = None
-    secret: Optional[str] = None
-    passphrase: Optional[str] = None
-    private_key: Optional[str] = None
+    api_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_API_KEY"))
+    secret: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_SECRET"))
+    passphrase: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PASSPHRASE"))
+    private_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PRIVATE_KEY"))
     chain_id: int = 137
-    funder: Optional[str] = None
+    funder: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_FUNDER"))
 
 
 class RiskConfig(BaseModel):
@@ -46,9 +47,9 @@ class EngineConfig(BaseModel):
     report_path: str = "reports/paper_trades.csv"
 
 class TelegramConfig(BaseModel):
-    enabled: bool = False
-    bot_token: str = ""
-    chat_id: str = ""
+    enabled: bool = Field(default_factory=lambda: os.getenv("TELEGRAM_ENABLED", "false").lower() == "true")
+    bot_token: str = Field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", ""))
+    chat_id: str = Field(default_factory=lambda: os.getenv("TELEGRAM_CHAT_ID", ""))
 
 
 class DetectorConfig(BaseModel):
@@ -70,10 +71,30 @@ class AppConfig(BaseModel):
 
 
 def load_config(path: str | Path) -> AppConfig:
-    load_dotenv()
+    path = Path(path)
+    env_path = path.parent / ".env"
+    load_dotenv(env_path, override=True)
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     try:
-        return AppConfig(**data)
+        cfg = AppConfig(**data)
     except ValidationError as e:
         raise RuntimeError(f"Invalid config: {e}") from e
+    # If YAML has empty/placeholder values, fill from env
+    if not cfg.telegram.bot_token:
+        cfg.telegram.bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    if not cfg.telegram.chat_id:
+        cfg.telegram.chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+    if cfg.telegram.enabled is False:
+        cfg.telegram.enabled = os.getenv("TELEGRAM_ENABLED", "false").lower() == "true"
+    if not cfg.polymarket.api_key:
+        cfg.polymarket.api_key = os.getenv("POLYMARKET_API_KEY", "")
+    if not cfg.polymarket.secret:
+        cfg.polymarket.secret = os.getenv("POLYMARKET_SECRET", "")
+    if not cfg.polymarket.passphrase:
+        cfg.polymarket.passphrase = os.getenv("POLYMARKET_PASSPHRASE", "")
+    if not cfg.polymarket.private_key:
+        cfg.polymarket.private_key = os.getenv("POLYMARKET_PRIVATE_KEY", "")
+    if not cfg.polymarket.funder:
+        cfg.polymarket.funder = os.getenv("POLYMARKET_FUNDER", "")
+    return cfg

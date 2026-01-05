@@ -74,6 +74,20 @@ class Engine:
         self._write_report(self.broker.trades)
         return executed
 
+    def run_self_test(self, markets: List[Market]) -> List[Opportunity]:
+        """Run detectors against supplied markets (e.g., fixtures) to prove pipeline works."""
+        opportunities: List[Opportunity] = []
+        for detector in self.detectors:
+            try:
+                opportunities.extend(detector.detect(markets))
+            except Exception as e:
+                logger.exception("Self-test detector %s failed: %s", detector.__class__.__name__, e)
+                if self.notifier:
+                    self.notifier.notify_error(str(e), f"SelfTest-{detector.__class__.__name__}")
+        if self.notifier:
+            self.notifier.notify_trade_summary(len(opportunities))
+        return opportunities
+
     def run(self):
         for i in range(self.config.engine.iterations):
             logger.info("Iteration %s", i + 1)

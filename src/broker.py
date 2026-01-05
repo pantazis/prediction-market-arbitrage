@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from src.models import Opportunity, Trade, TradeAction
 from src.config import BrokerConfig
 from datetime import datetime
@@ -8,11 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class PaperBroker:
-    def __init__(self, config: BrokerConfig):
+    def __init__(self, config: BrokerConfig, notifier=None):
         self.config = config
         self.cash = config.initial_cash
         self.positions: Dict[str, float] = {} # outcome_id -> amount
         self.trades: List[Trade] = []
+        self.notifier = notifier
 
     def execute_opportunity(self, opportunity: Opportunity) -> List[Trade]:
         executed_trades = []
@@ -38,13 +39,21 @@ class PaperBroker:
 
         # Execute
         for action in opportunity.actions:
-            trade = self._execute_action(action, quantity)
+            trade = self._execute_action(action, quantity, opportunity.market_title)
             if trade:
                 executed_trades.append(trade)
+        
+        # Send balance update after executing opportunity
+        if self.notifier and executed_trades:
+            self.notifier.notify_balance(
+                cash=self.cash,
+                positions=self.positions,
+                total_trades=len(self.trades)
+            )
                 
         return executed_trades
 
-    def _execute_action(self, action: TradeAction, quantity: float) -> Trade:
+    def _execute_action(self, action: TradeAction, quantity: float, market_title: str = "") -> Trade:
         # Simulate slippage
         # Price increases by slippage_bps for buys
         slippage_mult = 1.0 + (self.config.slippage_bps / 10000.0) if action.side == 'BUY' else 1.0 - (self.config.slippage_bps / 10000.0)
@@ -73,6 +82,11 @@ class PaperBroker:
             fees=fees
         )
         self.trades.append(t)
+        
+        # Send trade notification
+        if self.notifier:
+            self.notifier.notify_trade(t, market_title)
+        
         return t
 
     def get_portfolio_value(self) -> float:

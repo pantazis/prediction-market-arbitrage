@@ -62,6 +62,25 @@ def test_broker_execution():
     assert broker.positions["o1"] == 12.5
     assert broker.positions["o2"] == 12.5
 
+def test_broker_with_notifier():
+    """Test that broker works with a notifier"""
+    from unittest.mock import Mock
+    
+    config = BrokerConfig(initial_cash=100.0, fee_bps=0, slippage_bps=0)
+    mock_notifier = Mock()
+    broker = PaperBroker(config, notifier=mock_notifier)
+    
+    action = TradeAction("m1", "o1", "BUY", 1.0, 0.40)
+    opp = Opportunity("m1", "Test", "TEST", "D", 0.1, 0.4, [action])
+    
+    trades = broker.execute_opportunity(opp)
+    
+    assert len(trades) == 1
+    # Verify notifier was called
+    assert mock_notifier.notify_trade.called
+    assert mock_notifier.notify_balance.called
+
+
 def test_broker_insufficient_funds():
     config = BrokerConfig(initial_cash=5.0) # Less than 10 needed
     broker = PaperBroker(config)

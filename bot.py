@@ -15,11 +15,16 @@ def main():
     config = load_config(args.config)
     
     if args.command == "run":
-        client = HttpPolymarketClient(config.polymarket_api_url)
+        # Prefer CLOB client
+        from src.polymarket_client import ClobPolymarketClient
+        client = ClobPolymarketClient(config.polymarket)
+             
         engine = Engine(config, client)
         engine.run_loop()
     elif args.command == "test_connection":
-        client = HttpPolymarketClient(config.polymarket_api_url)
+        from src.polymarket_client import ClobPolymarketClient
+        client = ClobPolymarketClient(config.polymarket)
+             
         markets = client.get_active_markets()
         print(f"Connection successful. Found {len(markets)} markets.")
 

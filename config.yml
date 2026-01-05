@@ -1,4 +1,19 @@
 polymarket_api_url: "https://gamma-api.polymarket.com"
+polymarket:
+  host: "https://clob.polymarket.com"
+  # Authentication credentials should be set in .env file
+  # key: "" 
+  # passphrase: ""
+  chain_id: 137 # Polygon Mainnet
+  funder: "" # Address of the funder (needed for some auth types)
+
+  passphrase: "" 
+
+telegram:
+  enabled: false  # Set via TELEGRAM_ENABLED env var
+
+paper_trading: true
+
 refresh_interval_seconds: 30
 
 risk:

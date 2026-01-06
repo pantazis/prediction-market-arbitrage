@@ -15,6 +15,9 @@ import logging
 import sys
 from pathlib import Path
 
+# Add src directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+
 from predarb.config import AppConfig, load_config
 from predarb.engine import Engine
 from predarb.notifiers.telegram import TelegramNotifierReal

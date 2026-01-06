@@ -56,8 +56,9 @@ class TelegramNotifierReal(Notifier):
             )
             resp.raise_for_status()
             logger.debug(f"Telegram message sent: {len(text)} chars")
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to send Telegram message: {e}")
+        except Exception as e:
+            # Don't raise - just log. Telegram failures shouldn't crash the bot
+            logger.warning(f"Failed to send Telegram message: {type(e).__name__}: {e}")
 
     # Compatibility methods for predarb.notifier API
     def _post(self, text: str) -> None:

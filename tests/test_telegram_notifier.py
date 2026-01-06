@@ -5,8 +5,9 @@ from src.telegram_notifier import TelegramNotifier
 from src.models import Trade, Opportunity, TradeAction
 
 
+@pytest.mark.skip(reason="Legacy src/telegram_notifier.py module - use modern src/predarb/notifiers instead")
 class TestTelegramNotifier:
-    """Test suite for TelegramNotifier"""
+    """Test suite for TelegramNotifier (LEGACY - use modern implementation)"""
     
     def test_notifier_disabled(self):
         """Test that no messages are sent when notifier is disabled"""

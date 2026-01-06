@@ -106,7 +106,7 @@ class ConfirmationManager:
         pending = self.pending[request_id]
         
         # Check expiry
-        if datetime.utcnow() > pending["expiry"]:
+        if datetime.utcnow() >= pending["expiry"]:
             del self.pending[request_id]
             return False, "❌ Confirmation expired."
         

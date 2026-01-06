@@ -1,0 +1,824 @@
+{
+  "schema_version": "1.0",
+  "generated_date": "2026-01-06",
+  "project": {
+    "name": "prediction-market-arbitrage",
+    "description": "Python arbitrage detection bot for Polymarket prediction markets",
+    "repository": "pantazis/prediction-market-arbitrage",
+    "languages": [
+      "python"
+    ],
+    "python_version": "3.10+",
+    "structure": {
+      "root": "c:\\Users\\pvast\\Documents\\arbitrage",
+      "primary_modules": [
+        "src/predarb (main engine)",
+        "arbitrage_bot (telegram integration)",
+        "src (legacy client)",
+        "tests (pytest suite)"
+      ]
+    }
+  },
+  "entry_points": [
+    {
+      "name": "predarb_cli",
+      "path": "src/predarb/__main__.py",
+      "type": "cli",
+      "call": "predarb.cli:main()",
+      "commands": [
+        "run",
+        "once",
+        "selftest"
+      ],
+      "description": "Main arbitrage engine CLI with run loop, single iteration, and self-test modes"
+    },
+    {
+      "name": "legacy_bot",
+      "path": "bot.py",
+      "type": "cli",
+      "call": "main()",
+      "commands": [
+        "run",
+        "test_connection"
+      ],
+      "description": "Legacy Polymarket arbitrage client (reference only)"
+    },
+    {
+      "name": "telegram_bot",
+      "path": "arbitrage_bot/main.py",
+      "type": "module",
+      "class": "TelegramControlledArbitrageBot",
+      "description": "Telegram-controlled arbitrage bot with command routing and authorization"
+    },
+    {
+      "name": "connection_test",
+      "path": "check_connection.py",
+      "type": "script",
+      "description": "Test Polymarket API connectivity"
+    },
+    {
+      "name": "key_utility",
+      "path": "get_keys.py",
+      "type": "script",
+      "description": "Utility for key retrieval"
+    }
+  ],
+  "module_structure": {
+    "src/predarb": {
+      "description": "Primary arbitrage engine module",
+      "role": "core_execution",
+      "submodules": {
+        "engine.py": {
+          "class": "Engine",
+          "responsibilities": [
+            "Orchestrate market scanning",
+            "Run detector pipeline",
+            "Execute trades via broker",
+            "Generate reports"
+          ]
+        },
+        "polymarket_client.py": {
+          "class": "PolymarketClient",
+          "responsibilities": [
+            "Fetch active markets",
+            "Parse market data",
+            "Extract entities and thresholds"
+          ]
+        },
+        "broker.py": {
+          "class": "PaperBroker",
+          "responsibilities": [
+            "Simulate trade execution",
+            "Model fees and slippage",
+            "Track positions and P&L"
+          ]
+        },
+        "risk.py": {
+          "class": "RiskManager",
+          "responsibilities": [
+            "Evaluate trade risk",
+            "Enforce position limits",
+            "Monitor drawdown"
+          ]
+        },
+        "notifier.py": {
+          "class": "TelegramNotifier",
+          "responsibilities": [
+            "Send Telegram alerts",
+            "Log opportunities and trades"
+          ]
+        },
+        "detectors": {
+          "description": "Arbitrage opportunity detectors",
+          "pattern": "Each detector implements detect(markets) → List[Opportunity]",
+          "detectors": [
+            {
+              "module": "parity.py",
+              "class": "ParityDetector",
+              "purpose": "Find bad pricing (outcomes sum != 1)"
+            },
+            {
+              "module": "ladder.py",
+              "class": "LadderDetector",
+              "purpose": "Find sequential outcome ladders"
+            },
+            {
+              "module": "duplicates.py",
+              "class": "DuplicateDetector",
+              "purpose": "Find market clones with price differences"
+            },
+            {
+              "module": "exclusivesum.py",
+              "class": "ExclusiveSumDetector",
+              "purpose": "Verify exclusive outcome sums"
+            },
+            {
+              "module": "timelag.py",
+              "class": "TimeLagDetector",
+              "purpose": "Detect stale prices in related markets"
+            },
+            {
+              "module": "consistency.py",
+              "class": "ConsistencyDetector",
+              "purpose": "Cross-market validation"
+            }
+          ]
+        },
+        "filtering.py": {
+          "functions": [
+            "filter_markets()",
+            "rank_markets()"
+          ],
+          "purpose": "Pre-filter and score markets by liquidity, volume, spread"
+        },
+        "matchers.py": {
+          "functions": [
+            "group_related()",
+            "cluster_duplicates()"
+          ],
+          "purpose": "Match and group related markets"
+        },
+        "models.py": {
+          "classes": [
+            "Outcome (pydantic)",
+            "Market (pydantic)",
+            "Opportunity (dataclass)",
+            "Trade (dataclass)",
+            "TradeAction (dataclass)"
+          ]
+        },
+        "config.py": {
+          "classes": [
+            "AppConfig",
+            "PolymarketConfig",
+            "BrokerConfig",
+            "RiskConfig",
+            "FilterConfig",
+            "DetectorConfig",
+            "TelegramConfig",
+            "EngineConfig"
+          ]
+        }
+      }
+    },
+    "src": {
+      "description": "Legacy client modules (reference)",
+      "status": "superseded by src/predarb",
+      "files": [
+        "broker.py",
+        "config.py",
+        "detectors.py",
+        "engine.py",
+        "models.py",
+        "polymarket_client.py",
+        "risk.py",
+        "telegram_notifier.py",
+        "utils.py"
+      ]
+    },
+    "arbitrage_bot": {
+      "description": "Telegram bot integration",
+      "submodules": {
+        "main.py": {
+          "class": "TelegramControlledArbitrageBot",
+          "responsibility": "Integrate Telegram interface with bot loop"
+        },
+        "core": {
+          "modules": [
+            "bot_loop.py (main execution loop)",
+            "control_queue.py (command queue)",
+            "state.py (bot state snapshot)",
+            "actions.py (bot actions)"
+          ]
+        },
+        "telegram": {
+          "modules": [
+            "handlers.py (command handlers)",
+            "router.py (command routing)",
+            "security.py (auth/confirmation)",
+            "rate_limit.py (rate limiting)",
+            "notifier.py (async notifications)"
+          ]
+        }
+      }
+    },
+    "tests": {
+      "description": "Pytest test suite",
+      "test_files": [
+        "test_engine.py",
+        "test_broker.py",
+        "test_detectors.py",
+        "test_filtering.py",
+        "test_filtering_polymarket.py",
+        "test_models_and_extractors.py",
+        "test_polymarket_client.py",
+        "test_notifier.py",
+        "test_telegram_interface.py",
+        "test_telegram_notifier.py"
+      ],
+      "fixtures": {
+        "markets.json": "Mock Polymarket market data for selftest"
+      }
+    }
+  },
+  "data_flow": {
+    "entry": "CLI (args: command, config path)",
+    "pipeline": [
+      "1. Load config from YAML (config.yml) + environment variables (.env)",
+      "2. Instantiate PolymarketClient with API credentials",
+      "3. Create Engine with config + client",
+      "4. Execute run() or run_once() based on command",
+      "5. Engine.run() fetches active markets from Polymarket CLOB API",
+      "6. Filter markets by: spread, volume, liquidity, days_to_expiry",
+      "7. Rank markets by composite score (spread, volume, liquidity weights)",
+      "8. Run 6 detectors in sequence on filtered/ranked markets",
+      "9. Detectors identify arbitrage opportunities via pricing violations",
+      "10. Combine opportunities from all detectors",
+      "11. Execute viable opportunities via PaperBroker",
+      "12. Log trades to CSV (reports/paper_trades.csv)",
+      "13. Send Telegram notifications (if enabled)",
+      "14. Record equity curve and performance metrics",
+      "15. Sleep and repeat (configurable refresh_seconds)"
+    ],
+    "config_sources": {
+      "files": [
+        "config.yml (primary YAML config)"
+      ],
+      "env_vars": [
+        "POLYMARKET_API_KEY",
+        "POLYMARKET_SECRET",
+        "POLYMARKET_PASSPHRASE",
+        "POLYMARKET_PRIVATE_KEY",
+        "POLYMARKET_FUNDER",
+        "TELEGRAM_ENABLED",
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "cli_args": [
+        "command (run|once|selftest)",
+        "--config (path)",
+        "--iterations (override)",
+        "--fixtures (selftest only)"
+      ]
+    },
+    "config_structure": {
+      "polymarket": {
+        "host": "API endpoint (default: https://clob.polymarket.com)",
+        "api_key": "CLOB API key",
+        "secret": "CLOB secret",
+        "passphrase": "CLOB passphrase",
+        "private_key": "Ethereum private key",
+        "chain_id": "Network (default: 137 = Polygon)",
+        "funder": "Funder address"
+      },
+      "broker": {
+        "initial_cash": "Starting capital for paper trading",
+        "fee_bps": "Fee in basis points (default: 10)",
+        "slippage_bps": "Slippage modeling (default: 20)",
+        "depth_fraction": "Liquidity fraction available (default: 0.05)"
+      },
+      "risk": {
+        "max_allocation_per_market": "Max % of capital per market",
+        "max_open_positions": "Max concurrent positions",
+        "min_liquidity_usd": "Minimum market liquidity",
+        "min_net_edge_threshold": "Minimum profitability threshold",
+        "kill_switch_drawdown": "Max portfolio drawdown before halt"
+      },
+      "engine": {
+        "refresh_seconds": "Sleep between iterations",
+        "iterations": "Max number of runs (-1 = infinite)",
+        "report_path": "CSV output path"
+      },
+      "filter": {
+        "max_spread_pct": "Max price spread %",
+        "min_volume_24h": "Min trading volume",
+        "min_liquidity": "Min market liquidity USD",
+        "min_days_to_expiry": "Min days until market closes",
+        "require_resolution_source": "Must have resolution source",
+        "min_rank_score": "Min composite market score",
+        "spread_score_weight": "Weighting for spread in ranking",
+        "volume_score_weight": "Weighting for volume in ranking",
+        "liquidity_score_weight": "Weighting for liquidity in ranking"
+      },
+      "detectors": {
+        "parity_threshold": "Min outcomes sum (default: 0.99)",
+        "duplicate_price_diff_threshold": "Max price diff between clones",
+        "exclusive_sum_tolerance": "Tolerance for exclusive sum check",
+        "ladder_tolerance": "Tolerance for ladder detection",
+        "timelag_price_jump": "Min price jump for timelag",
+        "timelag_persistence_minutes": "How long timelag must persist"
+      },
+      "telegram": {
+        "enabled": "Enable notifications",
+        "bot_token": "Telegram bot token",
+        "chat_id": "Telegram chat ID"
+      }
+    }
+  },
+  "core_abstractions": {
+    "Market": {
+      "type": "pydantic_model",
+      "purpose": "Polymarket market data",
+      "key_fields": [
+        "id: str (market ID)",
+        "question: str (market title)",
+        "outcomes: List[Outcome]",
+        "end_date: Optional[datetime]",
+        "liquidity: float (USD)",
+        "volume: float (24h USD)",
+        "tags: List[str]",
+        "best_bid/best_ask: Dict[str, float] (by outcome)"
+      ],
+      "computed_fields": [
+        "comparator: str (extracted)",
+        "threshold: float (extracted)",
+        "asset: str (extracted)",
+        "expiry: datetime (extracted)"
+      ]
+    },
+    "Outcome": {
+      "type": "pydantic_model",
+      "purpose": "Market outcome (prediction option)",
+      "fields": [
+        "id: str",
+        "label: str",
+        "price: float (0-1)",
+        "liquidity: float"
+      ]
+    },
+    "Opportunity": {
+      "type": "dataclass",
+      "purpose": "Arbitrage opportunity detected by detector",
+      "fields": [
+        "id: str",
+        "detector: str",
+        "markets: List[str] (market IDs)",
+        "actions: List[TradeAction]",
+        "edge: float (expected profit %)",
+        "confidence: float (0-1)",
+        "description: str"
+      ]
+    },
+    "TradeAction": {
+      "type": "dataclass",
+      "purpose": "Single trade component of an opportunity",
+      "fields": [
+        "market_id: str",
+        "outcome_id: str",
+        "side: str (BUY|SELL)",
+        "amount: float (quantity)",
+        "limit_price: float (0-1)"
+      ]
+    },
+    "Trade": {
+      "type": "dataclass",
+      "purpose": "Executed trade record",
+      "fields": [
+        "id: str (UUID)",
+        "timestamp: datetime",
+        "market_id: str",
+        "outcome_id: str",
+        "side: str",
+        "quantity: float",
+        "price: float",
+        "cost: float",
+        "fees: float",
+        "pnl: float"
+      ]
+    }
+  },
+  "dependencies": {
+    "core": [
+      {
+        "package": "requests",
+        "version": "2.31.0",
+        "purpose": "HTTP client for API calls"
+      },
+      {
+        "package": "pydantic",
+        "version": "2.5.3",
+        "purpose": "Data validation and models"
+      },
+      {
+        "package": "pyyaml",
+        "version": "6.0.1",
+        "purpose": "YAML config parsing"
+      },
+      {
+        "package": "python-dotenv",
+        "version": "1.0.0",
+        "purpose": "Environment variable loading"
+      }
+    ],
+    "trading": [
+      {
+        "package": "py-clob-client",
+        "version": "0.19.0",
+        "purpose": "Polymarket CLOB API client"
+      },
+      {
+        "package": "eth-account",
+        "version": ">=0.13.0",
+        "purpose": "Ethereum key management and signing"
+      },
+      {
+        "package": "python-dateutil",
+        "version": "2.9.0.post0",
+        "purpose": "Date parsing and manipulation"
+      }
+    ],
+    "notifications": [
+      {
+        "package": "python-telegram-bot",
+        "version": ">=20.0",
+        "purpose": "Telegram bot integration"
+      }
+    ],
+    "testing": [
+      {
+        "package": "pytest",
+        "version": "7.4.3",
+        "purpose": "Testing framework"
+      }
+    ]
+  },
+  "import_graph": {
+    "module_dependencies": [
+      {
+        "from": "predarb.cli",
+        "to": "predarb.config",
+        "type": "import"
+      },
+      {
+        "from": "predarb.cli",
+        "to": "predarb.engine",
+        "type": "import"
+      },
+      {
+        "from": "predarb.cli",
+        "to": "predarb.polymarket_client",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.broker",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.config",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.polymarket_client",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.risk",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.detectors.*",
+        "type": "import"
+      },
+      {
+        "from": "predarb.engine",
+        "to": "predarb.filtering",
+        "type": "import"
+      },
+      {
+        "from": "predarb.polymarket_client",
+        "to": "predarb.config",
+        "type": "import"
+      },
+      {
+        "from": "predarb.polymarket_client",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.polymarket_client",
+        "to": "predarb.extractors",
+        "type": "import"
+      },
+      {
+        "from": "predarb.notifier",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.risk",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.detectors.parity",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.detectors.ladder",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.matchers",
+        "to": "predarb.extractors",
+        "type": "import"
+      },
+      {
+        "from": "predarb.matchers",
+        "to": "predarb.normalize",
+        "type": "import"
+      },
+      {
+        "from": "arbitrage_bot.main",
+        "to": "arbitrage_bot.core.*",
+        "type": "import"
+      },
+      {
+        "from": "arbitrage_bot.main",
+        "to": "arbitrage_bot.telegram.*",
+        "type": "import"
+      },
+      {
+        "from": "bot",
+        "to": "src.config",
+        "type": "import"
+      },
+      {
+        "from": "bot",
+        "to": "src.engine",
+        "type": "import"
+      }
+    ]
+  },
+  "call_graph": {
+    "main_execution_flows": [
+      {
+        "flow": "predarb_cli",
+        "steps": [
+          "cli.main() parses arguments",
+          "load_config(yaml_path) → AppConfig",
+          "PolymarketClient(config.polymarket) instantiate",
+          "Engine(config, client) instantiate",
+          "engine.run() or engine.run_once() execute"
+        ]
+      },
+      {
+        "flow": "engine_run_loop",
+        "steps": [
+          "client.get_active_markets() → List[Market]",
+          "filter_markets(markets, settings) → filtered",
+          "rank_markets(filtered) → sorted by score",
+          "for detector in [Parity, Ladder, Duplicate, ...]: detector.detect(ranked)",
+          "combine all detector results",
+          "for opportunity in opportunities: broker.execute(opportunity)",
+          "write_trades_csv(trades)",
+          "notifier.send_telegram(summary) if enabled",
+          "sleep(config.engine.refresh_seconds)",
+          "repeat or exit"
+        ]
+      },
+      {
+        "flow": "detector_pattern",
+        "steps": [
+          "detector.detect(markets: List[Market]) → List[Opportunity]",
+          "each detector scans markets independently",
+          "returns 0+ opportunities per detector"
+        ]
+      },
+      {
+        "flow": "broker_execute",
+        "steps": [
+          "broker.execute(opportunity: Opportunity) → List[Trade]",
+          "for action in opportunity.actions: execute_trade(action)",
+          "model fees, slippage, liquidity",
+          "update position tracking",
+          "record trades and P&L"
+        ]
+      }
+    ]
+  },
+  "io_and_side_effects": {
+    "network": [
+      {
+        "target": "https://clob.polymarket.com",
+        "type": "HTTP API",
+        "operations": [
+          "GET /markets (fetch active markets)",
+          "GET /markets/{id} (fetch market details)",
+          "GET /trades (fetch trade history)",
+          "POST /orders (submit orders, if live trading enabled)"
+        ],
+        "module": "predarb.polymarket_client"
+      },
+      {
+        "target": "https://api.telegram.org",
+        "type": "HTTP API",
+        "operations": [
+          "POST /bot<token>/sendMessage (send notifications)"
+        ],
+        "module": "predarb.notifier",
+        "optional": true
+      }
+    ],
+    "filesystem": [
+      {
+        "path": "config.yml",
+        "mode": "read",
+        "purpose": "Load application configuration",
+        "module": "predarb.config:load_config()"
+      },
+      {
+        "path": "reports/paper_trades.csv",
+        "mode": "write",
+        "purpose": "Log executed trades",
+        "module": "predarb.engine"
+      },
+      {
+        "path": ".env",
+        "mode": "read",
+        "purpose": "Load environment variables",
+        "module": "python-dotenv"
+      },
+      {
+        "path": "tests/fixtures/markets.json",
+        "mode": "read",
+        "purpose": "Load mock market data for selftest",
+        "module": "predarb.cli (selftest mode)"
+      }
+    ],
+    "environment_variables": [
+      {
+        "name": "POLYMARKET_API_KEY",
+        "purpose": "CLOB API key",
+        "required": true
+      },
+      {
+        "name": "POLYMARKET_SECRET",
+        "purpose": "CLOB API secret",
+        "required": true
+      },
+      {
+        "name": "POLYMARKET_PASSPHRASE",
+        "purpose": "CLOB API passphrase",
+        "required": true
+      },
+      {
+        "name": "POLYMARKET_PRIVATE_KEY",
+        "purpose": "Ethereum private key for signing",
+        "required": false
+      },
+      {
+        "name": "POLYMARKET_FUNDER",
+        "purpose": "Funder wallet address",
+        "required": false
+      },
+      {
+        "name": "TELEGRAM_ENABLED",
+        "purpose": "Enable Telegram notifications",
+        "required": false,
+        "default": "false"
+      },
+      {
+        "name": "TELEGRAM_BOT_TOKEN",
+        "purpose": "Telegram bot token",
+        "required_if": "TELEGRAM_ENABLED=true"
+      },
+      {
+        "name": "TELEGRAM_CHAT_ID",
+        "purpose": "Telegram chat ID for messages",
+        "required_if": "TELEGRAM_ENABLED=true"
+      }
+    ]
+  },
+  "detector_details": {
+    "parity": {
+      "module": "src/predarb/detectors/parity.py",
+      "class": "ParityDetector",
+      "purpose": "Find markets where outcomes don't sum to 1",
+      "config_param": "parity_threshold",
+      "signal": "Imbalanced probability space (arbitrage opportunity)"
+    },
+    "ladder": {
+      "module": "src/predarb/detectors/ladder.py",
+      "class": "LadderDetector",
+      "purpose": "Detect sequential outcome ladders (e.g., buckets)",
+      "config_param": "ladder_tolerance",
+      "signal": "Outcomes ordered by threshold with consistent price jumps"
+    },
+    "duplicates": {
+      "module": "src/predarb/detectors/duplicates.py",
+      "class": "DuplicateDetector",
+      "purpose": "Find clone markets with different prices",
+      "config_param": "duplicate_price_diff_threshold",
+      "signal": "Price divergence between identical market outcomes"
+    },
+    "exclusive_sum": {
+      "module": "src/predarb/detectors/exclusivesum.py",
+      "class": "ExclusiveSumDetector",
+      "purpose": "Validate mutually exclusive outcomes sum to 1",
+      "config_param": "exclusive_sum_tolerance",
+      "signal": "Violated exclusivity constraint"
+    },
+    "timelag": {
+      "module": "src/predarb/detectors/timelag.py",
+      "class": "TimeLagDetector",
+      "purpose": "Find stale prices in related markets",
+      "config_param": "timelag_price_jump, timelag_persistence_minutes",
+      "signal": "Related market with outdated pricing"
+    },
+    "consistency": {
+      "module": "src/predarb/detectors/consistency.py",
+      "class": "ConsistencyDetector",
+      "purpose": "Cross-market validation",
+      "signal": "Market violates relationships with peers"
+    }
+  },
+  "test_coverage": {
+    "test_files": [
+      "tests/test_engine.py",
+      "tests/test_broker.py",
+      "tests/test_detectors.py",
+      "tests/test_filtering.py",
+      "tests/test_filtering_polymarket.py",
+      "tests/test_models_and_extractors.py",
+      "tests/test_polymarket_client.py",
+      "tests/test_notifier.py",
+      "tests/test_telegram_interface.py",
+      "tests/test_telegram_notifier.py"
+    ],
+    "fixtures": {
+      "conftest.py": "Pytest configuration and shared fixtures",
+      "markets.json": "Mock market data for selftest"
+    },
+    "running_tests": "pytest tests/ or python -m pytest",
+    "selftest_mode": "python -m predarb selftest --fixtures tests/fixtures/markets.json"
+  },
+  "ai_hints": {
+    "entry_point_for_new_ai": "Start analysis at: src/predarb/__main__.py → src/predarb/cli.py → src/predarb/engine.py",
+    "critical_path": "Engine.run() is the main loop orchestrating all arbitrage detection and execution",
+    "config_loading_mechanism": "AppConfig loads from config.yml (YAML) and overrides via .env (environment variables)",
+    "detector_plugin_pattern": "All detectors follow same interface: detect(markets: List[Market]) → List[Opportunity]",
+    "execution_model": "Single-threaded, synchronous polling loop (no async/await)",
+    "paper_trading": "PaperBroker simulates execution without real capital or blockchain interaction",
+    "optional_features": [
+      "Telegram notifications (enabled via config)",
+      "Risk management kill switch (drawdown threshold)"
+    ],
+    "two_codebases": "src/predarb/* is modern/primary; src/*.py and bot.py are legacy (reference only)",
+    "testing": "pytest runs all tests; selftest mode uses fixtures for offline validation",
+    "debug_entry": "python -m predarb once (single iteration) for quick testing",
+    "performance_note": "Detector bottleneck: market matching/grouping in duplicates and matchers modules",
+    "extension_points": [
+      "Add new detector by creating new class inheriting pattern",
+      "Add new config section via new pydantic BaseModel class",
+      "Customize filtering thresholds in FilterConfig",
+      "Extend notifier with additional channels (Slack, Discord, etc.)"
+    ]
+  },
+  "known_limitations": {
+    "paper_trading": "Simulated only; no real capital or blockchain interaction",
+    "single_threaded": "Sequential detector execution (no parallelization)",
+    "live_api_only": "Requires live Polymarket API (uses fixtures for offline testing)",
+    "polling_based": "Fixed refresh rate; no event-driven updates",
+    "parity_only": "Detects pricing inefficiencies, not market consensus divergence"
+  },
+  "next_steps_for_developers": {
+    "understand_flow": "Read engine.py run() method end-to-end",
+    "add_detector": "Create new detector in src/predarb/detectors/, register in Engine.__init__()",
+    "customize_filtering": "Modify FilterConfig in config.py and FilterSettings in filtering.py",
+    "enable_telegram": "Set TELEGRAM_ENABLED=true, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID in .env",
+    "live_trading": "Modify PaperBroker to use real py-clob-client instead of simulation",
+    "performance_optimization": "Profile detectors.py and matchers.py; parallelize if needed"
+  }
+}

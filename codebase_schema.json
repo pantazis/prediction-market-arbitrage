@@ -33,6 +33,22 @@
       "description": "Main arbitrage engine CLI with run loop, single iteration, and self-test modes"
     },
     {
+      "name": "sim_run",
+      "path": "sim_run.py",
+      "type": "cli",
+      "call": "sim_run:main()",
+      "commands": [
+        "--days",
+        "--trade-size",
+        "--seed",
+        "--markets",
+        "--config",
+        "--no-telegram",
+        "-v/--verbose"
+      ],
+      "description": "Simulation harness: run bot against fake Polymarket client with real Telegram notifications"
+    },
+    {
       "name": "legacy_bot",
       "path": "bot.py",
       "type": "cli",
@@ -74,7 +90,8 @@
             "Orchestrate market scanning",
             "Run detector pipeline",
             "Execute trades via broker",
-            "Generate reports"
+            "Generate reports",
+            "Accept injected notifier for testing"
           ]
         },
         "polymarket_client.py": {
@@ -106,7 +123,25 @@
           "responsibilities": [
             "Send Telegram alerts",
             "Log opportunities and trades"
-          ]
+          ],
+          "note": "Legacy module; use src/predarb/notifiers/ for new code"
+        },
+        "notifiers": {
+          "description": "Notifier interface and implementations",
+          "modules": [
+            "__init__.py (abstract Notifier base class)",
+            "telegram.py (TelegramNotifierReal, TelegramNotifierMock)"
+          ],
+          "purpose": "Unified notification interface for testing and production"
+        },
+        "testing": {
+          "description": "Testing harness modules for simulation",
+          "modules": [
+            "__init__.py (exports)",
+            "fake_client.py (FakePolymarketClient - in-memory, deterministic)",
+            "synthetic_data.py (generate_synthetic_markets, evolve_markets_minute_by_minute)"
+          ],
+          "purpose": "Generate deterministic fake market data for testing without HTTP"
         },
         "detectors": {
           "description": "Arbitrage opportunity detectors",
@@ -515,6 +550,12 @@
         "type": "import"
       },
       {
+        "from": "predarb.engine",
+        "to": "predarb.notifiers",
+        "type": "import",
+        "note": "Optional notifier for testing/simulation"
+      },
+      {
         "from": "predarb.polymarket_client",
         "to": "predarb.config",
         "type": "import"
@@ -531,6 +572,16 @@
       },
       {
         "from": "predarb.notifier",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.notifiers.telegram",
+        "to": "predarb.notifiers",
+        "type": "import"
+      },
+      {
+        "from": "predarb.notifiers.telegram",
         "to": "predarb.models",
         "type": "import"
       },
@@ -557,6 +608,41 @@
       {
         "from": "predarb.matchers",
         "to": "predarb.normalize",
+        "type": "import"
+      },
+      {
+        "from": "predarb.testing.fake_client",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "predarb.testing.fake_client",
+        "to": "predarb.testing.synthetic_data",
+        "type": "import"
+      },
+      {
+        "from": "predarb.testing.synthetic_data",
+        "to": "predarb.models",
+        "type": "import"
+      },
+      {
+        "from": "sim_run",
+        "to": "predarb.config",
+        "type": "import"
+      },
+      {
+        "from": "sim_run",
+        "to": "predarb.engine",
+        "type": "import"
+      },
+      {
+        "from": "sim_run",
+        "to": "predarb.notifiers.telegram",
+        "type": "import"
+      },
+      {
+        "from": "sim_run",
+        "to": "predarb.testing",
         "type": "import"
       },
       {
@@ -775,13 +861,27 @@
       "tests/test_polymarket_client.py",
       "tests/test_notifier.py",
       "tests/test_telegram_interface.py",
-      "tests/test_telegram_notifier.py"
+      "tests/test_telegram_notifier.py",
+      "tests/test_simulation_harness.py"
     ],
+    "harness_tests": {
+      "path": "tests/test_simulation_harness.py",
+      "description": "Tests for simulation harness (notifiers, fake client, synthetic data)",
+      "test_classes": [
+        "TestNotifierInterface (Notifier abstract base)",
+        "TestTelegramNotifierMock (mock implementation, in-memory storage)",
+        "TestTelegramNotifierReal (real implementation, error handling)",
+        "TestSyntheticDataGeneration (market generation, determinism)",
+        "TestFakePolymarketClient (in-memory client, evolution)",
+        "TestSimulationIntegration (end-to-end harness tests)"
+      ]
+    },
     "fixtures": {
       "conftest.py": "Pytest configuration and shared fixtures",
       "markets.json": "Mock market data for selftest"
     },
     "running_tests": "pytest tests/ or python -m pytest",
+    "harness_testing": "pytest tests/test_simulation_harness.py for simulation tests",
     "selftest_mode": "python -m predarb selftest --fixtures tests/fixtures/markets.json"
   },
   "ai_hints": {
@@ -798,12 +898,31 @@
     "two_codebases": "src/predarb/* is modern/primary; src/*.py and bot.py are legacy (reference only)",
     "testing": "pytest runs all tests; selftest mode uses fixtures for offline validation",
     "debug_entry": "python -m predarb once (single iteration) for quick testing",
+    "simulation_harness": {
+      "entry_point": "python -m sim_run --days 2 --trade-size 200",
+      "description": "Run bot against fake Polymarket client with real Telegram notifications",
+      "components": [
+        "FakePolymarketClient: in-memory, deterministic market evolution (no HTTP)",
+        "TelegramNotifierReal: sends to real Telegram (requires env vars)",
+        "TelegramNotifierMock: in-memory storage for unit tests",
+        "Engine: accepts optional notifier for dependency injection"
+      ],
+      "workflow": "sim_run → Engine with FakePolymarketClient + TelegramNotifierReal → real Telegram messages"
+    },
+    "notifier_injection": {
+      "description": "Engine accepts optional notifier parameter for testing/simulation",
+      "signature": "Engine(config: AppConfig, client: PolymarketClient, notifier: Optional[Notifier] = None)",
+      "use_case_1": "Production: Engine(...) creates notifier from config",
+      "use_case_2": "Testing: Engine(..., notifier=TelegramNotifierMock()) for mock messages",
+      "use_case_3": "Simulation: Engine(..., notifier=TelegramNotifierReal()) for real Telegram"
+    },
     "performance_note": "Detector bottleneck: market matching/grouping in duplicates and matchers modules",
     "extension_points": [
       "Add new detector by creating new class inheriting pattern",
       "Add new config section via new pydantic BaseModel class",
       "Customize filtering thresholds in FilterConfig",
-      "Extend notifier with additional channels (Slack, Discord, etc.)"
+      "Extend notifier with additional channels (Slack, Discord, etc.)",
+      "Create new FakeClient subclass for different synthetic scenarios"
     ]
   },
   "known_limitations": {

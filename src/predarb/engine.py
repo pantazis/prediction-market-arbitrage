@@ -4,13 +4,14 @@ import csv
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from predarb.broker import PaperBroker
 from predarb.config import AppConfig
 from predarb.models import Market, Opportunity
 from predarb.polymarket_client import PolymarketClient
 from predarb.risk import RiskManager
+from predarb.notifiers import Notifier
 
 from predarb.detectors.parity import ParityDetector
 from predarb.detectors.ladder import LadderDetector
@@ -25,14 +26,32 @@ logger = logging.getLogger(__name__)
 
 
 class Engine:
-    def __init__(self, config: AppConfig, client: PolymarketClient):
+    def __init__(
+        self,
+        config: AppConfig,
+        client: PolymarketClient,
+        notifier: Optional[Notifier] = None,
+    ):
+        """Initialize Engine.
+        
+        Args:
+            config: Application configuration
+            client: Polymarket client (real or fake)
+            notifier: Optional injected notifier for testing. If not provided,
+                     a TelegramNotifier will be instantiated from config.
+        """
         self.config = config
         self.client = client
         self.broker = PaperBroker(config.broker)
         self.risk = RiskManager(config.risk, self.broker)
-        self.notifier = None
-        if config.telegram.enabled and config.telegram.bot_token and config.telegram.chat_id:
+        
+        # Use injected notifier if provided, otherwise instantiate from config
+        if notifier is not None:
+            self.notifier = notifier
+        elif config.telegram.enabled and config.telegram.bot_token and config.telegram.chat_id:
             self.notifier = TelegramNotifier(config.telegram.bot_token, config.telegram.chat_id)
+        else:
+            self.notifier = None
 
         # Build filter settings from config (looser defaults to avoid empty scans)
         filter_kwargs = config.filter.model_dump()

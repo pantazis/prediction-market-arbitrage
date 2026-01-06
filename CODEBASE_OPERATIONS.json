@@ -1,0 +1,749 @@
+{
+  "codebase_operations": {
+    "version": "2.0",
+    "generated": "2026-01-06",
+    "project": "prediction-market-arbitrage",
+    "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
+    "section": "ALL_OPERATIONS",
+    "run_commands": {
+      "main_cli": {
+        "entry": "src/predarb/__main__.py",
+        "class": "cli.main()",
+        "commands": [
+          {
+            "cmd": "python -m predarb run",
+            "mode": "run",
+            "description": "Start infinite loop: detect arbs → execute trades → sleep → repeat",
+            "config": "Reads config.yml (can override with --config PATH)",
+            "iterations": "Infinite (--iterations N to set limit)",
+            "env_requirements": ["POLYMARKET_API_KEY", "POLYMARKET_SECRET", "POLYMARKET_PASSPHRASE"],
+            "output": "Logs to stdout + writes reports/paper_trades.csv + sends Telegram notifications (if enabled)",
+            "when_to_use": "Production / continuous monitoring"
+          },
+          {
+            "cmd": "python -m predarb once",
+            "mode": "once",
+            "description": "Run single iteration: detect arbs → execute trades → exit",
+            "config": "Reads config.yml",
+            "output": "Logs to stdout + writes to CSV + Telegram notification",
+            "when_to_use": "Quick test, cron job, one-shot analysis"
+          },
+          {
+            "cmd": "python -m predarb selftest",
+            "mode": "selftest",
+            "description": "Run against fixture data (no API calls, deterministic)",
+            "config": "Uses test fixtures from tests/fixtures/markets.json",
+            "env_requirements": "None (fixtures included)",
+            "output": "Logs validation results, exits immediately",
+            "when_to_use": "Verify code works without API, CI/CD pipeline"
+          }
+        ],
+        "config_override": {
+          "syntax": "python -m predarb [run|once|selftest] --config /path/to/config.yml",
+          "example": "python -m predarb once --config my_config.yml"
+        }
+      },
+      "simulation": {
+        "entry": "sim_run.py",
+        "call": "python sim_run.py",
+        "description": "Run bot against FAKE Polymarket client with REAL Telegram notifications",
+        "when_to_use": "Test without hitting live API, realistic E2E validation",
+        "arguments": [
+          {
+            "arg": "--days N",
+            "default": 5,
+            "description": "Simulate N days of market evolution"
+          },
+          {
+            "arg": "--trade-size N",
+            "default": 100,
+            "description": "Size per trade in USD"
+          },
+          {
+            "arg": "--seed N",
+            "default": 42,
+            "description": "Random seed for reproducibility"
+          },
+          {
+            "arg": "--markets N",
+            "default": 50,
+            "description": "Generate N synthetic markets"
+          },
+          {
+            "arg": "--config PATH",
+            "description": "Custom config.yml"
+          },
+          {
+            "arg": "--no-telegram",
+            "description": "Disable Telegram notifications (mock instead)"
+          },
+          {
+            "arg": "-v/--verbose",
+            "description": "Print debug output"
+          }
+        ],
+        "example_flows": [
+          "python sim_run.py --days 2 --trade-size 200 (simulate 2 days, $200/trade, real Telegram)",
+          "python sim_run.py --days 7 --no-telegram (7-day sim, no Telegram)",
+          "python sim_run.py --seed 999 --markets 100 (100 markets, fixed seed)"
+        ],
+        "how_it_works": [
+          "1. Generates synthetic markets (FakePolymarketClient)",
+          "2. Engine.run_once() called iteratively (days * iterations per day)",
+          "3. Markets evolve minute-by-minute (prices change, trades happen)",
+          "4. Detectors run, opportunities detected",
+          "5. Broker executes trades (paper trading)",
+          "6. TelegramNotifier sends real messages (unless --no-telegram)",
+          "7. Final report with P&L, Sharpe ratio, max drawdown"
+        ]
+      },
+      "utilities": [
+        {
+          "script": "python check_connection.py",
+          "purpose": "Test Polymarket API connectivity (GET /markets)"
+        },
+        {
+          "script": "python get_keys.py",
+          "purpose": "Retrieve/manage API keys"
+        }
+      ]
+    },
+    "test_commands": {
+      "run_all_tests": {
+        "cmd": "pytest tests/",
+        "description": "Run entire test suite"
+      },
+      "test_by_category": [
+        {
+          "category": "Engine & Core Logic",
+          "cmd": "pytest tests/test_engine.py tests/test_broker.py tests/test_detectors.py -v"
+        },
+        {
+          "category": "Telegram Commands (parsing, auth, routing)",
+          "cmd": "pytest tests/test_telegram_interface.py -v",
+          "coverage": "27 tests covering command parsing, rate limiting, authorization, handlers"
+        },
+        {
+          "category": "Telegram Notifications (app→user messages)",
+          "cmd": "pytest tests/test_telegram_notifier.py -v",
+          "note": "Legacy module - use test_simulation_harness.py for modern impl"
+        },
+        {
+          "category": "Simulation & Mocks (FakeClient, TelegramMock)",
+          "cmd": "pytest tests/test_simulation_harness.py -v",
+          "coverage": "34 tests covering synthetic markets, mock client, notifier mocking"
+        },
+        {
+          "category": "Invariant Tests (comprehensive correctness proofs)",
+          "cmd": "pytest tests/test_*_invariants.py -v",
+          "coverage": "215+ tests validating market data, filtering, detectors, broker, risk (16 invariants)"
+        },
+        {
+          "category": "Full Suite with Coverage",
+          "cmd": "pytest tests/ --cov=src/predarb --cov=arbitrage_bot --cov-report=html"
+        }
+      ],
+      "specific_test_examples": [
+        {
+          "name": "Test command parsing",
+          "cmd": "pytest tests/test_telegram_interface.py::TestCommandParser -v"
+        },
+        {
+          "name": "Test rate limiting",
+          "cmd": "pytest tests/test_telegram_interface.py::TestRateLimiter -v"
+        },
+        {
+          "name": "Test authorization",
+          "cmd": "pytest tests/test_telegram_interface.py::TestAuthorizationGate -v"
+        },
+        {
+          "name": "Test handler logic",
+          "cmd": "pytest tests/test_telegram_interface.py::TestTelegramHandlers -v"
+        },
+        {
+          "name": "Test simulation integration",
+          "cmd": "pytest tests/test_simulation_harness.py::TestSimulationIntegration -v"
+        }
+      ]
+    },
+    "live_mode": {
+      "overview": "ENABLED by PaperBroker (simulation only); TO ENABLE REAL TRADING, requires code modification",
+      "current_state": "All trades simulated via PaperBroker (no real capital/blockchain)",
+      "simulation_features": [
+        "Fee modeling (configurable bps)",
+        "Slippage modeling (configurable bps)",
+        "Liquidity constraints (depth_fraction)",
+        "Position tracking and P&L"
+      ],
+      "to_enable_real_live": [
+        "1. Replace PaperBroker with RealBroker (uses py-clob-client)",
+        "2. Add private key management (eth-account)",
+        "3. Add risk guardrails (kill switch, position limits)",
+        "4. Test on testnet first (chain_id=1)",
+        "5. Deploy on mainnet (chain_id=137)"
+      ],
+      "caution": "⚠️ REAL TRADING REQUIRES: API keys, private keys, significant capital, risk management expertise"
+    },
+    "telegram_integration": {
+      "overview": "Bidirectional bot-user communication: OUTBOUND (bot→user notifications) + INBOUND (user→bot commands)",
+      "architecture": "Freqtrade-style: Handlers queue actions (non-blocking), bot_loop processes async",
+      "enable_telegram": {
+        "step_1": "Create Telegram bot via @BotFather (get TELEGRAM_BOT_TOKEN)",
+        "step_2": "Find your chat ID (use /tg_info command to find, or use bot getter)",
+        "step_3": "Set environment variables or config.yml:",
+        "env_vars": {
+          "TELEGRAM_ENABLED": "true",
+          "TELEGRAM_BOT_TOKEN": "123456789:ABCdefGHIjklmnoPQRstuvWXYZabcdefg",
+          "TELEGRAM_CHAT_ID": "987654321"
+        },
+        "config_yaml": "telegram:\n  enabled: true\n  bot_token: \"${TELEGRAM_BOT_TOKEN}\"\n  chat_id: \"${TELEGRAM_CHAT_ID}\""
+      },
+      "outbound_messages": {
+        "description": "Bot sends these messages to user",
+        "message_types": [
+          {
+            "type": "trade_entered",
+            "trigger": "Opportunity executed, position opened",
+            "format": "📊 Market: [name]\nOutcomes: [YES/NO]\nSizes: [x units], [y units]\nPrices: [price1], [price2]\nExpected Edge: [%]"
+          },
+          {
+            "type": "trade_exited",
+            "trigger": "Position closed, P&L realized",
+            "format": "✅ CLOSED\nMarket: [name]\nP&L: $[amount] ([%] return)\nExit Price: [price]"
+          },
+          {
+            "type": "daily_summary",
+            "trigger": "End of day or /daily command",
+            "format": "📈 Daily Summary\nTotal P&L: $[amount]\nRealized: $[amount]\nUnrealized: $[amount]\nReturn: [%]"
+          },
+          {
+            "type": "status_reply",
+            "trigger": "/status command",
+            "format": "🤖 Bot Status\nState: [RUNNING/PAUSED/STOPPED]\nMode: [PAPER/LIVE/SCAN_ONLY]\nBalance: $[amount]\nPositions: [count]\nP&L: $[amount]"
+          },
+          {
+            "type": "mode_changed",
+            "trigger": "Operating mode changed",
+            "format": "🔄 Mode Changed\nPrevious: [old_mode]\nNew: [new_mode]\nTimestamp: [time]"
+          },
+          {
+            "type": "error_alert",
+            "trigger": "API error, invalid data, risk violation",
+            "format": "❌ ERROR\nMessage: [error_text]\nTimestamp: [time]\nAction: [retry/halt/etc]"
+          },
+          {
+            "type": "risk_warning",
+            "trigger": "Kill switch triggered, drawdown exceeded, position limit breached",
+            "format": "🚨 CRITICAL - TRADING HALTED\nReason: [kill_switch/drawdown/limit]\nCurrent Loss: [%]\nThreshold: [%]"
+          }
+        ],
+        "testing_outbound": "pytest tests/test_simulation_harness.py::TestTelegramNotifierReal -v"
+      },
+      "inbound_commands": {
+        "description": "User sends /commands to bot, bot processes them",
+        "flow": "Parse → RateLimit → Authorize → Queue → Return Response → bot_loop executes async",
+        "command_reference": [
+          {
+            "command": "/start",
+            "category": "CONTROL",
+            "permission": "execute_action",
+            "args": "none",
+            "effect": "Start bot (state=RUNNING)",
+            "response": "✅ Bot starting...",
+            "rate_limit": "5/min (CONTROL)"
+          },
+          {
+            "command": "/pause",
+            "category": "CONTROL",
+            "permission": "execute_action",
+            "args": "none",
+            "effect": "Pause bot (state=PAUSED, no new trades)",
+            "response": "⏸️ Bot paused",
+            "rate_limit": "5/min"
+          },
+          {
+            "command": "/stop",
+            "category": "CONTROL",
+            "permission": "execute_action",
+            "args": "none",
+            "effect": "Stop bot (state=STOPPED, exit loop)",
+            "response": "⏹️ Bot stopped",
+            "rate_limit": "5/min"
+          },
+          {
+            "command": "/status",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Return bot state snapshot",
+            "response": "Bot state, mode, balance, positions, P&L",
+            "rate_limit": "10/min (VIEW)"
+          },
+          {
+            "command": "/mode [scan-only|paper|live]",
+            "category": "DANGEROUS",
+            "permission": "execute_action + admin",
+            "args": "scan-only, paper, or live",
+            "effect": "Change operating mode (requires 2-step confirmation if live)",
+            "response": "🔄 Mode changed to [mode]",
+            "rate_limit": "2/min (DANGEROUS)",
+            "confirmation": true
+          },
+          {
+            "command": "/daily",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Return daily P&L summary",
+            "response": "Daily breakdown (realized, unrealized, total return)",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/balance",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Show current balance and equity",
+            "response": "Cash: $[amount], Equity: $[amount]",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/positions",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "List all open positions",
+            "response": "Market: [name], Size: [units], Entry: $[price], Unrealized: $[pnl]",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/freeze [all|venue|event]",
+            "category": "CONTROL",
+            "permission": "execute_action",
+            "args": "all (freeze all trading) or venue/event (specific)",
+            "effect": "Stop entering new positions (can still close existing)",
+            "response": "🔒 Frozen: [target]",
+            "rate_limit": "5/min"
+          },
+          {
+            "command": "/unfreeze [all|venue|event]",
+            "category": "CONTROL",
+            "permission": "execute_action",
+            "args": "all or specific",
+            "effect": "Resume entering new positions",
+            "response": "🔓 Unfrozen: [target]",
+            "rate_limit": "5/min"
+          },
+          {
+            "command": "/forceclose [all|market_id]",
+            "category": "DANGEROUS",
+            "permission": "execute_action + admin",
+            "args": "all (close all positions) or market_id (close specific)",
+            "effect": "Immediately close positions (2-step confirmation required)",
+            "response": "🔴 Closed [count] positions, realized P&L: $[amount]",
+            "rate_limit": "2/min",
+            "confirmation": true
+          },
+          {
+            "command": "/help",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Show command help",
+            "response": "List of available commands with descriptions",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/confirm [code]",
+            "category": "CONFIRMATION",
+            "permission": "execute_action",
+            "args": "6-digit confirmation code (received from dangerous command)",
+            "effect": "Verify and execute dangerous command",
+            "response": "✅ Confirmed. Action executing..." or "❌ Invalid code",
+            "rate_limit": "20/min"
+          },
+          {
+            "command": "/tg_info",
+            "category": "DEBUG",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Echo chat_id and user_id (helps with setup)",
+            "response": "Your chat_id: [id], user_id: [id]",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/health",
+            "category": "VIEW",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "Check API connectivity and system health",
+            "response": "API: ✅ OK, Memory: [usage], Uptime: [duration]",
+            "rate_limit": "10/min"
+          },
+          {
+            "command": "/opps",
+            "category": "DEBUG",
+            "permission": "read_status",
+            "args": "none",
+            "effect": "List current detected opportunities",
+            "response": "Found [count] opportunities:\n[detector]: [market] - edge [%]",
+            "rate_limit": "10/min"
+          }
+        ],
+        "testing_inbound": "pytest tests/test_telegram_interface.py -v"
+      },
+      "security_features": {
+        "authorization": [
+          "Chat ID validation (must match TELEGRAM_CHAT_ID config)",
+          "Role-based access control (read_status, execute_action, admin)",
+          "VIEW commands: anyone with read_status",
+          "CONTROL commands: requires execute_action",
+          "DANGEROUS commands: requires execute_action + admin + 2-step confirmation"
+        ],
+        "confirmation": [
+          "Dangerous commands (/mode live, /forceclose) require 2-step confirmation",
+          "Command sends confirmation code (e.g., /confirm ABC123)",
+          "User replies /confirm ABC123 to execute",
+          "Code expires after 5 minutes (configurable)",
+          "Each code is single-use"
+        ],
+        "rate_limiting": [
+          "VIEW commands: 10/min per user",
+          "CONTROL commands: 5/min per user",
+          "DANGEROUS commands: 2/min per user",
+          "CONFIRMATION: 20/min per user",
+          "Global command queue prevents spam"
+        ],
+        "message_safety": [
+          "Numbers formatted as strings (prevent precision loss)",
+          "Markdown special chars escaped (prevent injection)",
+          "Message length limited to 4096 (Telegram limit)",
+          "User input sanitized",
+          "All actions logged for audit trail"
+        ]
+      },
+      "configuration": {
+        "file": "config.yml",
+        "section": "telegram",
+        "schema": {
+          "enabled": "bool (default: false)",
+          "bot_token": "str (required if enabled, from @BotFather)",
+          "chat_id": "int (required if enabled, your chat ID)",
+          "auth": {
+            "users": [
+              {
+                "user_id": "int",
+                "roles": ["read_status", "execute_action", "admin"]
+              }
+            ]
+          },
+          "rate_limits": {
+            "view": "int (commands/min, default: 10)",
+            "control": "int (default: 5)",
+            "dangerous": "int (default: 2)"
+          }
+        },
+        "example_config": {
+          "yaml": "telegram:\n  enabled: true\n  bot_token: \"${TELEGRAM_BOT_TOKEN}\"\n  chat_id: \"${TELEGRAM_CHAT_ID}\"\n  auth:\n    users:\n      - user_id: 123456789\n        roles: [read_status, execute_action, admin]\n  rate_limits:\n    view: 10\n    control: 5\n    dangerous: 2"
+        }
+      },
+      "testing": {
+        "mock_notifier": {
+          "class": "TelegramNotifierMock",
+          "location": "src/predarb/testing/",
+          "purpose": "In-memory message storage (no HTTP calls)",
+          "usage": "Engine(..., notifier=TelegramNotifierMock())",
+          "benefits": [
+            "No Telegram API credentials needed",
+            "Deterministic (no network)",
+            "Fast (no API latency)",
+            "Inspectable (get_messages(), has_message_containing())"
+          ]
+        },
+        "test_outbound": "pytest tests/test_simulation_harness.py::TestTelegramNotifierMock -v",
+        "test_inbound": "pytest tests/test_telegram_interface.py -v",
+        "full_integration": "pytest tests/test_simulation_harness.py::TestSimulationIntegration -v"
+      }
+    },
+    "workflow_examples": {
+      "example_1_quick_test": {
+        "goal": "Quick test without hitting live API",
+        "steps": [
+          "python -m predarb selftest",
+          "Runs against fixtures, exits in <5 seconds",
+          "Output: validation results, no Telegram/API calls"
+        ]
+      },
+      "example_2_single_iteration": {
+        "goal": "Run one full iteration (detect & trade)",
+        "setup": [
+          "Set POLYMARKET_API_KEY, SECRET, PASSPHRASE env vars",
+          "Configure config.yml (risk, filters, detectors)",
+          "Optional: set TELEGRAM_ENABLED=true for notifications"
+        ],
+        "run": "python -m predarb once",
+        "output": [
+          "Fetches active markets from Polymarket API",
+          "Runs detectors",
+          "Executes trades (paper broker simulates)",
+          "Logs results + sends Telegram notification",
+          "Writes to reports/paper_trades.csv"
+        ]
+      },
+      "example_3_continuous_run": {
+        "goal": "Run bot indefinitely (production mode)",
+        "setup": "Same as example_2",
+        "run": "python -m predarb run",
+        "output": [
+          "Continuous loop: fetch markets → detect → trade → sleep → repeat",
+          "Sleep duration: config.engine.refresh_seconds (default: 60)",
+          "All trades logged to CSV",
+          "All opportunities sent to Telegram (if enabled)",
+          "Monitor via /status command (if Telegram configured)"
+        ]
+      },
+      "example_4_simulation": {
+        "goal": "Test against fake market data with real Telegram notifications",
+        "setup": [
+          "Optional: Set TELEGRAM env vars for real notifications",
+          "No Polymarket credentials needed (uses FakePolymarketClient)"
+        ],
+        "run": "python sim_run.py --days 5 --trade-size 200",
+        "output": [
+          "Generates 50 synthetic markets (or --markets N)",
+          "Simulates 5 days of market evolution",
+          "Runs engine repeatedly (detects & executes trades)",
+          "Sends real Telegram notifications (or --no-telegram for mock)",
+          "Final report: P&L, Sharpe ratio, max drawdown, trade count"
+        ]
+      },
+      "example_5_telegram_control": {
+        "goal": "Monitor and control bot via Telegram",
+        "prerequisites": [
+          "Bot running (python -m predarb run &)",
+          "Telegram configured and enabled",
+          "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID set"
+        ],
+        "commands": [
+          "User: /status",
+          "Bot: 🤖 Bot Status\nState: RUNNING\nMode: PAPER\nBalance: $10000\nPositions: 3\nP&L: $245.67",
+          "",
+          "User: /daily",
+          "Bot: 📈 Daily Summary\nTotal P&L: $245.67\nRealized: $120.00\nUnrealized: $125.67\nReturn: 2.46%",
+          "",
+          "User: /freeze all (requires execute_action role)",
+          "Bot: 🔒 Frozen: all\n(bot stops entering new trades)",
+          "",
+          "User: /mode live (requires 2-step confirmation)",
+          "Bot: 🔐 Confirm with /confirm ABC123\n(user replies /confirm ABC123)",
+          "Bot: ✅ Confirmed. Mode changed to LIVE"
+        ]
+      }
+    },
+    "configuration_reference": {
+      "file": "config.yml",
+      "sections": {
+        "polymarket": [
+          "host: API endpoint (default: https://clob.polymarket.com)",
+          "api_key: CLOB API key",
+          "secret: CLOB secret",
+          "passphrase: CLOB passphrase",
+          "private_key: Ethereum private key (for signing)",
+          "chain_id: Network (default: 137 = Polygon mainnet)",
+          "funder: Funder wallet address"
+        ],
+        "broker": [
+          "initial_cash: Starting capital for paper trading ($10000 default)",
+          "fee_bps: Fee in basis points (10 = 0.1%, default: 10)",
+          "slippage_bps: Slippage modeling (20 = 0.2%, default: 20)",
+          "depth_fraction: Liquidity fraction available (0.05 = 5% depth, default: 0.05)"
+        ],
+        "risk": [
+          "max_allocation_per_market: Max % of capital per position (default: 5%)",
+          "max_open_positions: Max concurrent open positions (default: 10)",
+          "min_liquidity_usd: Minimum market liquidity to trade ($100 default)",
+          "min_net_edge_threshold: Minimum profitability threshold (0.01 = 1%, default: 0.01)",
+          "kill_switch_drawdown: Max portfolio drawdown before halt (0.5 = 50%, default: 0.5)"
+        ],
+        "engine": [
+          "refresh_seconds: Sleep between iterations (60 default)",
+          "iterations: Max number of runs (-1 = infinite, default: -1)",
+          "report_path: CSV output path (default: reports/paper_trades.csv)"
+        ],
+        "filter": [
+          "max_spread_pct: Max price spread % (0.1 = 10%, default: 0.1)",
+          "min_volume_24h: Min trading volume ($1000 default)",
+          "min_liquidity: Min market liquidity USD ($500 default)",
+          "min_days_to_expiry: Min days until market closes (1 default)",
+          "require_resolution_source: Must have resolution source (true default)",
+          "min_rank_score: Min composite market score (0.5 default)",
+          "spread_score_weight: Weight in ranking (0.3 default)",
+          "volume_score_weight: Weight in ranking (0.35 default)",
+          "liquidity_score_weight: Weight in ranking (0.35 default)"
+        ],
+        "detectors": [
+          "parity_threshold: Min outcomes sum (0.99 default)",
+          "duplicate_price_diff_threshold: Max price diff between clones (0.05 = 5%, default: 0.05)",
+          "exclusive_sum_tolerance: Tolerance for exclusive sum check (0.01 default)",
+          "ladder_tolerance: Tolerance for ladder detection (0.02 default)",
+          "timelag_price_jump: Min price jump for timelag (0.05 default)",
+          "timelag_persistence_minutes: How long timelag persists (10 default)"
+        ],
+        "telegram": [
+          "enabled: Enable notifications (false default)",
+          "bot_token: Telegram bot token (from @BotFather)",
+          "chat_id: Telegram chat ID (your personal chat ID)",
+          "auth: User roles and permissions",
+          "rate_limits: Commands per minute by risk level"
+        ]
+      }
+    },
+    "module_map": {
+      "core_engine": {
+        "file": "src/predarb/engine.py",
+        "class": "Engine",
+        "entry": "run() or run_once()",
+        "orchestrates": [
+          "PolymarketClient.get_active_markets()",
+          "FilterMarkets.filter_markets()",
+          "Detector pipeline (6 detectors)",
+          "RiskManager.check_limits()",
+          "PaperBroker.execute(opportunity)",
+          "Notifier.send_message()"
+        ]
+      },
+      "detectors": {
+        "location": "src/predarb/detectors/",
+        "pattern": "class XyzDetector: def detect(markets) → List[Opportunity]",
+        "detectors": [
+          "ParityDetector - outcomes don't sum to 1",
+          "LadderDetector - sequential outcome prices",
+          "DuplicateDetector - clone markets, price divergence",
+          "ExclusiveSumDetector - mutually exclusive check",
+          "TimeLagDetector - stale prices",
+          "ConsistencyDetector - cross-market validation"
+        ]
+      },
+      "config": {
+        "location": "src/predarb/config.py",
+        "classes": [
+          "AppConfig - root config",
+          "PolymarketConfig - API settings",
+          "BrokerConfig - trading params",
+          "RiskConfig - risk limits",
+          "FilterConfig - market filtering",
+          "DetectorConfig - detector thresholds",
+          "TelegramConfig - notifications",
+          "EngineConfig - engine loop"
+        ]
+      },
+      "models": {
+        "location": "src/predarb/models.py",
+        "classes": [
+          "Market - pydantic model for market data",
+          "Outcome - pydantic model for outcomes",
+          "Opportunity - dataclass for detected arb",
+          "Trade - dataclass for executed trade",
+          "TradeAction - dataclass for single trade component"
+        ]
+      },
+      "broker": {
+        "location": "src/predarb/broker.py",
+        "class": "PaperBroker",
+        "simulates": "Trade execution (fees, slippage, liquidity constraints)",
+        "tracks": "Positions, P&L, equity, cash balance"
+      },
+      "notifier": {
+        "location": "src/predarb/notifiers/",
+        "base": "Notifier (abstract)",
+        "implementations": [
+          "TelegramNotifierReal - sends to Telegram API",
+          "TelegramNotifierMock - in-memory (testing)"
+        ]
+      },
+      "telegram_bot": {
+        "location": "arbitrage_bot/",
+        "components": [
+          "main.py - TelegramControlledArbitrageBot orchestrator",
+          "core/bot_loop.py - async execution loop",
+          "core/control_queue.py - command queue",
+          "core/state.py - bot state snapshot",
+          "core/actions.py - action dataclasses",
+          "telegram/router.py - command parsing & routing",
+          "telegram/handlers.py - command handlers",
+          "telegram/security.py - auth, confirmation, formatting",
+          "telegram/rate_limit.py - rate limiting"
+        ]
+      }
+    },
+    "environment_variables": {
+      "polymarket_credentials": [
+        "POLYMARKET_API_KEY (required)",
+        "POLYMARKET_SECRET (required)",
+        "POLYMARKET_PASSPHRASE (required)",
+        "POLYMARKET_PRIVATE_KEY (optional, for signing)",
+        "POLYMARKET_FUNDER (optional, wallet address)"
+      ],
+      "telegram": [
+        "TELEGRAM_ENABLED (true/false, default: false)",
+        "TELEGRAM_BOT_TOKEN (required if enabled)",
+        "TELEGRAM_CHAT_ID (required if enabled)"
+      ],
+      "setup": [
+        "Create .env file in root directory",
+        "Add KEY=VALUE pairs",
+        "python-dotenv automatically loads"
+      ],
+      "example_env": "POLYMARKET_API_KEY=your_key\nPOLYMARKET_SECRET=your_secret\nPOLYMARKET_PASSPHRASE=your_pass\nTELEGRAM_ENABLED=true\nTELEGRAM_BOT_TOKEN=123:ABC...\nTELEGRAM_CHAT_ID=987654321"
+    },
+    "output_files": {
+      "csv_trades": {
+        "path": "reports/paper_trades.csv",
+        "purpose": "Log all executed trades",
+        "columns": ["timestamp", "market_id", "market_name", "outcome_id", "side", "quantity", "price", "cost", "fees", "pnl"]
+      },
+      "logs": {
+        "destination": "stdout",
+        "format": "[timestamp] [level] [module]: [message]",
+        "level": "DEBUG, INFO, WARNING, ERROR"
+      },
+      "telegram_messages": {
+        "destination": "Telegram chat (if enabled)",
+        "types": "trade_entered, trade_exited, daily_summary, status_reply, error_alert, risk_warning"
+      }
+    },
+    "dependencies": {
+      "core": [
+        "requests - HTTP client",
+        "pydantic - data validation",
+        "pyyaml - YAML parsing",
+        "python-dotenv - env loading"
+      ],
+      "trading": [
+        "py-clob-client - Polymarket API",
+        "eth-account - Ethereum signing",
+        "python-dateutil - date parsing"
+      ],
+      "notifications": [
+        "python-telegram-bot - Telegram integration"
+      ],
+      "testing": [
+        "pytest - test framework",
+        "pytest-asyncio - async test support"
+      ]
+    },
+    "quick_reference": {
+      "start_quick_test": "python -m predarb selftest",
+      "start_once": "python -m predarb once (requires API creds)",
+      "start_production": "python -m predarb run (infinite loop)",
+      "start_simulation": "python sim_run.py --days 5",
+      "run_tests": "pytest tests/",
+      "enable_telegram": "Set TELEGRAM_ENABLED=true, bot_token, chat_id",
+      "view_trades": "cat reports/paper_trades.csv",
+      "check_api": "python check_connection.py",
+      "telegram_commands": "/start /pause /stop /status /daily /mode /freeze /unfreeze /forceclose /help",
+      "rate_limits": "VIEW: 10/min, CONTROL: 5/min, DANGEROUS: 2/min",
+      "confirmation": "Dangerous commands need 2-step: command → code → /confirm code"
+    }
+  }
+}

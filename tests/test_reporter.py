@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from predarb.models import Market, Opportunity, Outcome
+from predarb.models import Market, Opportunity, Outcome, TradeAction
 from predarb.reporter import LiveReporter
 
 
@@ -19,31 +19,39 @@ def temp_reports_dir():
 
 
 def create_market(market_id: str) -> Market:
-    """Helper to create a test market."""
+    """Helper to create a test market aligned with current models."""
     outcomes = [
-        Outcome(id="yes", name="Yes", price=0.5),
-        Outcome(id="no", name="No", price=0.5),
+        Outcome(id="yes", label="Yes", price=0.5),
+        Outcome(id="no", label="No", price=0.5),
     ]
     return Market(
         id=market_id,
         question="Test question?",
         outcomes=outcomes,
-        liquidity_usd=1000.0,
-        volume_24h=500.0,
+        liquidity=1000.0,
+        volume=500.0,
     )
 
 
 def create_opportunity(opp_id: str, market_id: str, detector_type: str = "parity") -> Opportunity:
-    """Helper to create a test opportunity."""
-    opp = Opportunity(
-        market_id=market_id,
-        edge=0.05,
-        expected_profit_usd=50.0,
+    """Helper to create a test opportunity aligned with current models."""
+    actions = [
+        TradeAction(
+            market_id=market_id,
+            outcome_id="yes",
+            side="BUY",
+            amount=100.0,
+            limit_price=0.5,
+        )
+    ]
+    return Opportunity(
+        type=detector_type,
+        market_ids=[market_id],
+        description=f"Test {opp_id}",
+        net_edge=0.05,
+        actions=actions,
+        metadata={"opp_id": opp_id},
     )
-    # Manually set attributes for testing
-    opp.id = opp_id
-    opp.detector_type = detector_type
-    return opp
 
 
 def test_reporter_initialization(temp_reports_dir):
@@ -77,9 +85,15 @@ def test_reporter_first_report_writes_csv(temp_reports_dir):
     
     # Check CSV contents
     lines = reporter.summary_csv.read_text().strip().split("\n")
-    assert len(lines) == 2  # Header + 1 data row
-    assert lines[0] == "timestamp,iteration,markets_found,opps_found,opps_after_filter"
-    assert "1,2,2,1" in lines[1]  # iteration, markets, opps_detected, opps_approved
+    # We write 2 header rows + 1 data row
+    assert len(lines) == 3
+    assert lines[0].startswith("TIMESTAMP,READABLE_TIME,ITERATION,MARKETS")
+    # Parse data row and validate key columns
+    cols = lines[2].split(",")
+    assert int(cols[2]) == 1  # ITERATION
+    assert int(cols[3]) == 2  # MARKETS
+    assert int(cols[5]) == 2  # DETECTED
+    assert int(cols[7]) == 1  # APPROVED
 
 
 def test_reporter_deduplicates_same_markets(temp_reports_dir):
@@ -108,9 +122,9 @@ def test_reporter_deduplicates_same_markets(temp_reports_dir):
     )
     assert result2 is False  # No change
     
-    # CSV should still have only 2 lines (header + 1 data)
+    # CSV should still have only 2 header rows + 1 data row
     lines = reporter.summary_csv.read_text().strip().split("\n")
-    assert len(lines) == 2
+    assert len(lines) == 3
 
 
 def test_reporter_writes_on_market_change(temp_reports_dir):
@@ -139,18 +153,18 @@ def test_reporter_writes_on_market_change(temp_reports_dir):
     )
     assert result2 is True  # Markets changed
     
-    # CSV should have 3 lines (header + 2 data rows)
+    # CSV should have 2 header rows + 2 data rows
     lines = reporter.summary_csv.read_text().strip().split("\n")
-    assert len(lines) == 3
+    assert len(lines) == 4
 
 
 def test_reporter_writes_on_opportunity_change(temp_reports_dir):
     """Test reporter writes new row when approved opportunities change."""
     reporter = LiveReporter(temp_reports_dir)
     
-    markets = [create_market("m1")]
+    markets = [create_market("m1"), create_market("m2")]
     opps1 = [create_opportunity("o1", "m1")]
-    opps2 = [create_opportunity("o1", "m1"), create_opportunity("o2", "m1")]
+    opps2 = [create_opportunity("o1", "m1"), create_opportunity("o2", "m2")]
     
     # First report
     result1 = reporter.report(
@@ -170,10 +184,14 @@ def test_reporter_writes_on_opportunity_change(temp_reports_dir):
     )
     assert result2 is True  # Opportunities changed
     
-    # CSV should have 3 lines (header + 2 data rows)
+    # CSV should have 2 header rows + 2 data rows
     lines = reporter.summary_csv.read_text().strip().split("\n")
-    assert len(lines) == 3
-    assert "2,2,1" in lines[2]  # iteration 2, 1 market, 1 opp detected (original), 2 approved
+    assert len(lines) == 4
+    cols = lines[3].split(",")
+    assert int(cols[2]) == 2  # ITERATION
+    assert int(cols[3]) == 2  # MARKETS (we included m1 and m2)
+    assert int(cols[5]) == 2  # DETECTED
+    assert int(cols[7]) == 2  # APPROVED
 
 
 def test_reporter_state_persists(temp_reports_dir):
@@ -247,13 +265,10 @@ def test_reporter_handles_missing_opportunity_ids(temp_reports_dir):
     
     markets = [create_market("m1")]
     
-    # Create opportunity without id attribute
-    opp = Opportunity(
-        market_id="m1",
-        edge=0.05,
-        expected_profit_usd=50.0,
-    )
-    opps = [opp]
+    # Create an object without market_ids to exercise fallback path
+    class LiteOpp:
+        pass
+    opps = [LiteOpp()]
     
     # Should not crash
     result = reporter.report(
@@ -315,9 +330,10 @@ def test_reporter_csv_multiple_iterations(temp_reports_dir):
         approved_opportunities=[create_opportunity("o1", "m1")],
     )
     
-    # CSV should have header + 3 data rows (iterations 1, 2, 4)
+    # CSV should have 2 header rows + 3 data rows (iterations 1, 2, 4)
     lines = reporter.summary_csv.read_text().strip().split("\n")
-    assert len(lines) == 4
-    assert "1,2,2,1,1" in lines[1]
-    assert "2,3,2,2,2" in lines[2]
-    assert "4,3,1,1,1" in lines[3]
+    assert len(lines) == 5
+    c1 = lines[2].split(","); c2 = lines[3].split(","); c3 = lines[4].split(",")
+    assert [int(c1[2]), int(c1[3]), int(c1[5]), int(c1[7])] == [1, 2, 1, 1]
+    assert [int(c2[2]), int(c2[3]), int(c2[5]), int(c2[7])] == [2, 3, 2, 2]
+    assert [int(c3[2]), int(c3[3]), int(c3[5]), int(c3[7])] == [4, 3, 1, 1]

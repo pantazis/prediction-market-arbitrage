@@ -39,6 +39,20 @@
         "OPP_HASH (first 16 chars of sha256)"
       ],
       "testing": "8/8 direct tests passing, 17 pytest tests available",
+      "testing_update_2026_01_07": {
+        "pytest_reporter": {
+          "file": "tests/test_reporter.py",
+          "count": 10,
+          "status": "passing",
+          "junit_xml": "reports/reporter-tests.xml",
+          "run_cmd": "python -m pytest -q tests/test_reporter.py --junitxml=reports/reporter-tests.xml"
+        },
+        "direct_runner": {
+          "file": "test_reporter_direct.py",
+          "status": "passing",
+          "note": "Bypasses pytest conftest; useful when pytest plugins interfere"
+        }
+      },
       "files_created": [
         "src/predarb/reporter.py (270 lines, LiveReporter class)",
         "tests/test_reporter.py (17 comprehensive tests)",
@@ -48,6 +62,9 @@
       ],
       "files_modified": [
         "src/predarb/engine.py (added reporter instantiation and integration)",
+        "src/predarb/reporter.py (ensure row writes even if CSV missing; safe hash prefix handling)",
+        "tests/test_reporter.py (align with new CSV format and models)",
+        "CODEBASE_OPERATIONS.json (added reporter commands and outputs)",
         "codebase_schema.json (documentation)"
       ]
     },

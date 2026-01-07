@@ -136,7 +136,31 @@ class LiveReporter:
         
         if (current_market_hash == last_market_hash and 
             current_approved_hash == last_approved_hash):
-            # No change, do not write
+            # No change detected. If CSV doesn't exist (e.g., was deleted), force-create with a row.
+            if not self.summary_csv.exists():
+                self._append_csv_row(
+                    timestamp=datetime.utcnow(),
+                    iteration=iteration,
+                    markets_found=len(all_markets),
+                    opps_found=len(detected_opportunities),
+                    opps_after_filter=len(approved_opportunities),
+                )
+                # Keep hashes as-is, but refresh counts and persist so deltas are correct next time
+                self.last_state["last_markets_count"] = len(all_markets)
+                self.last_state["last_opps_detected"] = len(detected_opportunities)
+                self.last_state["last_opps_approved"] = len(approved_opportunities)
+                self._save_state(
+                    last_market_hash,
+                    last_approved_hash,
+                    len(all_markets),
+                    len(detected_opportunities),
+                    len(approved_opportunities),
+                )
+                logger.info(
+                    "Report CSV was missing. Wrote initial header and row without state change."
+                )
+                return True
+            # Otherwise, truly nothing to write
             logger.debug(
                 f"Iteration {iteration}: No data changes detected. Skipping report."
             )
@@ -262,8 +286,8 @@ class LiveReporter:
                     opps_approved_change,
                     filter_efficiency,
                     status,
-                    self.last_state.get("market_ids_hash", "")[:16],
-                    self.last_state.get("approved_opp_ids_hash", "")[:16],
+                    (self.last_state.get("market_ids_hash") or "")[:16],
+                    (self.last_state.get("approved_opp_ids_hash") or "")[:16],
                 ])
         except OSError as e:
             logger.error(f"Failed to append CSV row: {e}")

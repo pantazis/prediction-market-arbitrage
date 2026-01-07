@@ -29,6 +29,13 @@
             "when_to_use": "Quick test, cron job, one-shot analysis"
           },
           {
+            "cmd": "python demo_reporter.py",
+            "mode": "demo",
+            "description": "Run LiveReporter demo to generate reports/live_summary.csv without APIs",
+            "output": "Creates reports/live_summary.csv and reports/.last_report_state.json",
+            "when_to_use": "Sanity-check live reporting locally"
+          },
+          {
             "cmd": "python -m predarb selftest",
             "mode": "selftest",
             "description": "Run against fixture data (no API calls, deterministic)",
@@ -115,6 +122,11 @@
       },
       "test_by_category": [
         {
+          "category": "Live Reporting",
+          "cmd": "python -m pytest -q tests/test_reporter.py",
+          "coverage": "10 tests covering initialization, deduplication, state persistence, order-independence, CSV format"
+        },
+        {
           "category": "Engine & Core Logic",
           "cmd": "pytest tests/test_engine.py tests/test_broker.py tests/test_detectors.py -v"
         },
@@ -144,6 +156,14 @@
         }
       ],
       "specific_test_examples": [
+        {
+          "name": "Run reporter tests (quiet)",
+          "cmd": "python -m pytest -q tests/test_reporter.py --junitxml=reports/reporter-tests.xml"
+        },
+        {
+          "name": "Run reporter tests (verbose)",
+          "cmd": "python -m pytest tests/test_reporter.py -v"
+        },
         {
           "name": "Test command parsing",
           "cmd": "pytest tests/test_telegram_interface.py::TestCommandParser -v"
@@ -820,6 +840,23 @@
         "path": "reports/paper_trades.csv",
         "purpose": "Log all executed trades",
         "columns": ["timestamp", "market_id", "market_name", "outcome_id", "side", "quantity", "price", "cost", "fees", "pnl"]
+      },
+      "live_reporting": {
+        "path": "reports/live_summary.csv",
+        "purpose": "Append-only live summary of markets and opportunities with debug columns",
+        "columns": [
+          "TIMESTAMP","READABLE_TIME","ITERATION","MARKETS","MARKETS_Δ","DETECTED","DETECTED_Δ","APPROVED","APPROVED_Δ","APPROVAL%","STATUS","MARKET_HASH","OPP_HASH"
+        ],
+        "notes": "Two header rows are written on first creation; rows append only when hashes change"
+      },
+      "live_state": {
+        "path": "reports/.last_report_state.json",
+        "purpose": "Restart-safe state for deduplicating live report writes",
+        "keys": ["market_ids_hash","approved_opp_ids_hash","last_markets_count","last_opps_detected","last_opps_approved","last_updated"]
+      },
+      "reporter_junit": {
+        "path": "reports/reporter-tests.xml",
+        "purpose": "JUnit XML from reporter tests (for CI visibility)"
       },
       "logs": {
         "destination": "stdout",

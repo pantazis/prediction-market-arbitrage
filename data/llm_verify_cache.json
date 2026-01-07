@@ -96,5 +96,509 @@
       }
     },
     "timestamp": 1767770548.3160968
+  },
+  "af4965c72260fd6deca34aea43294c71": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.5666704
+  },
+  "74640f7b892e2af828f84901e99ad532": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.5735598
+  },
+  "f10cc11911184946646102e5050cae43": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.578663
+  },
+  "6be1dc7bf64ec3e22410a6635e546934": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.5826657
+  },
+  "1784c6beef2e1d946514c988e2e33e5a": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.58876
+  },
+  "bc10f4f1e05f52027ec740a20d3039c7": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.5939224
+  },
+  "33e16377a6f58ed629dbd0e8c4819a88": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.5984392
+  },
+  "c06de115ecf5ea6ee49b43eb8502e1c4": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6043193
+  },
+  "ca0b1472cad538c8e7793602eb7b34ed": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.609418
+  },
+  "f267a04257d2d3ffbc27505ce51437b1": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6147647
+  },
+  "f857a944aa7b4db12ea50e2a30472eea": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.623843
+  },
+  "4129e2d98c48df72a50c1cfa2a846c7a": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.630922
+  },
+  "cc1a26fe6420546f8e9b38faa7ce2d6a": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6403658
+  },
+  "29cbba48b575a7897b0bb9db98f9c562": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6477613
+  },
+  "31a9ccfc653fd0b62469c6acc81ae01c": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6559405
+  },
+  "30db827e88dcfd32eadc9833ab93fd14": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6638303
+  },
+  "9aadefe9d08d422f9b4f6fda004140e4": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6716378
+  },
+  "2c63ac2bd72c6cdb52bf21e8054bfde3": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6799011
+  },
+  "396bca2acae3779ca2393755429e2e29": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.6894698
+  },
+  "c66f5bbcf1e65ca7e89e9146e93dcf38": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7046747
+  },
+  "62c50be3af303fd109aef2c5cf19ca2f": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7119946
+  },
+  "9c430fed7fc1af22fd72a379491301c1": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.718731
+  },
+  "6193899b05f5951828dfc8b7f6451fab": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7240736
+  },
+  "6ddd51774f86549154f9ea24c3cc6582": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7289917
+  },
+  "13994934532bd6ca301ab37768c8291a": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7338479
+  },
+  "9ce04f6256d934c862354df21693e65c": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7397885
+  },
+  "cc35eb29b4b89631e0cf8ce6e75b815d": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7448852
+  },
+  "3badec38e2b3f1f8368ab4f28eb637d2": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.749789
+  },
+  "996185149a09bcb1fb406f67db562aba": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7556438
+  },
+  "dae086619a678855eb2516077ca06636": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7607987
+  },
+  "196fe21937a02b50849a6c822f6dcbd8": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.765358
+  },
+  "3535af365dd3b530070b50641ab7ee2d": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7706566
+  },
+  "c797a680173dbcd575304aeae5fd81e9": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7772686
+  },
+  "94a487e1b607a5a03e506cea28ab82b6": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.782393
+  },
+  "50250c7307ad46df9ae5c8538dff03e0": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7877963
+  },
+  "8b50e6cd363e38e424587b6f908ec901": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767772257.7927012
   }
 }

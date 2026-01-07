@@ -1,6 +1,25 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
+  "last_updated": "2026-01-07",
+  "architecture_changes": {
+    "2026_01_07": {
+      "title": "Find-First Approach: Remove Market Pre-Filtering",
+      "description": "Changed from filter-first (pre-filter markets → run detectors) to find-first (run detectors on all markets → risk manager validates)",
+      "rationale": "Avoid missing arbitrage opportunities in 'low-quality' markets that pre-filters would reject",
+      "changes": [
+        "Removed filter_markets() and rank_markets() calls from engine.run_once()",
+        "Detectors now scan 100% of markets instead of filtered subset",
+        "Risk manager became primary gate-keeper for opportunity viability",
+        "Enhanced risk checks: edge, liquidity, allocation, positions"
+      ],
+      "testing": "31 opportunities found in 27 test markets (vs fewer with pre-filtering)",
+      "files_modified": [
+        "src/predarb/engine.py (run_once method)",
+        "codebase_schema.json (documentation)"
+      ]
+    }
+  },
   "project": {
     "name": "prediction-market-arbitrage",
     "description": "Python arbitrage detection bot for Polymarket prediction markets",
@@ -87,12 +106,15 @@
         "engine.py": {
           "class": "Engine",
           "responsibilities": [
-            "Orchestrate market scanning",
-            "Run detector pipeline",
-            "Execute trades via broker",
+            "Fetch all markets (no pre-filtering to avoid missing opportunities)",
+            "Run detector pipeline on 100% of markets",
+            "Risk manager validates each opportunity (edge, liquidity, allocation, positions)",
+            "Execute only approved trades via broker",
             "Generate reports",
             "Accept injected notifier for testing"
-          ]
+          ],
+          "architecture_note": "Find-First approach: detectors find opportunities across all markets, risk manager decides viability",
+          "key_change_2026_01": "Removed market filtering/ranking stage - now runs detectors on ALL markets instead of pre-filtered subset"
         },
         "polymarket_client.py": {
           "class": "PolymarketClient",
@@ -113,10 +135,19 @@
         "risk.py": {
           "class": "RiskManager",
           "responsibilities": [
-            "Evaluate trade risk",
+            "Evaluate trade risk (post-detection stage)",
+            "Enforce minimum edge threshold",
             "Enforce position limits",
-            "Monitor drawdown"
-          ]
+            "Validate market liquidity",
+            "Enforce allocation sizing constraints"
+          ],
+          "approval_checks": [
+            "net_edge >= min_net_edge_threshold (profit viability)",
+            "open_positions < max_open_positions (leverage safety)",
+            "market.liquidity >= min_liquidity_usd (execution safety)",
+            "est_cost <= max_allocation_per_market (sizing safety)"
+          ],
+          "architecture_note": "Gate-keeper for execution; works with all opportunities from detectors (no pre-filter bias)"
         },
         "notifier.py": {
           "class": "TelegramNotifier",
@@ -184,7 +215,9 @@
             "filter_markets()",
             "rank_markets()"
           ],
-          "purpose": "Pre-filter and score markets by liquidity, volume, spread"
+          "purpose": "Pre-filter and score markets by liquidity, volume, spread",
+          "status": "Legacy - no longer used in main engine loop (2026-01-07)",
+          "note": "Removed from engine.run_once() to avoid missing opportunities in 'low-quality' markets. Risk manager now handles viability checks."
         },
         "matchers.py": {
           "functions": [

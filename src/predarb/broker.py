@@ -100,3 +100,48 @@ class PaperBroker:
             cost_basis = self.avg_cost.get(key, outcome.price)
             pnl += qty * (outcome.price - cost_basis)
         return pnl
+
+    # --- Hedge helpers (simulation safety) ---
+    def get_position_qty(self, market_id: str, outcome_id: str) -> float:
+        """Return current held quantity for a given market/outcome (0.0 if none)."""
+        return self.positions.get(f"{market_id}:{outcome_id}", 0.0)
+
+    def _mark_price(self, market_lookup: Dict[str, Market], market_id: str, outcome_id: str) -> float:
+        """Get current mark price for outcome; fallback to average cost if missing."""
+        market = market_lookup.get(market_id)
+        if market:
+            outcome = next((o for o in market.outcomes if o.id == outcome_id), None)
+            if outcome:
+                return float(outcome.price)
+        return float(self.avg_cost.get(f"{market_id}:{outcome_id}", 0.0))
+
+    def close_position(
+        self,
+        market_lookup: Dict[str, Market],
+        market_id: str,
+        outcome_id: str,
+        qty: float | None = None,
+    ) -> List[Trade]:
+        """Simulate closing (SELL) up to qty for a held position. If qty is None, closes all.
+
+        Returns list of execution trades produced by the close.
+        """
+        key = f"{market_id}:{outcome_id}"
+        held = self.positions.get(key, 0.0)
+        if held <= 0:
+            return []
+        close_qty = held if qty is None else min(qty, held)
+        price = self._mark_price(market_lookup, market_id, outcome_id)
+        action = TradeAction(market_id=market_id, outcome_id=outcome_id, side="SELL", amount=close_qty, limit_price=price)
+        opp = Opportunity(type="HEDGE", market_ids=[market_id], description="hedge_close", net_edge=0.0, actions=[action])
+        return self.execute(market_lookup, opp)
+
+    def flatten_all(self, market_lookup: Dict[str, Market]) -> List[Trade]:
+        """Close all open positions across all markets/outcomes (SELL)."""
+        hedges: List[Trade] = []
+        for key, qty in list(self.positions.items()):
+            if qty <= 0:
+                continue
+            mid, oid = key.split(":")
+            hedges.extend(self.close_position(market_lookup, mid, oid, qty))
+        return hedges

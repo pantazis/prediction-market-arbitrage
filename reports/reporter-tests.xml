@@ -1,1 +1,37 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="10" time="0.378" timestamp="2026-01-07T11:11:28.787762" hostname="vastardis-nb"><testcase classname="tests.test_reporter" name="test_reporter_initialization" time="0.006" /><testcase classname="tests.test_reporter" name="test_reporter_first_report_writes_csv" time="0.026" /><testcase classname="tests.test_reporter" name="test_reporter_deduplicates_same_markets" time="0.036" /><testcase classname="tests.test_reporter" name="test_reporter_writes_on_market_change" time="0.031" /><testcase classname="tests.test_reporter" name="test_reporter_writes_on_opportunity_change" time="0.044" /><testcase classname="tests.test_reporter" name="test_reporter_state_persists" time="0.034" /><testcase classname="tests.test_reporter" name="test_reporter_state_file_format" time="0.035" /><testcase classname="tests.test_reporter" name="test_reporter_hash_order_independent" time="0.009" /><testcase classname="tests.test_reporter" name="test_reporter_handles_missing_opportunity_ids" time="0.012" /><testcase classname="tests.test_reporter" name="test_reporter_csv_multiple_iterations" time="0.036" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="1.731" timestamp="2026-01-07T13:47:49.028189" hostname="vastardis-nb"><testcase classname="tests.test_simulation_harness" name="test_hedge_on_one_leg_failure" time="0.107" /><testcase classname="tests.test_simulation_harness" name="test_abort_and_flatten_when_sell_liquidity_limits" time="0.015"><failure message="AssertionError: assert 'residual_exposure' in []&#10; +  where [] = &lt;built-in method get of dict object at 0x0000026A720761C0&gt;('failure_flags', [])&#10; +    where &lt;built-in method get of dict object at 0x0000026A720761C0&gt; = {'detector': 'LADDER', 'executions': [{'avg_price': 0.3, 'fees': 0.0003, 'filled_amount': 1.0, 'intended_amount': 1.0, ...}], 'failure_flags': [], 'freeze_state': True, ...}.get">tmp_path = WindowsPath('C:/Users/pvast/AppData/Local/Temp/pytest-of-pvast/pytest-19/test_abort_and_flatten_when_se0')
+
+    def test_abort_and_flatten_when_sell_liquidity_limits(tmp_path):
+        """Low liquidity should force partial closes; flatten_all ensures zero exposure and failure_flags mark residual_exposure."""
+        from predarb.config import AppConfig
+        from predarb.engine import Engine
+        from predarb.notifiers.telegram import TelegramNotifierMock
+    
+        config = AppConfig()
+        config.engine.report_path = str(tmp_path / "trades.csv")
+        config.engine.iterations = 1
+        config.engine.refresh_seconds = 0
+    
+        # Make liquidity extremely low to force partials
+        client = MiniClient(_ladder_pair(markets_liq=1.0))
+        notifier = TelegramNotifierMock()
+    
+        engine = Engine(config, client, notifier)
+        engine.run_once()
+    
+        # After flatten_all, exposure must be zero
+        assert sum(engine.broker.positions.values()) == 0.0
+    
+        import json
+        from pathlib import Path
+        log_path = Path("reports") / "opportunity_logs.jsonl"
+        with open(log_path, "r", encoding="utf-8") as f:
+            last = None
+            for line in f:
+                last = line.strip()
+        rec = json.loads(last)
+&gt;       assert "residual_exposure" in rec.get("failure_flags", [])
+E       AssertionError: assert 'residual_exposure' in []
+E        +  where [] = &lt;built-in method get of dict object at 0x0000026A720761C0&gt;('failure_flags', [])
+E        +    where &lt;built-in method get of dict object at 0x0000026A720761C0&gt; = {'detector': 'LADDER', 'executions': [{'avg_price': 0.3, 'fees': 0.0003, 'filled_amount': 1.0, 'intended_amount': 1.0, ...}], 'failure_flags': [], 'freeze_state': True, ...}.get
+
+tests\test_simulation_harness.py:430: AssertionError</failure></testcase></testsuite></testsuites>

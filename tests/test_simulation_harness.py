@@ -330,3 +330,101 @@ class TestSimulationIntegration:
         assert len(messages) > 0
         # Should have filtering, startup, or other messages
         assert any("market" in msg.lower() or "iteration" in msg.lower() for msg in messages)
+
+
+# --- New hedge/flatten simulation tests ---
+
+def _ladder_pair(markets_liq=10_000.0):
+    from predarb.models import Market, Outcome
+    m1 = Market(
+        id="m1",
+        question="Asset > 10",
+        outcomes=[Outcome(id="m1_yes", label="Yes", price=0.30), Outcome(id="m1_no", label="No", price=0.70)],
+        liquidity=markets_liq,
+        comparator=">",
+        threshold=10.0,
+    )
+    m2 = Market(
+        id="m2",
+        question="Asset > 20",
+        outcomes=[Outcome(id="m2_yes", label="Yes", price=0.60), Outcome(id="m2_no", label="No", price=0.40)],
+        liquidity=markets_liq,
+        comparator=">",
+        threshold=20.0,
+    )
+    return [m1, m2]
+
+
+class MiniClient:
+    def __init__(self, markets):
+        self._markets = markets
+    def fetch_markets(self):
+        return self._markets
+    def get_active_markets(self):
+        return self._markets
+
+
+def test_hedge_on_one_leg_failure(tmp_path):
+    """When one leg fails (e.g., SELL without holdings), engine should hedge and return to zero exposure."""
+    from predarb.config import AppConfig
+    from predarb.engine import Engine
+    from predarb.notifiers.telegram import TelegramNotifierMock
+
+    config = AppConfig()
+    config.engine.report_path = str(tmp_path / "trades.csv")
+    config.engine.iterations = 1
+    config.engine.refresh_seconds = 0
+    client = MiniClient(_ladder_pair(markets_liq=10_000.0))
+    notifier = TelegramNotifierMock()
+
+    engine = Engine(config, client, notifier)
+    engine.run_once()
+
+    # After hedging, all positions must be zero
+    assert sum(engine.broker.positions.values()) == 0.0
+
+    # Exec trace contains hedge and freeze_state
+    import json
+    from pathlib import Path
+    log_path = Path("reports") / "opportunity_logs.jsonl"
+    assert log_path.exists()
+    last = None
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            last = line.strip()
+    rec = json.loads(last)
+    assert rec.get("freeze_state") is True
+    assert rec.get("hedge", {}).get("performed") is True
+    assert rec.get("status") in ("partial", "cancelled", "success")
+
+
+def test_abort_and_flatten_when_sell_liquidity_limits(tmp_path):
+    """Low liquidity should force partial closes; flatten_all ensures zero exposure and failure_flags mark residual_exposure."""
+    from predarb.config import AppConfig
+    from predarb.engine import Engine
+    from predarb.notifiers.telegram import TelegramNotifierMock
+
+    config = AppConfig()
+    config.engine.report_path = str(tmp_path / "trades.csv")
+    config.engine.iterations = 1
+    config.engine.refresh_seconds = 0
+
+    # Make liquidity extremely low to force partials
+    client = MiniClient(_ladder_pair(markets_liq=1.0))
+    notifier = TelegramNotifierMock()
+
+    engine = Engine(config, client, notifier)
+    engine.run_once()
+
+    # After flatten_all, exposure must be zero
+    assert sum(engine.broker.positions.values()) == 0.0
+
+    import json
+    from pathlib import Path
+    log_path = Path("reports") / "opportunity_logs.jsonl"
+    with open(log_path, "r", encoding="utf-8") as f:
+        last = None
+        for line in f:
+            last = line.strip()
+    rec = json.loads(last)
+    assert "residual_exposure" in rec.get("failure_flags", [])

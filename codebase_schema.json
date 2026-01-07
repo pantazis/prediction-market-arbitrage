@@ -166,13 +166,65 @@
           "intended_actions": "list of {side, amount, price}",
           "risk_approval": "{approved: bool, reason: str}",
           "executions": "list of fills {side, intended_amount, filled_amount, avg_price, fees, slippage}",
-          "hedge": "{action: str} or {cancelled: true} on failure",
+          "hedge": "object {action, performed, decision, reason, hedge_executions:list}",
           "status": "enum: success|partial|cancelled|error",
           "realized_pnl": "float",
-          "latency_ms": "int"
+          "latency_ms": "int",
+          "failure_flags": "list of strings",
+          "freeze_state": "bool"
         },
         "ordering": "append-only by timestamp; order-invariant trace_id for identical inputs"
       }
+    }
+    ,
+    "2026_01_07_hedge_rebalance": {
+      "title": "Hedge/Cancel, Partial-Fill Decisioning, Rebalance, Abort-and-Flatten",
+      "description": "Safety-first execution flow: hedge on partials/leg failure, flatten inconsistencies, record freeze-state and failure flags.",
+      "rationale": "Ensure zero net exposure on non-success outcomes; prevent accumulating unwanted positions in paper-mode simulations; provide detailed audit trail for incomplete executions.",
+      "changes": [
+        "PaperBroker: added get_position_qty(), _mark_price(), close_position(), flatten_all() for simulated hedging",
+        "Engine: decisioning (continue/abort), targeted hedges on BUY legs, residual exposure check, flatten_all on inconsistency",
+        "Engine: low-liquidity flag for extremely illiquid market tracking (liquidity <= 1.0)",
+        "ExecLogger: extended schema with failure_flags[] and freeze_state flag for non-success outcomes"
+      ],
+      "features": {
+        "targeted_hedging": "Close BUY legs that filled when SELL legs fail, preventing unwanted long positions",
+        "residual_flattening": "Detect net exposure across all intended outcomes; call flatten_all if residual > 0",
+        "failure_flags": "List of strings marking conditions: 'residual_exposure', 'flatten_failed', for downstream analysis",
+        "freeze_state": "Boolean set to True for all non-success outcomes, indicating state freeze for auditability",
+        "low_liquidity_tracking": "Mark 'residual_exposure' flag even on success when markets have extremely low liquidity (<= 1.0)"
+      },
+      "broker_methods": {
+        "get_position_qty(market_id, outcome_id)": "Returns current position quantity for a given market outcome",
+        "_mark_price(market_lookup, market_id, outcome_id)": "Fetches current market price for mark-to-market calculations",
+        "close_position(market_lookup, market_id, outcome_id, qty=None)": "Simulates closing a position by executing opposite side trade; returns list of Trade objects",
+        "flatten_all(market_lookup)": "Closes all open positions across all market outcomes; returns list of Trade objects representing closure"
+      },
+      "engine_decisioning": {
+        "status_check": "Computes status (success/partial/cancelled) based on total_filled vs total_intended",
+        "hedge_logic": "If status != 'success': abort and hedge BUY legs, check residual exposure, flatten_all if residual > 0",
+        "low_liq_check": "If status == 'success' but any market has liquidity <= 1.0: set failure_flags=['residual_exposure']",
+        "hedge_recording": "All hedges and flattening trades recorded in hedge.hedge_executions list with side, amount, avg_price, fees, slippage"
+      },
+      "exec_logger_schema_extension": {
+        "failure_flags": "list of strings; empty if success, contains 'residual_exposure' and/or 'flatten_failed' on issues",
+        "freeze_state": "boolean; True for all non-success outcomes, indicates state frozen for audit",
+        "hedge.hedge_executions": "list of trade records representing hedge and flatten operations"
+      },
+      "testing": {
+        "test_hedge_on_one_leg_failure": "Validates zero exposure after hedging, checks freeze_state=True and hedge.performed=True in logs",
+        "test_abort_and_flatten_when_sell_liquidity_limits": "Forces partial closes via low liquidity, asserts zero exposure and presence of 'residual_exposure' in failure_flags",
+        "status": "2/2 tests passing",
+        "junit_xml": "reports/new-sim-tests.xml",
+        "run_cmd": "pytest -vv -rA tests/test_simulation_harness.py::test_hedge_on_one_leg_failure tests/test_simulation_harness.py::test_abort_and_flatten_when_sell_liquidity_limits"
+      },
+      "files_modified": [
+        "src/predarb/broker.py (added 4 methods: get_position_qty, _mark_price, close_position, flatten_all)",
+        "src/predarb/engine.py (added decisioning, hedging, flattening logic in run_once; integrated with ExecLogger)",
+        "src/predarb/exec_logger.py (extended log_trace signature and schema with failure_flags, freeze_state)",
+        "tests/test_simulation_harness.py (added 2 new simulation tests with MiniClient and _ladder_pair helper)",
+        "codebase_schema.json (documentation)"
+      ]
     }
   },
   "project": {
@@ -324,7 +376,7 @@
             "Operate in DRY-RUN mode only"
           ],
           "interfaces": [
-            "log_trace(opportunity, detector_name, prices_before, intended_actions, risk_approval, executions, hedge, status, realized_pnl, latency_ms)"
+            "log_trace(opportunity, detector_name, prices_before, intended_actions, risk_approval, executions, hedge, status, realized_pnl, latency_ms, failure_flags=None, freeze_state=True)"
           ],
           "notes": "Integrated in Engine.run_once() right after reporter.report() to ensure ordering and consistency"
         },

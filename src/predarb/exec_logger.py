@@ -69,6 +69,8 @@ class ExecLogger:
         status: str,
         realized_pnl: float,
         latency_ms: int,
+        failure_flags: Optional[List[str]] = None,
+        freeze_state: bool = True,
     ) -> str:
         """Write a single execution trace record and return its trace_id."""
         trace_id = self._stable_hash(opportunity, detector_name, intended_actions)
@@ -96,6 +98,8 @@ class ExecLogger:
             "status": status,
             "realized_pnl": realized_pnl,
             "latency_ms": latency_ms,
+            "failure_flags": failure_flags or [],
+            "freeze_state": bool(freeze_state),
         }
         line = json.dumps(record, sort_keys=True, separators=(",", ":"))
         self._safe_append(line)

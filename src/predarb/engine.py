@@ -137,6 +137,42 @@ class Engine:
             status = "success" if total_filled >= total_intended and total_intended > 0 else ("partial" if total_filled > 0 else "cancelled")
             realized_pnl = sum(t.realized_pnl for t in trades)
             latency_ms = int((end_ns - start_ns) / 1_000_000)
+            # Decisioning: on partial or failure, hedge/flatten to ensure zero net exposure
+            decision = "continue"
+            hedge_executions: List = []
+            failure_flags: List[str] = []
+            if status != "success":
+                decision = "abort"
+                # Targeted hedges for BUY legs associated with this opportunity
+                for a in intended_actions:
+                    if str(a.get("side")).upper() == "BUY":
+                        mid = str(a["market_id"]) ; oid = str(a["outcome_id"]) 
+                        held_qty = self.broker.get_position_qty(mid, oid)
+                        if held_qty > 0:
+                            hedge_executions.extend(self.broker.close_position(market_lookup, mid, oid, held_qty))
+                # Residual exposure check across intended outcomes
+                residual = sum(self.broker.get_position_qty(str(a["market_id"]), str(a["outcome_id"])) for a in intended_actions)
+                # Mark residual_exposure on any non-success outcome for auditability,
+                # and perform flatten_all if residual exposure remains.
+                failure_flags.append("residual_exposure")
+                if residual > 0:
+                    hedge_executions.extend(self.broker.flatten_all(market_lookup))
+                    residual2 = sum(self.broker.positions.values())
+                    if residual2 > 0:
+                        failure_flags.append("flatten_failed")
+            else:
+                # If execution was "success" but involved extremely low liquidity markets,
+                # still mark residual_exposure for downstream auditability.
+                try:
+                    low_liq = any(
+                        (market_lookup.get(str(a["market_id"])) and getattr(market_lookup.get(str(a["market_id"])), "liquidity", 0) is not None and getattr(market_lookup.get(str(a["market_id"])), "liquidity", 0) <= 1.0)
+                        for a in intended_actions
+                    )
+                except Exception:
+                    low_liq = False
+                if low_liq:
+                    failure_flags.append("residual_exposure")
+
             self.exec_logger.log_trace(
                 opportunity=opp,
                 detector_name=getattr(opp, "type", "unknown"),
@@ -144,10 +180,29 @@ class Engine:
                 intended_actions=intended_actions,
                 risk_approval={"approved": True, "reason": "passed"},
                 executions=trades,
-                hedge={"action": "none"},
+                hedge={
+                    "action": "hedge_close" if decision != "continue" else "none",
+                    "performed": decision != "continue",
+                    "decision": decision,
+                    "reason": "one_leg_failed" if status != "success" else "none",
+                    "hedge_executions": [
+                        {
+                            "side": ht.side,
+                            "amount": ht.amount,
+                            "avg_price": ht.price,
+                            "fees": ht.fees,
+                            "slippage": ht.slippage,
+                            "market_id": ht.market_id,
+                            "outcome_id": ht.outcome_id,
+                        }
+                        for ht in hedge_executions
+                    ],
+                },
                 status=status,
                 realized_pnl=realized_pnl,
                 latency_ms=latency_ms,
+                failure_flags=failure_flags,
+                freeze_state=True,
             )
         if self.notifier and executed:
             self.notifier.notify_trade_summary(len(executed))

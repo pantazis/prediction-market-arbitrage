@@ -1,7 +1,7 @@
 {
   "codebase_operations": {
     "version": "2.0",
-    "generated": "2026-01-06",
+    "generated": "2026-01-07",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
@@ -29,11 +29,11 @@
             "when_to_use": "Quick test, cron job, one-shot analysis"
           },
           {
-            "cmd": "python demo_reporter.py",
+            "cmd": "python demo_unified_reporting.py",
             "mode": "demo",
-            "description": "Run LiveReporter demo to generate reports/live_summary.csv without APIs",
-            "output": "Creates reports/live_summary.csv and reports/.last_report_state.json",
-            "when_to_use": "Sanity-check live reporting locally"
+            "description": "Run UnifiedReporter demo to generate reports/unified_report.json without APIs",
+            "output": "Creates reports/unified_report.json with iteration summary and opportunity logs",
+            "when_to_use": "Sanity-check unified reporting locally"
           },
           {
             "cmd": "python -m predarb selftest",
@@ -114,9 +114,14 @@
           "purpose": "Retrieve/manage API keys"
           },
           {
-            "script": "python -c \"from src.report_summary import generate_reports_summary; print(generate_reports_summary('reports'))\"",
-            "purpose": "Print human-readable summary from reports/ (live_summary.csv + paper_trades.csv)",
-            "notes": "No network calls; suitable for server runbook and local ops"
+            "script": "python -c \"from src.predarb.unified_reporter import read_unified_report; data = read_unified_report(); print(f'Iterations: {len(data.get(\\\"iterations\\\", []))}, Opportunities: {len(data.get(\\\"opportunity_executions\\\", []))}')\"",
+            "purpose": "Read and summarize reports/unified_report.json (unified JSON reporting)",
+            "notes": "No network calls; replaces legacy CSV reading"
+          },
+          {
+            "script": "python -c \"from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()\"",
+            "purpose": "Export legacy CSV files from unified_report.json for backward compatibility",
+            "notes": "Generates live_summary.csv and paper_trades.csv from unified JSON"
         }
       ]
     },
@@ -127,9 +132,15 @@
       },
       "test_by_category": [
         {
-          "category": "Live Reporting",
+          "category": "Unified Reporting (JSON-based)",
+          "cmd": "python -m pytest -q tests/test_unified_reporter.py",
+          "coverage": "23 tests covering UnifiedReporter initialization, iteration logging, opportunity execution logging, JSON structure, file safety, legacy export"
+        },
+        {
+          "category": "Legacy Live Reporting (CSV-based, deprecated)",
           "cmd": "python -m pytest -q tests/test_reporter.py",
-          "coverage": "10 tests covering initialization, deduplication, state persistence, order-independence, CSV format"
+          "coverage": "10 tests covering initialization, deduplication, state persistence, order-independence, CSV format",
+          "note": "Legacy reporter - UnifiedReporter is the current implementation"
         },
         {
           "category": "Engine & Core Logic",
@@ -911,9 +922,48 @@
       "example_env": "POLYMARKET_API_KEY=your_key\nPOLYMARKET_SECRET=your_secret\nPOLYMARKET_PASSPHRASE=your_pass\nTELEGRAM_ENABLED=true\nTELEGRAM_BOT_TOKEN=123:ABC...\nTELEGRAM_CHAT_ID=987654321"
     },
     "output_files": {
-      "csv_trades": {
+      "unified_report": {
+        "path": "reports/unified_report.json",
+        "purpose": "Single JSON file containing all reporting data (iterations + opportunity executions)",
+        "format": "JSON with two top-level arrays",
+        "structure": {
+          "iterations": [
+            {
+              "iteration": "int - iteration number",
+              "timestamp": "ISO 8601 timestamp",
+              "markets_count": "int - total markets processed",
+              "opportunities_detected": "int - opportunities found",
+              "opportunities_approved": "int - opportunities passing risk checks",
+              "approval_rate": "float - approved/detected ratio",
+              "status": "str - iteration status (e.g., 'complete')"
+            }
+          ],
+          "opportunity_executions": [
+            {
+              "opportunity_id": "str - unique opportunity identifier",
+              "timestamp": "ISO 8601 timestamp",
+              "iteration": "int - which iteration detected this",
+              "detector": "str - detector name",
+              "markets": "list of market identifiers",
+              "actions": "list of trade actions executed",
+              "status": "str - execution status",
+              "pnl": "float - profit/loss if applicable"
+            }
+          ]
+        },
+        "write_safety": "Atomic write (temp file then rename) prevents corruption",
+        "api": {
+          "report_iteration(iteration, markets_count, opps_detected, opps_approved, status)": "Log iteration summary",
+          "log_opportunity_execution(opp_id, detector, markets, actions, status, pnl)": "Log opportunity execution",
+          "log_trades(trades_list)": "Log multiple trades at once"
+        },
+        "migration_from_legacy": "Replaces live_summary.csv + opportunity_logs.jsonl with single JSON file",
+        "backward_compatibility": "Use export_legacy_csv() to generate old CSV files from unified JSON"
+      },
+      "legacy_csv_trades": {
         "path": "reports/paper_trades.csv",
-        "purpose": "Log all executed trades",
+        "purpose": "Legacy CSV log of executed trades (can be exported from unified_report.json)",
+        "status": "DEPRECATED - Use unified_report.json instead",
         "columns": [
           "timestamp",
           "market_id",
@@ -925,42 +975,16 @@
           "slippage",
           "realized_pnl"
         ],
-        "notes": "Updated to match predarb.Engine _write_report: includes slippage and realized_pnl; uses amount instead of quantity; omits market_name and cost."
+        "export_function": "export_legacy_csv() in unified_reporter.py"
       },
-      "live_reporting": {
+      "legacy_live_reporting": {
         "path": "reports/live_summary.csv",
-        "purpose": "Append-only live summary of markets and opportunities with debug columns",
+        "purpose": "Legacy CSV summary (can be exported from unified_report.json)",
+        "status": "DEPRECATED - Use unified_report.json instead",
         "columns": [
           "TIMESTAMP","READABLE_TIME","ITERATION","MARKETS","MARKETS_Δ","DETECTED","DETECTED_Δ","APPROVED","APPROVED_Δ","APPROVAL%","STATUS","MARKET_HASH","OPP_HASH"
         ],
-        "notes": "Two header rows are written on first creation; rows append only when hashes change"
-      },
-      "opportunity_logs": {
-        "path": "reports/opportunity_logs.jsonl",
-        "purpose": "Deterministic per-opportunity execution traces (JSON Lines)",
-        "format": "JSONL (one JSON object per line)",
-        "fields": [
-          "trace_id (stable hash across identical inputs)",
-          "timestamp_utc",
-          "opportunity_id",
-          "detector (name/version)",
-          "markets (list of market_id + outcome_id)",
-          "prices_before (map outcome_id->price)",
-          "intended_actions (list of {side, amount, price})",
-          "risk_approval (approved: bool, reason)",
-          "executions (list with fills: {side, intended_amount, filled_amount, avg_price, fees, slippage})",
-          "hedge (action or cancel on failure)",
-          "status (success|partial|cancelled|error)",
-          "realized_pnl",
-          "latency_ms"
-        ],
-        "ordering": "Append-only; order by timestamp_utc; trace_id is order-invariant for identical inputs",
-        "notes": "Written via ExecLogger in DRY-RUN only; safe write (temp file then rename)"
-      },
-      "live_state": {
-        "path": "reports/.last_report_state.json",
-        "purpose": "Restart-safe state for deduplicating live report writes",
-        "keys": ["market_ids_hash","approved_opp_ids_hash","last_markets_count","last_opps_detected","last_opps_approved","last_updated"]
+        "export_function": "export_legacy_csv() in unified_reporter.py"
       },
       "reporter_junit": {
         "path": "reports/reporter-tests.xml",
@@ -1001,13 +1025,16 @@
       "start_once": "python -m predarb once (requires API creds)",
       "start_production": "python -m predarb run (infinite loop)",
       "start_simulation": "python sim_run.py --days 5",
-      "run_tests": "pytest tests/",
+      "run_tests": "pytest tests/ (34/36 tests passing as of 2026-01-07)",
       "enable_telegram": "Set TELEGRAM_ENABLED=true, bot_token, chat_id",
-      "view_trades": "cat reports/paper_trades.csv",
+      "view_unified_report": "cat reports/unified_report.json | python -m json.tool",
+      "export_legacy_csv": "python -c 'from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()'",
+      "read_report_summary": "python -c 'from src.predarb.unified_reporter import read_unified_report; print(read_unified_report())'",
       "check_api": "python check_connection.py",
       "telegram_commands": "/start /pause /stop /status /daily /mode /freeze /unfreeze /forceclose /help",
       "rate_limits": "VIEW: 10/min, CONTROL: 5/min, DANGEROUS: 2/min",
-      "confirmation": "Dangerous commands need 2-step: command → code → /confirm code"
+      "confirmation": "Dangerous commands need 2-step: command → code → /confirm code",
+      "test_status": "34/36 tests passing (94% success rate)"
     }
   }
 }

@@ -323,6 +323,76 @@
       ],
       "caution": "⚠️ REAL TRADING REQUIRES: API keys, private keys, significant capital, risk management expertise"
     },
+    "server_runbook": {
+      "document": "RUNBOOK_SERVER.md",
+      "purpose": "Operational steps to stop previously running bots, verify health, and start the new bot on server",
+      "stop_previous": {
+        "systemd": [
+          "sudo systemctl stop arbitrage-bot.service",
+          "sudo systemctl disable arbitrage-bot.service (optional)",
+          "sudo systemctl status arbitrage-bot.service"
+        ],
+        "tmux": [
+          "tmux ls",
+          "tmux kill-session -t arbitrage"
+        ],
+        "screen": [
+          "screen -ls",
+          "screen -S arbitrage -X quit"
+        ],
+        "docker": [
+          "docker ps",
+          "docker stop arbitrage-bot"
+        ],
+        "bare_process": [
+          "ps aux | grep -E 'python (-m predarb|bot.py)' | grep -v grep",
+          "pkill -f 'python -m predarb'",
+          "pkill -f 'python bot.py'"
+        ]
+      },
+      "verification": {
+        "no_network": [
+          ". .venv/bin/activate",
+          "python -m predarb selftest",
+          "pytest -q tests/test_reporter.py"
+        ],
+        "optional_network": [
+          "python bot.py test_connection --config config.yml"
+        ]
+      },
+      "start_new": {
+        "venv_foreground": [
+          ". .venv/bin/activate",
+          "python -m predarb run --config config.yml"
+        ],
+        "venv_smoke": [
+          "python -m predarb run --config config.yml --iterations 5"
+        ],
+        "tmux_background": [
+          "tmux new -s arbitrage -d '. .venv/bin/activate && python -m predarb run --config config.yml'"
+        ],
+        "systemd": {
+          "unit_path": "/etc/systemd/system/arbitrage-bot.service",
+          "unit_template": "See RUNBOOK_SERVER.md",
+          "enable_and_start": [
+            "sudo systemctl daemon-reload",
+            "sudo systemctl enable arbitrage-bot.service",
+            "sudo systemctl start arbitrage-bot.service",
+            "sudo systemctl status arbitrage-bot.service"
+          ]
+        }
+      },
+      "monitoring": {
+        "logs": [
+          "journalctl -u arbitrage-bot -f (systemd)",
+          "tmux attach -t arbitrage (tmux)"
+        ],
+        "reports": [
+          "reports/paper_trades.csv",
+          "reports/live_summary.csv"
+        ]
+      }
+    },
     "telegram_integration": {
       "overview": "Bidirectional bot-user communication: OUTBOUND (bot→user notifications) + INBOUND (user→bot commands)",
       "architecture": "Freqtrade-style: Handlers queue actions (non-blocking), bot_loop processes async",

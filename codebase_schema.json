@@ -83,6 +83,23 @@
         "src/predarb/engine.py (run_once method)",
         "codebase_schema.json (documentation)"
       ]
+    },
+    "2026_01_07_server_runbook": {
+      "title": "Server Runbook for Operations",
+      "description": "Added operational runbook to stop previous bots, verify health, and start the new bot on server environments.",
+      "rationale": "Provide repeatable, safe operational steps to prevent duplicate loops and ensure deterministic pre-flight checks.",
+      "files_created": [
+        "RUNBOOK_SERVER.md"
+      ],
+      "files_modified": [
+        "CODEBASE_OPERATIONS.json",
+        "codebase_schema.json"
+      ],
+      "notes": [
+        "Covers systemd, tmux/screen, Docker, and simple venv process",
+        "Includes no-network self-test and optional live connection check",
+        "Documents monitoring outputs (reports/*.csv) and rollback"
+      ]
     }
   },
   "project": {

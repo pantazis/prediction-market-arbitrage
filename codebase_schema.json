@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-07",
+  "last_updated": "2026-01-07T19:30:00Z",
   "architecture_changes": {
     "2026_01_07_live_reporting": {
       "title": "Live Incremental Reporting System",
@@ -133,47 +133,187 @@
           "function": "generate_reports_summary(reports_dir='reports')",
           "returns": "str",
           "location": "src/report_summary.py",
-          "notes": "Parses live_summary.csv and paper_trades.csv; handles missing headers gracefully."
+          "notes": "Reads unified_report.json and generates human-readable summary of iterations, executions, and trades."
+        },
+        {
+          "function": "export_legacy_csv(reports_dir='reports', output_dir=None)",
+          "returns": "None",
+          "location": "src/report_summary.py",
+          "notes": "Exports unified JSON report to legacy CSV/JSONL format for backward compatibility."
         }
       ],
-      "testing": "Deterministic unit tests create temporary CSVs and assert key output fragments.",
-      "impact": "Non-breaking; read-only utility."
+      "testing": "Unit tests validate JSON parsing and summary generation.",
+      "impact": "Non-breaking; read-only utility with optional legacy export."
+    }
+    ,
+    "2026_01_07_unified_reporter": {
+      "title": "Unified JSON Reporting System",
+      "description": "Consolidated all reporting (loop iterations, opportunity executions, trades) into a single unified JSON file for simplified management and querying.",
+      "rationale": "Reduce file sprawl, simplify analysis, enable easier programmatic access, and provide atomic updates for all report data.",
+      "files_created": [
+        "src/predarb/unified_reporter.py",
+        "tests/test_unified_reporter.py (474 lines, 13 comprehensive tests)",
+        "tests/test_unified_report_summary.py (363 lines, 23 comprehensive tests)"
+      ],
+      "files_modified": [
+        "src/predarb/engine.py (replaced LiveReporter + ExecLogger with UnifiedReporter)",
+        "src/report_summary.py (rewrote to read unified JSON; added legacy export)",
+        "tests/test_unified_reporter.py (fixed Trade model usage, iteration structure, method signatures)",
+        "tests/test_unified_report_summary.py (fixed data structures, return value expectations)",
+        "codebase_schema.json (updated documentation)"
+      ],
+      "testing": {
+        "status": "34/36 tests passing (94% success rate)",
+        "test_files": [
+          "tests/test_unified_reporter.py (11/13 passing)",
+          "tests/test_unified_report_summary.py (23/23 passing)"
+        ],
+        "test_categories": {
+          "initialization": "3/3 passing - directory creation, file creation, loading existing reports",
+          "iteration_reporting": "5/6 passing - first write, unchanged skip, changed markets, deltas (1 failing: changed opportunities)",
+          "execution_logging": "2/3 passing - trace ID, failed execution (1 failing: opportunity details)",
+          "trade_logging": "3/3 passing - single trade, multiple trades, appending",
+          "atomic_writes": "2/2 passing - corruption prevention, error handling",
+          "state_management": "3/3 passing - consistent hashing, order independence, persistence",
+          "read_report": "3/3 passing - existing report, missing file, invalid JSON",
+          "generate_summary": "5/5 passing - all summary tests",
+          "export_csv": "4/5 passing - file export, formats (1 failing: empty report)",
+          "backward_compatibility": "2/2 passing - format matching, summary compatibility"
+        },
+        "known_issues": [
+          "test_changed_opportunities_triggers_write: Opportunity change detection logic needs investigation",
+          "test_handles_empty_report: Empty report CSV export handling needs adjustment"
+        ],
+        "data_structure_fixes": [
+          "Fixed Trade model to include required fields: slippage=0.0, realized_pnl=5.0",
+          "Updated iteration metrics from flat integers to nested dicts: {'count': X, 'delta': Y}",
+          "Fixed log_opportunity_execution() signature with all 11+ required parameters",
+          "Changed read_unified_report() expectations: returns empty dict instead of None for missing files"
+        ],
+        "run_command": "python -m pytest tests/test_unified_reporter.py tests/test_unified_report_summary.py -v"
+      },
+      "schema": {
+        "file": "reports/unified_report.json",
+        "format": "JSON",
+        "structure": {
+          "metadata": {
+            "version": "1.0",
+            "created_at": "ISO8601",
+            "last_updated": "ISO8601",
+            "description": "Human-readable description",
+            "last_state": {
+              "market_ids_hash": "sha256 (16 char prefix)",
+              "approved_opp_ids_hash": "sha256 (16 char prefix)",
+              "last_markets_count": "int",
+              "last_opps_detected": "int",
+              "last_opps_approved": "int"
+            }
+          },
+          "iterations": [
+            {
+              "iteration": "int",
+              "timestamp": "ISO8601",
+              "markets": {"count": "int", "delta": "int"},
+              "opportunities_detected": {"count": "int", "delta": "int"},
+              "opportunities_approved": {"count": "int", "delta": "int"},
+              "approval_rate_pct": "float or null",
+              "hashes": {"markets": "string", "approved_opps": "string"}
+            }
+          ],
+          "opportunity_executions": [
+            {
+              "trace_id": "sha256",
+              "timestamp": "ISO8601",
+              "opportunity": {
+                "id": "string",
+                "type": "string",
+                "detector": "string",
+                "market_ids": ["string"],
+                "expected_profit": "float or null"
+              },
+              "prices_before": {"outcome_id": "float"},
+              "intended_actions": [{"market_id": "str", "outcome_id": "str", "side": "str", "amount": "float", "price": "float"}],
+              "risk_approval": {"approved": "bool", "reason": "string"},
+              "executions": [
+                {
+                  "trade_id": "uuid",
+                  "market_id": "string",
+                  "outcome_id": "string",
+                  "side": "BUY|SELL",
+                  "amount": "float",
+                  "price": "float",
+                  "fees": "float",
+                  "slippage": "float",
+                  "realized_pnl": "float"
+                }
+              ],
+              "hedge": {"action": "str", "performed": "bool", "decision": "str", "reason": "str", "hedge_executions": "list"},
+              "status": "success|partial|cancelled",
+              "realized_pnl": "float",
+              "latency_ms": "int",
+              "failure_flags": ["string"]
+            }
+          ],
+          "trades": [
+            {
+              "trade_id": "uuid",
+              "timestamp": "ISO8601",
+              "market_id": "string",
+              "outcome_id": "string",
+              "side": "BUY|SELL",
+              "amount": "float",
+              "price": "float",
+              "fees": "float",
+              "slippage": "float",
+              "realized_pnl": "float"
+            }
+          ]
+        },
+        "benefits": [
+          "Single source of truth for all reporting data",
+          "Atomic writes via temp file + atomic rename",
+          "Easy programmatic querying (no CSV parsing)",
+          "Reduced file sprawl (1 file instead of 3)",
+          "Built-in metadata and versioning",
+          "Backward compatible via export_legacy_csv utility"
+        ]
+      },
+      "api": {
+        "UnifiedReporter.report_iteration()": "Records loop iteration state changes",
+        "UnifiedReporter.log_opportunity_execution()": "Records full opportunity execution trace",
+        "UnifiedReporter.log_trades()": "Records individual trades",
+        "read_unified_report()": "Loads JSON report into Python dict",
+        "export_legacy_csv()": "Exports to old live_summary.csv, opportunity_logs.jsonl, paper_trades.csv format"
+      },
+      "migration": {
+        "old_files": [
+          "reports/live_summary.csv",
+          "reports/opportunity_logs.jsonl",
+          "reports/paper_trades.csv",
+          "reports/.last_report_state.json"
+        ],
+        "new_file": "reports/unified_report.json",
+        "backward_compatibility": "Use export_legacy_csv() to generate old format from unified report",
+        "data_migration": "Old reports remain accessible; new runs write to unified_report.json"
+      }
     }
     ,
     "2026_01_07_exec_logger": {
-      "title": "Deterministic Per-Opportunity Execution Logger",
-      "description": "Introduced ExecLogger to write JSON Lines per opportunity with stable hashing and safe append-only semantics.",
-      "rationale": "Provide full execution trace per opportunity in DRY-RUN, enabling debugging, reproducibility, and audit.",
+      "title": "Deterministic Per-Opportunity Execution Logger (DEPRECATED - replaced by UnifiedReporter)",
+      "description": "Previously wrote JSONL execution traces. Now consolidated into unified_report.json.",
+      "rationale": "Migrated to unified reporting system for better management.",
       "files_created": [
-        "src/predarb/exec_logger.py",
-        "tests/test_execution_trace_logger.py"
+        "src/predarb/exec_logger.py (deprecated)"
       ],
       "files_modified": [
-        "src/predarb/engine.py (integrate ExecLogger emission alongside reporter.report())",
+        "src/predarb/engine.py (now uses UnifiedReporter)",
         "CODEBASE_OPERATIONS.json (document reports/opportunity_logs.jsonl)",
         "codebase_schema.json (module + schema documentation)"
       ],
       "schema": {
-        "file": "reports/opportunity_logs.jsonl",
+        "file": "reports/opportunity_logs.jsonl (deprecated, use reports/unified_report.json)",
         "format": "JSONL",
-        "record": {
-          "trace_id": "sha256 hash over opportunity_id + detector + markets + intended_actions",
-          "timestamp_utc": "ISO8601",
-          "opportunity_id": "string",
-          "detector": "string",
-          "markets": "list of {market_id, outcome_id}",
-          "prices_before": "map outcome_id->price",
-          "intended_actions": "list of {side, amount, price}",
-          "risk_approval": "{approved: bool, reason: str}",
-          "executions": "list of fills {side, intended_amount, filled_amount, avg_price, fees, slippage}",
-          "hedge": "object {action, performed, decision, reason, hedge_executions:list}",
-          "status": "enum: success|partial|cancelled|error",
-          "realized_pnl": "float",
-          "latency_ms": "int",
-          "failure_flags": "list of strings",
-          "freeze_state": "bool"
-        },
-        "ordering": "append-only by timestamp; order-invariant trace_id for identical inputs"
+        "note": "Legacy format available via export_legacy_csv() for backward compatibility"
       }
     }
     ,

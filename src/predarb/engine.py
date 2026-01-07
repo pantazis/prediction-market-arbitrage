@@ -21,8 +21,7 @@ from predarb.detectors.timelag import TimeLagDetector
 from predarb.detectors.consistency import ConsistencyDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
-from .reporter import LiveReporter
-from .exec_logger import ExecLogger
+from .unified_reporter import UnifiedReporter
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +71,8 @@ class Engine:
         self.report_path = Path(config.engine.report_path)
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Initialize live reporter
-        self.reporter = LiveReporter()
-        # Initialize execution logger (JSONL per opportunity)
-        self.exec_logger = ExecLogger()
+        # Initialize unified reporter (replaces separate CSV/JSONL files)
+        self.reporter = UnifiedReporter()
         
         # Track detected/approved opportunities for reporting
         self._last_detected: List[Opportunity] = []
@@ -173,7 +170,7 @@ class Engine:
                 if low_liq:
                     failure_flags.append("residual_exposure")
 
-            self.exec_logger.log_trace(
+            self.reporter.log_opportunity_execution(
                 opportunity=opp,
                 detector_name=getattr(opp, "type", "unknown"),
                 prices_before=prices_before,
@@ -202,11 +199,13 @@ class Engine:
                 realized_pnl=realized_pnl,
                 latency_ms=latency_ms,
                 failure_flags=failure_flags,
-                freeze_state=True,
             )
         if self.notifier and executed:
             self.notifier.notify_trade_summary(len(executed))
-        self._write_report(self.broker.trades)
+        
+        # Log trades to unified report
+        if self.broker.trades:
+            self.reporter.log_trades(self.broker.trades)
         
         # Store for reporting
         self._last_markets = all_markets
@@ -234,27 +233,10 @@ class Engine:
             logger.info("Iteration %s", i + 1)
             self.run_once()
             # Generate incremental report (appends only if data changed)
-            self.reporter.report(
+            self.reporter.report_iteration(
                 iteration=i + 1,
                 all_markets=self._last_markets,
                 detected_opportunities=self._last_detected,
                 approved_opportunities=self._last_approved,
             )
             time.sleep(self.config.engine.refresh_seconds)
-
-    def _write_report(self, trades):
-        if not trades:
-            # Still create an empty report file for visibility in tests/ops.
-            self.report_path.touch(exist_ok=True)
-            return
-        write_header = not self.report_path.exists()
-        with open(self.report_path, "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            if write_header:
-                writer.writerow(
-                    ["timestamp", "market_id", "outcome_id", "side", "amount", "price", "fees", "slippage", "realized_pnl"]
-                )
-            for t in trades:
-                writer.writerow(
-                    [t.timestamp.isoformat(), t.market_id, t.outcome_id, t.side, t.amount, t.price, t.fees, t.slippage, t.realized_pnl]
-                )

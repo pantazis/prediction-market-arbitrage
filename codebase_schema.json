@@ -120,6 +120,67 @@
       ]
     }
     ,
+    "2026_01_07_semantic_clustering": {
+      "title": "Semantic Market Clustering with Sentence Transformers",
+      "description": "Added optional semantic similarity matching to cluster_duplicates() using sentence-transformers embeddings for improved duplicate detection.",
+      "rationale": "Catch semantically similar markets that string-based matching misses (e.g., 'Bitcoin' ↔ 'BTC', 'surpass' ↔ 'exceed')",
+      "implementation": {
+        "library": "sentence-transformers>=2.2.0 (with PyTorch CPU)",
+        "model": "all-MiniLM-L6-v2 (~80MB, fast inference)",
+        "approach": "Cosine similarity on question embeddings",
+        "caching": "Global model and embedding caches for performance"
+      },
+      "files_modified": [
+        "src/predarb/matchers.py (added semantic_similarity() function and use_semantic parameter)",
+        "requirements.txt (added sentence-transformers>=2.2.0)",
+        "tests/test_matchers.py (added semantic clustering tests)",
+        "codebase_schema.json (documentation)"
+      ],
+      "api": {
+        "semantic_similarity(a: str, b: str, model_name: str = 'all-MiniLM-L6-v2') -> float": {
+          "description": "Compute cosine similarity between two text strings using sentence embeddings",
+          "returns": "Float 0.0-1.0 (0=unrelated, 1=identical)",
+          "caching": "Embeddings cached in _embedding_cache for repeat queries",
+          "error": "Raises RuntimeError if sentence-transformers unavailable"
+        },
+        "cluster_duplicates(markets, title_threshold=0.8, use_semantic=False)": {
+          "description": "Cluster duplicate/similar markets; optionally uses semantic similarity",
+          "use_semantic": "If True, uses semantic_similarity() instead of string-based similarity()",
+          "backward_compatible": "use_semantic defaults to False, preserving existing behavior",
+          "threshold": "Higher values (0.7-0.9) for semantic, lower (0.4-0.6) may be needed for noisy text"
+        }
+      },
+      "testing": {
+        "status": "Implementation complete, PyTorch CPU installed successfully",
+        "test_file": "tests/test_matchers.py",
+        "test_approach": "Graceful skip if sentence-transformers unavailable",
+        "semantic_tests": [
+          "test_cluster_with_semantic_variations (tests use_semantic=True parameter)"
+        ],
+        "baseline_tests": [
+          "test_duplicate_clustering (string matching still works)",
+          "test_related_grouping (grouping logic preserved)",
+          "test_fingerprint_extracts_key_features (feature extraction unchanged)"
+        ]
+      },
+      "installation": {
+        "windows_cpu": "pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu",
+        "note": "PyTorch CPU version required on Windows to avoid DLL errors",
+        "model_download": "First run downloads all-MiniLM-L6-v2 model from HuggingFace (~80MB)"
+      },
+      "backward_compatibility": "Fully backward compatible - use_semantic defaults to False, existing code unchanged",
+      "limitations": [
+        "Semantic matching only in cluster_duplicates(), not in fingerprint() function",
+        "Requires ~80MB model download on first use",
+        "Embedding computation adds ~10-50ms per market pair (cached after first compute)"
+      ],
+      "future_enhancements": [
+        "Add semantic matching to fingerprint() for entity/threshold extraction",
+        "Fine-tune model on crypto/prediction market vocabulary",
+        "Add batch embedding for better performance on large market lists"
+      ]
+    }
+    ,
     "2026_01_07_reports_human_summary": {
       "title": "Human-readable Reports Summary",
       "description": "Added utility to read all files in reports/ and produce a human-readable summary of live reporting and paper trades.",
@@ -632,11 +693,116 @@
         },
         "matchers.py": {
           "functions": [
-            "group_related()",
-            "cluster_duplicates()",
-            "verify_semantic_groups()"
+            "fingerprint(market) -> Dict",
+            "similarity(a, b) -> float",
+            "cluster_duplicates(markets, title_threshold=0.8) -> List[Tuple[Market, Market]]",
+            "group_related(markets, expiry_window_days=7) -> Dict[str, List[Market]]",
+            "verify_semantic_groups(groups, llm_verifier) -> Dict[str, List[List[Market]]]"
           ],
-          "purpose": "Match and group related markets; optionally verify with LLM"
+          "purpose": "Match and group related markets using fingerprinting and semantic clustering; optionally verify with LLM",
+          "semantic_clustering_approach": {
+            "description": "Multi-stage pipeline for identifying semantically equivalent markets",
+            "stage_1_fingerprinting": {
+              "purpose": "Extract normalized features from raw market questions",
+              "features_extracted": [
+                "key: Normalized question text (lowercase, token-sorted)",
+                "entity: Asset/subject extracted from question (BTC, ETH, etc.)",
+                "expiry: Parsed expiration date/time",
+                "comparator: Comparison operator (>, <, ==, etc.)",
+                "threshold: Numeric value for comparison (price, count, etc.)"
+              ],
+              "normalization_benefits": [
+                "Handles abbreviations: 'Bitcoin' <-> 'BTC'",
+                "Number format invariance: '$100,000' <-> '100K' <-> '100000'",
+                "Date format invariance: 'Dec 31 2026' <-> '2026-12-31' <-> 'year end'"
+              ]
+            },
+            "stage_2_string_clustering": {
+              "purpose": "Use SequenceMatcher for fast title similarity",
+              "method": "difflib.SequenceMatcher.ratio() for character-level similarity",
+              "default_threshold": 0.8,
+              "filters": [
+                "Expiry within 24 hours (after fingerprint normalization)",
+                "Entity must match (if both extracted)",
+                "Title similarity >= threshold"
+              ],
+              "output": "List of (market_a, market_b) duplicate pairs"
+            },
+            "stage_3_grouping": {
+              "purpose": "Bucket markets by entity and expiry window",
+              "method": "Group by (entity, date_bucket) with merge window",
+              "expiry_window": "7 days by default",
+              "output": "Dict[str, List[Market]] with semantic cluster IDs"
+            },
+            "stage_4_llm_verification": {
+              "purpose": "Optional high-precision verification using cheap LLMs",
+              "method": "LLM verifies if markets refer to same event",
+              "models": ["GPT-3.5-turbo", "Gemini 1.5-flash"],
+              "features": [
+                "Persistent caching (168h TTL)",
+                "Order-invariant cache keys",
+                "Union-find for verified subgroups",
+                "Fail-safe modes (fail_open/fail_closed)"
+              ],
+              "output": "Dict[str, List[List[Market]]] with verified subgroups"
+            }
+          },
+          "performance_characteristics": {
+            "fingerprinting": "O(m) where m = number of markets",
+            "string_clustering": "O(m^2) comparisons with early exit filters",
+            "grouping": "O(m) with hash-based bucketing",
+            "llm_verification": "O(pairs) with 168h cache (near-zero cost on cache hit)"
+          },
+          "use_cases": [
+            "Arbitrage detection: Find mispriced semantically identical markets",
+            "Duplicate detection: Identify redundant market listings",
+            "Market consolidation: Group related prediction markets for analysis",
+            "Price discrepancy alerts: Notify traders of semantic arbitrage opportunities"
+          ],
+          "string_vs_semantic_comparison": {
+            "string_matching_catches": [
+              "Exact duplicates with typos",
+              "Minor wording variations",
+              "Same sentence structure with word substitutions"
+            ],
+            "string_matching_misses": [
+              "Abbreviations: 'Bitcoin' vs 'BTC'",
+              "Number formats: '$100,000' vs '100K' vs '100000'",
+              "Date formats: 'Dec 31' vs '2026-12-31' vs 'year end'",
+              "Reordered clauses: 'BTC $100K by 2026' vs '2026 Bitcoin 100000'",
+              "Synonyms: 'exceed' vs 'surpass' vs 'go above'"
+            ],
+            "semantic_fingerprinting_catches": [
+              "All string matching cases",
+              "Abbreviation variations through entity extraction",
+              "Number format variations through threshold normalization",
+              "Date format variations through expiry parsing",
+              "Clause reordering through token-sorted keys"
+            ],
+            "when_to_use_semantic": [
+              "Trading bots: Need to catch all price discrepancies regardless of wording",
+              "High-value opportunities: Missing a match costs profit",
+              "Diverse market sources: Different platforms use different conventions",
+              "User-generated markets: Unpredictable question phrasing"
+            ],
+            "when_string_matching_sufficient": [
+              "Single platform with standardized questions",
+              "Low-frequency manual review",
+              "Exact duplicate detection only",
+              "Performance-critical paths with >1000 markets"
+            ]
+          },
+          "testing": {
+            "test_file": "tests/test_matchers.py",
+            "test_coverage": [
+              "test_duplicate_clustering: Basic string similarity matching",
+              "test_related_grouping: Entity-based bucketing",
+              "test_semantic_matches_abbreviations: BTC <-> Bitcoin matching",
+              "test_semantic_matches_number_formats: $5,000 <-> 5000 <-> 5K",
+              "test_cluster_with_semantic_variations: End-to-end semantic pipeline",
+              "test_fingerprint_extracts_key_features: Feature extraction validation"
+            ]
+          }
         },
         "llm_verifier.py": {
           "classes": [

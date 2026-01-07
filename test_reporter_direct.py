@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import tempfile
+import csv
 from predarb.models import Market, Opportunity, Outcome, TradeAction
 from predarb.reporter import LiveReporter
 
@@ -78,9 +79,16 @@ def test_reporter_first_report_writes_csv():
         assert reporter.summary_csv.exists()
         
         lines = reporter.summary_csv.read_text().strip().split("\n")
-        assert len(lines) == 2
-        assert lines[0] == "timestamp,iteration,markets_found,opps_found,opps_after_filter"
-        assert "1,2,2,1" in lines[1]
+        # Reporter writes two header rows, then data
+        assert len(lines) == 3
+        # Validate the data row values by parsing CSV
+        rows = list(csv.reader(lines))
+        data = rows[-1]
+        # Columns: TIMESTAMP, READABLE_TIME, ITERATION, MARKETS, ..., DETECTED, ..., APPROVED, ...
+        assert int(data[2]) == 1  # ITERATION
+        assert int(data[3]) == 2  # MARKETS count
+        assert int(data[5]) == 2  # DETECTED count
+        assert int(data[7]) == 1  # APPROVED count
     print("✓ test_reporter_first_report_writes_csv")
 
 
@@ -110,7 +118,7 @@ def test_reporter_deduplicates_same_markets():
         assert result2 is False
         
         lines = reporter.summary_csv.read_text().strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == 3
     print("✓ test_reporter_deduplicates_same_markets")
 
 
@@ -140,7 +148,8 @@ def test_reporter_writes_on_market_change():
         assert result2 is True
         
         lines = reporter.summary_csv.read_text().strip().split("\n")
-        assert len(lines) == 3
+        # Two header rows + two data rows
+        assert len(lines) == 4
     print("✓ test_reporter_writes_on_market_change")
 
 
@@ -171,7 +180,7 @@ def test_reporter_writes_on_opportunity_change():
         assert result2 is True
         
         lines = reporter.summary_csv.read_text().strip().split("\n")
-        assert len(lines) == 3
+        assert len(lines) == 4
     print("✓ test_reporter_writes_on_opportunity_change")
 
 
@@ -252,7 +261,7 @@ def test_reporter_csv_multiple_iterations():
         )
         
         lines = reporter.summary_csv.read_text().strip().split("\n")
-        assert len(lines) == 4  # header + 3 data rows
+        assert len(lines) == 5  # 2 header rows + 3 data rows
     print("✓ test_reporter_csv_multiple_iterations")
 
 

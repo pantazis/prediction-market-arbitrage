@@ -598,3 +598,11 @@ def create_market(
         volume=volume,
         resolution_source=resolution_source,
     )
+
+
+# Additional fixture used by market invariant tests
+@pytest.fixture
+def market_with_invalid_price(valid_market_template) -> Dict:
+    """Provide a valid market template dict to mutate for invalid price tests."""
+    # Return a shallow copy so tests can modify outcome prices
+    return valid_market_template.copy()

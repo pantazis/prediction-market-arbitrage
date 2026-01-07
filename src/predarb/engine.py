@@ -22,6 +22,7 @@ from predarb.detectors.consistency import ConsistencyDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .reporter import LiveReporter
+from .exec_logger import ExecLogger
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,8 @@ class Engine:
         
         # Initialize live reporter
         self.reporter = LiveReporter()
+        # Initialize execution logger (JSONL per opportunity)
+        self.exec_logger = ExecLogger()
         
         # Track detected/approved opportunities for reporting
         self._last_detected: List[Opportunity] = []
@@ -105,10 +108,47 @@ class Engine:
         for opp in all_detected_opportunities:
             if not self.risk.approve(market_lookup, opp):
                 continue
-            self.broker.execute(market_lookup, opp)
+            start_ns = time.perf_counter_ns()
+            trades = self.broker.execute(market_lookup, opp)
+            end_ns = time.perf_counter_ns()
             executed.append(opp)
             if self.notifier:
                 self.notifier.notify_opportunity(opp)
+            # Build execution trace
+            prices_before: Dict[str, float] = {}
+            intended_actions: List[Dict[str, object]] = []
+            for a in opp.actions:
+                market = market_lookup.get(a.market_id)
+                outcome_price = 0.0
+                if market:
+                    outcome = next((o for o in market.outcomes if o.id == a.outcome_id), None)
+                    if outcome:
+                        outcome_price = outcome.price
+                prices_before[a.outcome_id] = outcome_price
+                intended_actions.append({
+                    "market_id": a.market_id,
+                    "outcome_id": a.outcome_id,
+                    "side": a.side.upper(),
+                    "amount": a.amount,
+                    "price": a.limit_price,
+                })
+            total_intended = sum(a["amount"] for a in intended_actions)
+            total_filled = sum(t.amount for t in trades)
+            status = "success" if total_filled >= total_intended and total_intended > 0 else ("partial" if total_filled > 0 else "cancelled")
+            realized_pnl = sum(t.realized_pnl for t in trades)
+            latency_ms = int((end_ns - start_ns) / 1_000_000)
+            self.exec_logger.log_trace(
+                opportunity=opp,
+                detector_name=getattr(opp, "type", "unknown"),
+                prices_before=prices_before,
+                intended_actions=intended_actions,
+                risk_approval={"approved": True, "reason": "passed"},
+                executions=trades,
+                hedge={"action": "none"},
+                status=status,
+                realized_pnl=realized_pnl,
+                latency_ms=latency_ms,
+            )
         if self.notifier and executed:
             self.notifier.notify_trade_summary(len(executed))
         self._write_report(self.broker.trades)

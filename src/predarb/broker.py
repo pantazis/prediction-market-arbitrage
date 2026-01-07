@@ -14,6 +14,8 @@ class PaperBroker:
         self.config = config
         self.cash = config.initial_cash
         self.positions: Dict[str, float] = {}
+        # Track average cost basis per position (price-only, excludes fees/slippage)
+        self.avg_cost: Dict[str, float] = {}
         self.trades: List[Trade] = []
         self.equity_curve: List[float] = [self.cash]
 
@@ -42,6 +44,15 @@ class PaperBroker:
                 self.cash -= cost
                 position_key = f"{action.market_id}:{action.outcome_id}"
                 self.positions[position_key] = self.positions.get(position_key, 0.0) + qty
+                # Update weighted average cost basis (price-only)
+                prev_qty = self.positions.get(position_key, 0.0) - qty
+                prev_cost = self.avg_cost.get(position_key, 0.0)
+                new_total_qty = prev_qty + qty
+                if new_total_qty > 0:
+                    weighted = (prev_cost * prev_qty + action.limit_price * qty) / new_total_qty
+                    self.avg_cost[position_key] = weighted
+                else:
+                    self.avg_cost[position_key] = action.limit_price
                 pnl = -cost
             else:
                 position_key = f"{action.market_id}:{action.outcome_id}"
@@ -52,6 +63,9 @@ class PaperBroker:
                 proceeds = action.limit_price * qty - fee - slippage
                 self.cash += proceeds
                 self.positions[position_key] = held - qty
+                # Cost basis remains for remaining qty; if position closed, remove
+                if self.positions[position_key] == 0.0:
+                    self.avg_cost.pop(position_key, None)
                 pnl = proceeds
             trade = Trade(
                 id=str(uuid.uuid4()),
@@ -82,5 +96,7 @@ class PaperBroker:
             outcome = next((o for o in market.outcomes if o.id == outcome_id), None)
             if not outcome:
                 continue
-            pnl += qty * outcome.price
+            # Mark-to-market against average cost basis (price-only)
+            cost_basis = self.avg_cost.get(key, outcome.price)
+            pnl += qty * (outcome.price - cost_basis)
         return pnl

@@ -101,6 +101,79 @@
         "Documents monitoring outputs (reports/*.csv) and rollback"
       ]
     }
+    ,
+    "2026_01_07_gitignore_refresh": {
+      "title": ".gitignore refresh for Python project",
+      "description": "Expanded ignore rules to cover venvs, caches, coverage, build artifacts, IDE folders, OS files, logs, and generated reports.",
+      "rationale": "Prevent accidental commits of local environments, test artifacts, and generated files; reduce repo noise and conflicts.",
+      "files_modified": [
+        ".gitignore",
+        "codebase_schema.json"
+      ],
+      "highlights": [
+        "Ignore .venv/ variants (including .venv-*) and venv/env",
+        "Ignore .pytest_cache, .mypy_cache, .ruff_cache, .cache",
+        "Ignore coverage outputs and htmlcov/",
+        "Ignore build/, dist/, pip-wheel-metadata/, *.egg-info/",
+        "Ignore IDE folders (.vscode/, .idea/) and OS files (.DS_Store, Thumbs.db)",
+        "Ignore data/llm_verify_cache.json and reports/ outputs"
+      ]
+    }
+    ,
+    "2026_01_07_reports_human_summary": {
+      "title": "Human-readable Reports Summary",
+      "description": "Added utility to read all files in reports/ and produce a human-readable summary of live reporting and paper trades.",
+      "rationale": "Quick operator overview without opening raw CSVs; works offline and deterministically.",
+      "files_created": [
+        "src/report_summary.py",
+        "tests/test_reports_summary.py"
+      ],
+      "interfaces": [
+        {
+          "function": "generate_reports_summary(reports_dir='reports')",
+          "returns": "str",
+          "location": "src/report_summary.py",
+          "notes": "Parses live_summary.csv and paper_trades.csv; handles missing headers gracefully."
+        }
+      ],
+      "testing": "Deterministic unit tests create temporary CSVs and assert key output fragments.",
+      "impact": "Non-breaking; read-only utility."
+    }
+    ,
+    "2026_01_07_exec_logger": {
+      "title": "Deterministic Per-Opportunity Execution Logger",
+      "description": "Introduced ExecLogger to write JSON Lines per opportunity with stable hashing and safe append-only semantics.",
+      "rationale": "Provide full execution trace per opportunity in DRY-RUN, enabling debugging, reproducibility, and audit.",
+      "files_created": [
+        "src/predarb/exec_logger.py",
+        "tests/test_execution_trace_logger.py"
+      ],
+      "files_modified": [
+        "src/predarb/engine.py (integrate ExecLogger emission alongside reporter.report())",
+        "CODEBASE_OPERATIONS.json (document reports/opportunity_logs.jsonl)",
+        "codebase_schema.json (module + schema documentation)"
+      ],
+      "schema": {
+        "file": "reports/opportunity_logs.jsonl",
+        "format": "JSONL",
+        "record": {
+          "trace_id": "sha256 hash over opportunity_id + detector + markets + intended_actions",
+          "timestamp_utc": "ISO8601",
+          "opportunity_id": "string",
+          "detector": "string",
+          "markets": "list of {market_id, outcome_id}",
+          "prices_before": "map outcome_id->price",
+          "intended_actions": "list of {side, amount, price}",
+          "risk_approval": "{approved: bool, reason: str}",
+          "executions": "list of fills {side, intended_amount, filled_amount, avg_price, fees, slippage}",
+          "hedge": "{action: str} or {cancelled: true} on failure",
+          "status": "enum: success|partial|cancelled|error",
+          "realized_pnl": "float",
+          "latency_ms": "int"
+        },
+        "ordering": "append-only by timestamp; order-invariant trace_id for identical inputs"
+      }
+    }
   },
   "project": {
     "name": "prediction-market-arbitrage",
@@ -242,6 +315,19 @@
           "testing": "8/8 direct tests passing, 17 pytest tests available",
           "performance": "<10ms per iteration overhead, O(m+o) complexity"
         },
+        "exec_logger.py": {
+          "class": "ExecLogger",
+          "responsibilities": [
+            "Emit per-opportunity JSONL execution traces (reports/opportunity_logs.jsonl)",
+            "Compute stable trace_id hashes for identical inputs",
+            "Write via safe append (temp file then atomic rename)",
+            "Operate in DRY-RUN mode only"
+          ],
+          "interfaces": [
+            "log_trace(opportunity, detector_name, prices_before, intended_actions, risk_approval, executions, hedge, status, realized_pnl, latency_ms)"
+          ],
+          "notes": "Integrated in Engine.run_once() right after reporter.report() to ensure ordering and consistency"
+        },
         "polymarket_client.py": {
           "class": "PolymarketClient",
           "responsibilities": [
@@ -256,7 +342,14 @@
             "Simulate trade execution",
             "Model fees and slippage",
             "Track positions and P&L"
-          ]
+          ],
+          "state": {
+            "cash": "float",
+            "positions": "map outcome_id -> {quantity: float, avg_cost: float}",
+            "trades": "List[Trade]",
+            "equity_curve": "List[{timestamp: datetime, equity: float}]"
+          },
+          "pnl_basis": "Unrealized PnL computed as quantity * (mark_price - avg_cost)"
         },
         "risk.py": {
           "class": "RiskManager",
@@ -2016,8 +2109,7 @@
       "✅ Rate limits tuned for your usage pattern",
       "✅ Confirmation manager enabled for dangerous commands",
       "✅ Message formatting tested (numbers, markdown escape, length)"
-    ]
-  },
+    ],
   "ai_hints": {
     "entry_point_for_new_ai": "Start analysis at: src/predarb/__main__.py → src/predarb/cli.py → src/predarb/engine.py",
     "critical_path": "Engine.run() is the main loop orchestrating all arbitrage detection and execution",

@@ -290,7 +290,8 @@ class TestExclusiveOutcomeSum:
         
         for total, should_pass in test_cases:
             deviation = abs(total - 1.0)
-            passes = deviation <= tolerance
+            # Allow tiny float rounding at the exact 1% boundary
+            passes = deviation <= (tolerance + 1e-12)
             assert passes == should_pass
 
 

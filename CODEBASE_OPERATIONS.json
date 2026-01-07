@@ -112,6 +112,11 @@
         {
           "script": "python get_keys.py",
           "purpose": "Retrieve/manage API keys"
+          },
+          {
+            "script": "python -c \"from src.report_summary import generate_reports_summary; print(generate_reports_summary('reports'))\"",
+            "purpose": "Print human-readable summary from reports/ (live_summary.csv + paper_trades.csv)",
+            "notes": "No network calls; suitable for server runbook and local ops"
         }
       ]
     },
@@ -909,7 +914,18 @@
       "csv_trades": {
         "path": "reports/paper_trades.csv",
         "purpose": "Log all executed trades",
-        "columns": ["timestamp", "market_id", "market_name", "outcome_id", "side", "quantity", "price", "cost", "fees", "pnl"]
+        "columns": [
+          "timestamp",
+          "market_id",
+          "outcome_id",
+          "side",
+          "amount",
+          "price",
+          "fees",
+          "slippage",
+          "realized_pnl"
+        ],
+        "notes": "Updated to match predarb.Engine _write_report: includes slippage and realized_pnl; uses amount instead of quantity; omits market_name and cost."
       },
       "live_reporting": {
         "path": "reports/live_summary.csv",
@@ -918,6 +934,28 @@
           "TIMESTAMP","READABLE_TIME","ITERATION","MARKETS","MARKETS_Δ","DETECTED","DETECTED_Δ","APPROVED","APPROVED_Δ","APPROVAL%","STATUS","MARKET_HASH","OPP_HASH"
         ],
         "notes": "Two header rows are written on first creation; rows append only when hashes change"
+      },
+      "opportunity_logs": {
+        "path": "reports/opportunity_logs.jsonl",
+        "purpose": "Deterministic per-opportunity execution traces (JSON Lines)",
+        "format": "JSONL (one JSON object per line)",
+        "fields": [
+          "trace_id (stable hash across identical inputs)",
+          "timestamp_utc",
+          "opportunity_id",
+          "detector (name/version)",
+          "markets (list of market_id + outcome_id)",
+          "prices_before (map outcome_id->price)",
+          "intended_actions (list of {side, amount, price})",
+          "risk_approval (approved: bool, reason)",
+          "executions (list with fills: {side, intended_amount, filled_amount, avg_price, fees, slippage})",
+          "hedge (action or cancel on failure)",
+          "status (success|partial|cancelled|error)",
+          "realized_pnl",
+          "latency_ms"
+        ],
+        "ordering": "Append-only; order by timestamp_utc; trace_id is order-invariant for identical inputs",
+        "notes": "Written via ExecLogger in DRY-RUN only; safe write (temp file then rename)"
       },
       "live_state": {
         "path": "reports/.last_report_state.json",

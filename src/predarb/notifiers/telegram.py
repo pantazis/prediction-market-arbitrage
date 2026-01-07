@@ -22,7 +22,10 @@ class TelegramNotifierReal(Notifier):
     Raises ValueError if credentials are missing.
     """
 
-    def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None):
+    # Sentinel to distinguish "argument omitted" vs "explicit None"
+    _UNSET = object()
+
+    def __init__(self, bot_token: Optional[str] = _UNSET, chat_id: Optional[str] = _UNSET):
         """Initialize TelegramNotifierReal.
         
         Args:
@@ -32,8 +35,21 @@ class TelegramNotifierReal(Notifier):
         Raises:
             ValueError: If bot_token or chat_id are missing
         """
-        self.bot_token = bot_token or os.getenv("TELEGRAM_BOT_TOKEN")
-        self.chat_id = chat_id or os.getenv("TELEGRAM_CHAT_ID")
+        # Explicit None should be treated as missing credentials and raise,
+        # while omitted parameters may fall back to environment variables.
+        if bot_token is None:
+            self.bot_token = None
+        elif bot_token is TelegramNotifierReal._UNSET:
+            self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        else:
+            self.bot_token = bot_token
+
+        if chat_id is None:
+            self.chat_id = None
+        elif chat_id is TelegramNotifierReal._UNSET:
+            self.chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        else:
+            self.chat_id = chat_id
         
         if not self.bot_token:
             raise ValueError("TELEGRAM_BOT_TOKEN is required but not provided or set in environment")

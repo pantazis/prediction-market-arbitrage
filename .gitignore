@@ -3,3 +3,13 @@ __pycache__/
 .pytest_cache/
 bot.log
 .env
+
+# Local Python virtual environment
+.venv/
+
+# Generated reports and artifacts
+reports/
+
+# Runtime artifacts
+bot.pid
+bot.out

@@ -21,6 +21,7 @@ from predarb.detectors.timelag import TimeLagDetector
 from predarb.detectors.consistency import ConsistencyDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
+from .reporter import LiveReporter
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,14 @@ class Engine:
         ]
         self.report_path = Path(config.engine.report_path)
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Initialize live reporter
+        self.reporter = LiveReporter()
+        
+        # Track detected/approved opportunities for reporting
+        self._last_detected: List[Opportunity] = []
+        self._last_approved: List[Opportunity] = []
+        self._last_markets: List[Market] = []
 
     def run_once(self) -> List[Opportunity]:
         if self.notifier:
@@ -83,16 +92,17 @@ class Engine:
         # Scan ALL markets for opportunities (no pre-filtering)
         # Risk manager will validate if each opportunity is viable
         market_lookup: Dict[str, Market] = {m.id: m for m in all_markets}
-        opportunities: List[Opportunity] = []
+        all_detected_opportunities: List[Opportunity] = []
         for detector in self.detectors:
             try:
-                opportunities.extend(detector.detect(all_markets))
+                all_detected_opportunities.extend(detector.detect(all_markets))
             except Exception as e:
                 logger.exception("Detector %s failed: %s", detector.__class__.__name__, e)
                 if self.notifier:
                     self.notifier.notify_error(str(e), detector.__class__.__name__)
+        
         executed: List[Opportunity] = []
-        for opp in opportunities:
+        for opp in all_detected_opportunities:
             if not self.risk.approve(market_lookup, opp):
                 continue
             self.broker.execute(market_lookup, opp)
@@ -102,6 +112,12 @@ class Engine:
         if self.notifier and executed:
             self.notifier.notify_trade_summary(len(executed))
         self._write_report(self.broker.trades)
+        
+        # Store for reporting
+        self._last_markets = all_markets
+        self._last_detected = all_detected_opportunities
+        self._last_approved = executed
+        
         return executed
 
     def run_self_test(self, markets: List[Market]) -> List[Opportunity]:
@@ -122,6 +138,13 @@ class Engine:
         for i in range(self.config.engine.iterations):
             logger.info("Iteration %s", i + 1)
             self.run_once()
+            # Generate incremental report (appends only if data changed)
+            self.reporter.report(
+                iteration=i + 1,
+                all_markets=self._last_markets,
+                detected_opportunities=self._last_detected,
+                approved_opportunities=self._last_approved,
+            )
             time.sleep(self.config.engine.refresh_seconds)
 
     def _write_report(self, trades):

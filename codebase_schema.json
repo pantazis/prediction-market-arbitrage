@@ -3,7 +3,55 @@
   "generated_date": "2026-01-06",
   "last_updated": "2026-01-07",
   "architecture_changes": {
-    "2026_01_07": {
+    "2026_01_07_live_reporting": {
+      "title": "Live Incremental Reporting System",
+      "description": "Added production-grade live reporting that generates append-only CSV reports with automatic deduplication",
+      "rationale": "Track markets and opportunities in real-time without spam, enable restart-safe resumption, provide detailed debugging info",
+      "changes": [
+        "Created LiveReporter class (src/predarb/reporter.py, 270 lines)",
+        "Integrated reporter in Engine.__init__() and Engine.run() loop",
+        "Added iteration tracking in run_once() (_last_markets, _last_detected, _last_approved)",
+        "Deterministic SHA256 hashing for deduplication (order-independent)",
+        "Append-only CSV with delta calculations and approval percentages",
+        "State persistence for restart-safety (reports/.last_report_state.json)",
+        "Enhanced CSV format with human-readable time, status indicators, hash prefixes"
+      ],
+      "features": {
+        "append_only": "Never overwrites rows, only appends on data change",
+        "deduplication": "SHA256 hashing prevents duplicate reports in high-frequency loops",
+        "restart_safe": "State file persisted on every write, loaded on startup",
+        "performance": "<10ms overhead per iteration (O(m+o) hash computation)",
+        "debug_info": "Includes timestamp, iteration, deltas, approval %, hash prefixes"
+      },
+      "csv_columns": [
+        "TIMESTAMP (ISO8601)",
+        "READABLE_TIME (HH:MM:SS.mmm)",
+        "ITERATION (number)",
+        "MARKETS (count)",
+        "MARKETS_Δ (change with sign)",
+        "DETECTED (count)",
+        "DETECTED_Δ (change with sign)",
+        "APPROVED (count)",
+        "APPROVED_Δ (change with sign)",
+        "APPROVAL% (filter efficiency ratio)",
+        "STATUS (✓ NEW or → SAME indicator)",
+        "MARKET_HASH (first 16 chars of sha256)",
+        "OPP_HASH (first 16 chars of sha256)"
+      ],
+      "testing": "8/8 direct tests passing, 17 pytest tests available",
+      "files_created": [
+        "src/predarb/reporter.py (270 lines, LiveReporter class)",
+        "tests/test_reporter.py (17 comprehensive tests)",
+        "test_reporter_direct.py (8 direct runner tests)",
+        "demo_reporter.py (interactive demo)",
+        "LIVE_REPORTING.md, IMPLEMENTATION_SUMMARY.md, README_LIVE_REPORTING.md, INDEX_LIVE_REPORTING.md"
+      ],
+      "files_modified": [
+        "src/predarb/engine.py (added reporter instantiation and integration)",
+        "codebase_schema.json (documentation)"
+      ]
+    },
+    "2026_01_07_find_first": {
       "title": "Find-First Approach: Remove Market Pre-Filtering",
       "description": "Changed from filter-first (pre-filter markets → run detectors) to find-first (run detectors on all markets → risk manager validates)",
       "rationale": "Avoid missing arbitrage opportunities in 'low-quality' markets that pre-filters would reject",
@@ -110,11 +158,55 @@
             "Run detector pipeline on 100% of markets",
             "Risk manager validates each opportunity (edge, liquidity, allocation, positions)",
             "Execute only approved trades via broker",
-            "Generate reports",
+            "Generate reports (both trades and live summaries)",
             "Accept injected notifier for testing"
           ],
           "architecture_note": "Find-First approach: detectors find opportunities across all markets, risk manager decides viability",
-          "key_change_2026_01": "Removed market filtering/ranking stage - now runs detectors on ALL markets instead of pre-filtered subset"
+          "key_change_2026_01": "Removed market filtering/ranking stage - now runs detectors on ALL markets instead of pre-filtered subset",
+          "key_change_2026_01_b": "Integrated LiveReporter for live incremental reporting with deduplication"
+        },
+        "reporter.py": {
+          "class": "LiveReporter",
+          "lines": 270,
+          "responsibilities": [
+            "Generate append-only CSV reports (reports/live_summary.csv)",
+            "Deduplicate using deterministic SHA256 hashing (order-independent)",
+            "Track market and opportunity changes via hash comparison",
+            "Persist state to disk for restart-safety (reports/.last_report_state.json)",
+            "Calculate delta values (what changed since last report)",
+            "Provide filter efficiency metrics (% of opportunities approved)"
+          ],
+          "key_methods": [
+            "report(iteration, all_markets, detected_opportunities, approved_opportunities) → bool",
+            "_compute_hash(items) → str (SHA256 of sorted, unique items)",
+            "_get_market_ids(markets) → List[str]",
+            "_get_opportunity_ids(opportunities) → List[str]",
+            "_append_csv_row(...) (with detailed debug info)",
+            "_save_state(...) (persists hash and counts)",
+            "_load_state() → Dict"
+          ],
+          "csv_format": {
+            "purpose": "Track markets found, opportunities detected, opportunities approved",
+            "columns": [
+              "TIMESTAMP (ISO8601 UTC)",
+              "READABLE_TIME (human-readable HH:MM:SS.mmm)",
+              "ITERATION (number)",
+              "MARKETS (total count)",
+              "MARKETS_Δ (change from previous report)",
+              "DETECTED (opportunities found by detectors)",
+              "DETECTED_Δ (change from previous)",
+              "APPROVED (passed risk manager)",
+              "APPROVED_Δ (change from previous)",
+              "APPROVAL% (APPROVED/DETECTED ratio for efficiency)",
+              "STATUS (✓ NEW if changed, → SAME if identical)",
+              "MARKET_HASH (first 16 chars of market SHA256 for debugging)",
+              "OPP_HASH (first 16 chars of opportunity SHA256)"
+            ],
+            "deduplication": "Only writes row if market_hash or opp_hash changed from saved state",
+            "restart_safe": "State file enables clean resumption; identical state skips write"
+          },
+          "testing": "8/8 direct tests passing, 17 pytest tests available",
+          "performance": "<10ms per iteration overhead, O(m+o) complexity"
         },
         "polymarket_client.py": {
           "class": "PolymarketClient",

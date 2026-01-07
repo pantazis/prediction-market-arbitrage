@@ -189,9 +189,35 @@
         "matchers.py": {
           "functions": [
             "group_related()",
-            "cluster_duplicates()"
+            "cluster_duplicates()",
+            "verify_semantic_groups()"
           ],
-          "purpose": "Match and group related markets"
+          "purpose": "Match and group related markets; optionally verify with LLM"
+        },
+        "llm_verifier.py": {
+          "classes": [
+            "LLMVerifierConfig (pydantic)",
+            "LLMVerifier",
+            "VerificationResult (pydantic)",
+            "VerifiedGroup (pydantic)",
+            "LLMProvider (abstract)",
+            "OpenAIChatProvider",
+            "MockLLMProvider"
+          ],
+          "purpose": "Optional LLM-based verification of semantic market clusters",
+          "key_functions": [
+            "verify_pair(market_a, market_b) -> VerificationResult",
+            "verify_group(markets) -> VerifiedGroup"
+          ],
+          "features": [
+            "Cheap LLM verification (GPT-3.5, Gemini 1.5-flash)",
+            "Persistent caching with TTL (default 1 week)",
+            "Order-invariant cache keys (pair a,b == pair b,a)",
+            "Timeout safety (fail_open or fail_closed)",
+            "Strict JSON response parsing",
+            "Network-free MockLLMProvider for testing",
+            "Union-find to build verified subgroups"
+          ]
         },
         "models.py": {
           "classes": [
@@ -622,6 +648,17 @@
         "enabled": "Enable notifications",
         "bot_token": "Telegram bot token",
         "chat_id": "Telegram chat ID"
+      },
+      "llm_verification": {
+        "enabled": "Enable LLM verification (default: false)",
+        "provider": "LLM provider: 'mock'|'openai'|'gemini' (default: 'mock')",
+        "model": "Model name (default: 'gpt-3.5-turbo')",
+        "timeout_s": "Timeout per call in seconds (default: 3.0)",
+        "max_pairs_per_group": "Max pairs to verify per semantic group (default: 5)",
+        "min_similarity_to_verify": "Min embedding similarity to verify (default: 0.90)",
+        "cache_path": "Path to persistent cache JSON (default: 'data/llm_verify_cache.json')",
+        "ttl_hours": "Cache TTL in hours (default: 168)",
+        "fail_mode": "On timeout/error: 'fail_open'|'fail_closed' (default: 'fail_open')"
       }
     }
   },
@@ -694,6 +731,44 @@
         "cost: float",
         "fees: float",
         "pnl: float"
+      ]
+    },
+    "VerificationResult": {
+      "type": "pydantic_model",
+      "purpose": "Result of verifying whether two markets are the same event",
+      "fields": [
+        "same_event: bool (True if markets resolve on same event)",
+        "confidence: float (0-1, LLM confidence score)",
+        "reason: str (brief explanation)",
+        "resolution_source: Optional[str] (e.g., 'Federal Reserve')",
+        "resolution_date: Optional[str] (extracted date if available)",
+        "key_fields: Dict[str, Any] (extracted metadata)"
+      ]
+    },
+    "VerifiedGroup": {
+      "type": "pydantic_model",
+      "purpose": "Result of verifying a group of markets",
+      "fields": [
+        "original_markets: List[Market] (input)",
+        "verified_subgroups: List[List[Market]] (output subgroups)",
+        "verification_results: List[VerificationResult] (all pair results)",
+        "total_verifications: int (pairs actually verified)",
+        "skipped_pairs: int (pairs not verified due to max_pairs limit)"
+      ]
+    },
+    "LLMVerifierConfig": {
+      "type": "pydantic_model",
+      "purpose": "Configuration for LLM-based verification",
+      "fields": [
+        "enabled: bool (default: False)",
+        "provider: str ('mock'|'openai'|'gemini', default: 'mock')",
+        "model: str (model name, default: 'gpt-3.5-turbo')",
+        "timeout_s: float (request timeout, default: 3.0)",
+        "max_pairs_per_group: int (limit verifications, default: 5)",
+        "min_similarity_to_verify: float (0-1 filter, default: 0.90)",
+        "cache_path: str (persistent cache location)",
+        "ttl_hours: int (cache TTL in hours, default: 168)",
+        "fail_mode: str ('fail_open'|'fail_closed', default: 'fail_open')"
       ]
     }
   },

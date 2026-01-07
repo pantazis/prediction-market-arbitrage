@@ -1,0 +1,100 @@
+{
+  "9910533eb2de4ff8f9685a1b19907d5c": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.92,
+      "reason": "Both markets resolve on Fed decision in January",
+      "resolution_source": "Federal Reserve",
+      "resolution_date": "2024-01-31",
+      "key_fields": {
+        "resolution_source": "Federal Reserve",
+        "resolution_date": "2024-01-31"
+      }
+    },
+    "timestamp": 1767770548.0652263
+  },
+  "ad3664286e36d603e11e80dbcafdd0b5": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.92,
+      "reason": "Both markets resolve on Fed decision in January",
+      "resolution_source": "Federal Reserve",
+      "resolution_date": "2024-01-31",
+      "key_fields": {
+        "resolution_source": "Federal Reserve",
+        "resolution_date": "2024-01-31"
+      }
+    },
+    "timestamp": 1767770548.100738
+  },
+  "b1cc2ef82b67ad7233d9c7cd15f0fd20": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.92,
+      "reason": "Both markets resolve on Fed decision in January",
+      "resolution_source": "Federal Reserve",
+      "resolution_date": "2024-01-31",
+      "key_fields": {
+        "resolution_source": "Federal Reserve",
+        "resolution_date": "2024-01-31"
+      }
+    },
+    "timestamp": 1767770548.1704254
+  },
+  "571312dc1fefea71e513925ce709ce16": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.88,
+      "reason": "Both reference Bitcoin price at same level",
+      "resolution_source": "CoinGecko",
+      "resolution_date": "2024-12-31",
+      "key_fields": {
+        "resolution_source": "CoinGecko",
+        "resolution_date": "2024-12-31"
+      }
+    },
+    "timestamp": 1767770548.2499638
+  },
+  "d4d5a01453ef7c1ad30af0c7a40e651e": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767770548.3074164
+  },
+  "e4742de5d094ad0442e1769df4214d0f": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767770548.3114316
+  },
+  "8118e97dec2beaa58b041ec8e5eb43ed": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.75,
+      "reason": "Markets appear to cover same event",
+      "resolution_source": "Unknown",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Unknown",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1767770548.3160968
+  }
+}

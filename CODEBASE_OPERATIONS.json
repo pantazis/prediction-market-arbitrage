@@ -163,8 +163,127 @@
         {
           "name": "Test simulation integration",
           "cmd": "pytest tests/test_simulation_harness.py::TestSimulationIntegration -v"
+        },
+        {
+          "name": "Test LLM verification",
+          "cmd": "pytest tests/test_llm_verifier.py -v"
         }
       ]
+    },
+    "llm_verification": {
+      "description": "Optional LLM-based verification layer for semantic market clustering. Confirms two markets truly resolve on the same event + criteria.",
+      "purpose": "Reduce false positives from embeddings (e.g., 'Fed holds in January' vs 'Fed holds in March')",
+      "enabled_by_default": false,
+      "configuration": {
+        "location": "config.yml under 'llm_verification' section",
+        "fields": {
+          "enabled": {
+            "type": "bool",
+            "default": false,
+            "description": "Enable/disable LLM verification"
+          },
+          "provider": {
+            "type": "str",
+            "default": "mock",
+            "options": ["mock", "openai", "gemini"],
+            "description": "LLM provider to use. 'mock' for testing (no API calls), 'openai' for GPT-3.5"
+          },
+          "model": {
+            "type": "str",
+            "default": "gpt-3.5-turbo",
+            "description": "Model name (e.g., 'gpt-3.5-turbo', 'gemini-1.5-flash')"
+          },
+          "timeout_s": {
+            "type": "float",
+            "default": 3.0,
+            "description": "Timeout per verification call in seconds"
+          },
+          "max_pairs_per_group": {
+            "type": "int",
+            "default": 5,
+            "description": "Max market pairs to verify per semantic group"
+          },
+          "min_similarity_to_verify": {
+            "type": "float",
+            "default": 0.90,
+            "description": "Only verify pairs with embedding similarity >= this (0..1)"
+          },
+          "cache_path": {
+            "type": "str",
+            "default": "data/llm_verify_cache.json",
+            "description": "Path to persistent cache (write-then-rename for safety)"
+          },
+          "ttl_hours": {
+            "type": "int",
+            "default": 168,
+            "description": "Cache TTL in hours (default: 1 week)"
+          },
+          "fail_mode": {
+            "type": "str",
+            "default": "fail_open",
+            "options": ["fail_open", "fail_closed"],
+            "description": "On timeout/error: 'fail_open'=assume same event, 'fail_closed'=assume different"
+          }
+        }
+      },
+      "yaml_example": "llm_verification:\n  enabled: true\n  provider: openai\n  model: gpt-3.5-turbo\n  timeout_s: 3.0\n  max_pairs_per_group: 5\n  fail_mode: fail_open",
+      "environment_requirements": {
+        "openai_provider": "Set OPENAI_API_KEY env var for GPT-3.5 verification",
+        "mock_provider": "No API key needed; deterministic testing"
+      },
+      "components": {
+        "LLMVerifierConfig": {
+          "location": "src/predarb/config.py",
+          "description": "Configuration Pydantic model with validation"
+        },
+        "LLMVerifier": {
+          "location": "src/predarb/llm_verifier.py",
+          "methods": {
+            "verify_pair(market_a, market_b)": "Verify if two markets are same event; returns VerificationResult with confidence",
+            "verify_group(group)": "Verify all pairs in a market group; uses union-find to split into subgroups"
+          }
+        },
+        "VerificationResult": {
+          "description": "Result of verifying two markets",
+          "fields": ["same_event (bool)", "confidence (0..1)", "reason (str)", "resolution_source (optional)", "resolution_date (optional)"]
+        },
+        "LLMProvider": {
+          "description": "Abstract interface for LLM backends",
+          "implementations": ["OpenAIChatProvider (real API)", "MockLLMProvider (deterministic testing)"]
+        }
+      },
+      "integration": {
+        "location": "src/predarb/matchers.py::verify_semantic_groups()",
+        "trigger": "After semantic clustering groups markets",
+        "input": "Dict[group_id -> List[Market]] from semantic clustering",
+        "output": "Dict[group_id -> List[List[Market]]] with verified subgroups",
+        "example_usage": "verified = verify_semantic_groups(semantic_groups, llm_verifier=verifier)"
+      },
+      "caching": {
+        "strategy": "Persistent JSON cache with TTL",
+        "cache_key": "hash(sorted_market_ids, prompt_version, model_name)",
+        "order_invariant": "Pair (a,b) and (b,a) have same cache key",
+        "write_safety": "Write to temp file then atomic rename to avoid corruption"
+      },
+      "testing": {
+        "cmd": "pytest tests/test_llm_verifier.py -v",
+        "coverage": "34 tests with MockLLMProvider (zero network calls)",
+        "test_scenarios": [
+          "Same-event detection (Fed January)",
+          "Different-event detection (January vs March)",
+          "Cache hit prevention of duplicate calls",
+          "Timeout with fail_open/fail_closed",
+          "JSON parse error handling",
+          "Cache persistence and TTL",
+          "Group verification with union-find"
+        ]
+      },
+      "production_notes": {
+        "cost": "GPT-3.5 ~$0.0005 per call; with caching, typically 1-5 calls per bot run",
+        "latency": "~0.5-1.5s per call; timeout_s default is 3.0, non-blocking with fail_open",
+        "network_safe": "Timeouts are caught; bot continues if verification unavailable",
+        "recommended": "Enable on production clusters; disable (default) for local testing"
+      }
     },
     "live_mode": {
       "overview": "ENABLED by PaperBroker (simulation only); TO ENABLE REAL TRADING, requires code modification",

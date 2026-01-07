@@ -1,0 +1,42 @@
+{
+  "mandatory_pre_read": [
+    "CODEBASE_OPERATIONS.json",
+    "codebase_schema.json"
+  ],
+  "authority_order": [
+    "CODEBASE_OPERATIONS.json",
+    "codebase_schema.json",
+    "user_prompt"
+  ],
+  "rules": {
+    "no_assumptions": true,
+    "no_schema_invention": true,
+    "no_network_in_tests": true,
+    "non_breaking_by_default": true
+  },
+  "change_policy": {
+    "must_update_schema_if": [
+      "new_file",
+      "new_module",
+      "new_class",
+      "new_function",
+      "new_dependency",
+      "new_side_effect"
+    ],
+    "must_update_operations_if": [
+      "new_operation",
+      "new_lifecycle_step",
+      "new_invariant",
+      "new_constraint"
+    ],
+    "update_timing": "end_of_task"
+  },
+  "test_requirements": {
+    "required_for_new_functionality": true,
+    "deterministic_only": true,
+    "no_external_calls": true
+  },
+  "failure_mode": {
+    "on_violation": "stop_and_explain"
+  }
+}

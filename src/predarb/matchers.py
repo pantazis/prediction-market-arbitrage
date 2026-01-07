@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Optional
 
 from difflib import SequenceMatcher
 
@@ -75,3 +75,47 @@ def group_related(markets: Iterable[Market], expiry_window_days: int = 7) -> Dic
                     break
         merged[merged_key].extend(items)
     return merged
+
+
+def verify_semantic_groups(
+    groups: Dict[str, List[Market]],
+    llm_verifier: Optional[object] = None,
+) -> Dict[str, List[List[Market]]]:
+    """
+    Apply optional LLM verification to semantic market groups.
+
+    After semantic clustering, this function can optionally verify that each group
+    truly represents the same event using an LLM. Splits groups into verified subgroups.
+
+    Args:
+        groups: Dict from semantic clustering (group_id -> List[Market])
+        llm_verifier: Optional LLMVerifier instance. If None or not enabled, returns
+                      original groups with no verification.
+
+    Returns:
+        Dict mapping group_id -> List[List[Market]] (verified subgroups)
+    """
+    if llm_verifier is None:
+        # No verification; return groups as single subgroups
+        return {gid: [markets] for gid, markets in groups.items()}
+
+    if not getattr(llm_verifier.config, "enabled", False):
+        # Verification disabled; return groups as single subgroups
+        return {gid: [markets] for gid, markets in groups.items()}
+
+    verified_groups: Dict[str, List[List[Market]]] = {}
+
+    for group_id, markets in groups.items():
+        if len(markets) < 2:
+            # Single market or empty group; no verification needed
+            verified_groups[group_id] = [markets]
+            continue
+
+        # Verify the group
+        verified_result = llm_verifier.verify_group(markets)
+
+        # Extract verified subgroups from union-find result
+        verified_groups[group_id] = verified_result.verified_subgroups
+
+    return verified_groups
+

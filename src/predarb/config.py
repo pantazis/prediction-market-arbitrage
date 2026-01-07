@@ -80,6 +80,38 @@ class DetectorConfig(BaseModel):
     timelag_persistence_minutes: float = 5.0
 
 
+class LLMVerificationConfig(BaseModel):
+    """Configuration for LLM-based market verification."""
+
+    enabled: bool = False
+    provider: str = "mock"  # "openai", "gemini", "mock"
+    model: str = "gpt-3.5-turbo"
+    timeout_s: float = 3.0
+    max_pairs_per_group: int = 5
+    min_similarity_to_verify: float = 0.90
+    cache_path: str = "data/llm_verify_cache.json"
+    ttl_hours: int = 168
+    fail_mode: str = "fail_open"  # "fail_open" or "fail_closed"
+
+    @field_validator("fail_mode")
+    @classmethod
+    def _validate_fail_mode(cls, v: str) -> str:
+        if v not in ("fail_open", "fail_closed"):
+            raise ValueError(
+                f"fail_mode must be 'fail_open' or 'fail_closed', got {v}"
+            )
+        return v
+
+    @field_validator("min_similarity_to_verify")
+    @classmethod
+    def _validate_similarity(cls, v: float) -> float:
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(
+                f"min_similarity_to_verify must be in [0, 1], got {v}"
+            )
+        return v
+
+
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
     risk: RiskConfig = Field(default_factory=RiskConfig)
@@ -88,6 +120,7 @@ class AppConfig(BaseModel):
     filter: FilterConfig = Field(default_factory=FilterConfig)
     detectors: DetectorConfig = Field(default_factory=DetectorConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
+    llm_verification: LLMVerificationConfig = Field(default_factory=LLMVerificationConfig)
 
 
 def load_config(path: str | Path) -> AppConfig:

@@ -1,8 +1,155 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-07T19:30:00Z",
+  "last_updated": "2026-01-08T00:00:00Z",
   "architecture_changes": {
+    "2026_01_08_stress_testing": {
+      "title": "DRY-RUN Stress Testing with Injectable Market Data",
+      "description": "Added comprehensive stress testing infrastructure with injectable market providers, built-in scenarios, and automatic report verification with exit codes",
+      "rationale": "Enable deterministic testing of full arbitrage pipeline without network calls; validate filtering, risk management, hedging, and reporting under various conditions; support CI/CD with meaningful exit codes",
+      "changes": [
+        "Created injection layer (src/predarb/injection.py) for scenario/file/inline market providers",
+        "Created built-in stress scenarios (src/predarb/stress_scenarios.py) with 6 deterministic scenarios",
+        "Created report verification tool (src/predarb/verify_reports.py) with 6 exit codes (0,2-6)",
+        "Extended CLI with 'stress' command in src/predarb/cli.py",
+        "Engine already supported client injection (no changes needed)",
+        "Added comprehensive tests (test_injection.py, test_stress_scenarios.py, test_verify_reports.py)",
+        "Updated CODEBASE_OPERATIONS.json and codebase_schema.json with full documentation"
+      ],
+      "files_created": [
+        "src/predarb/injection.py (169 lines, injection layer)",
+        "src/predarb/stress_scenarios.py (565 lines, 7 scenarios)",
+        "src/predarb/verify_reports.py (313 lines, verification + exit codes)",
+        "tests/test_injection.py (189 lines, 14 tests)",
+        "tests/test_stress_scenarios.py (318 lines, 18 tests)",
+        "tests/test_verify_reports.py (366 lines, 19 tests)"
+      ],
+      "files_modified": [
+        "src/predarb/cli.py (added stress command with --scenario, --inject, --seed, --no-verify flags)",
+        "CODEBASE_OPERATIONS.json (documented stress mode and verification tool)",
+        "codebase_schema.json (this file, architecture changes and module documentation)"
+      ],
+      "stress_command": {
+        "syntax": "python -m predarb stress --scenario NAME | --inject SPEC [OPTIONS]",
+        "injection_sources": [
+          "scenario:<name> - built-in deterministic scenario",
+          "file:<path> - JSON fixture file",
+          "inline:<json> - inline JSON payload"
+        ],
+        "scenarios": {
+          "high_volume": "1000 markets (990 normal + 10 arb) - tests performance",
+          "many_risk_rejections": "40 markets (20 low liq + 15 low edge + 5 good) - tests risk validation",
+          "partial_fill": "10 markets with asymmetric liquidity - tests hedge logic",
+          "happy_path": "15 markets with strong arb - tests success case",
+          "latency_freshness": "15 markets (10 expiring + 5 fresh) - tests expiry validation",
+          "fee_slippage": "20 markets with marginal edge - tests cost modeling",
+          "semantic_clustering": "25 markets (5 BTC duplicates + 4 election duplicates + 10 filter violations + 3 good arb + 3 distinct) - tests semantic clustering with sentence-transformers and all filters"
+        },
+        "options": [
+          "--iterations N (default: 1 for stress tests)",
+          "--seed N (default: 42, for reproducibility)",
+          "--no-verify (skip automatic report verification)",
+          "--config PATH (default: config.yml)"
+        ],
+        "examples": [
+          "python -m predarb stress --scenario happy_path",
+          "python -m predarb stress --scenario high_volume --iterations 10",
+          "python -m predarb stress --scenario semantic_clustering",
+          "python -m predarb stress --inject file:tests/fixtures/markets.json --seed 999",
+          "python -m predarb stress --scenario partial_fill --no-verify"
+        ],
+        "flow": [
+          "1. Parse injection spec",
+          "2. Create injected market provider (seeded, network-free)",
+          "3. Replace Engine.client with injected provider",
+          "4. Run stress test iterations (run_once or run loop)",
+          "5. Auto-verify reports/unified_report.json (unless --no-verify)",
+          "6. Exit with verification exit code (0=OK, 2-6=various failures)"
+        ]
+      },
+      "verification_tool": {
+        "module": "src/predarb/verify_reports.py",
+        "cli": "python -m predarb.verify_reports [--report PATH] [--quiet]",
+        "checks": [
+          "File exists and readable",
+          "Valid JSON with required schema keys (metadata, iterations, opportunity_executions, trades)",
+          "Metadata section present and valid",
+          "At least one iteration recorded",
+          "Execution/trade data consistency (approved opps match executions)",
+          "Invariants: partial/cancelled status must have hedge performed",
+          "Invariants: residual_exposure flag must have hedge_executions",
+          "Invariants: success with residual_exposure generates warning (low liquidity)"
+        ],
+        "exit_codes": {
+          "0": "EXIT_OK - all checks passed",
+          "2": "EXIT_MISSING - report file not found or unreadable",
+          "3": "EXIT_INVALID_SCHEMA - malformed JSON or missing required keys",
+          "4": "EXIT_NO_ITERATIONS - no iterations recorded (unexpected)",
+          "5": "EXIT_MISSING_DATA - expected executions/trades missing (inconsistency)",
+          "6": "EXIT_INVARIANT_FAILED - critical invariants violated (hedge logic, residual exposure)"
+        },
+        "usage": [
+          "Automatically called after stress tests (unless --no-verify)",
+          "Can be called standalone: python -m predarb.verify_reports",
+          "Useful in CI/CD pipelines: if [ $? -ne 0 ]; then exit 1; fi",
+          "Returns detailed summary with counts, P&L, warnings, errors"
+        ]
+      },
+      "testing": {
+        "test_injection": {
+          "file": "tests/test_injection.py",
+          "tests": 14,
+          "coverage": [
+            "Injection from scenario (seeded, reproducible)",
+            "Injection from file (both array and wrapped formats)",
+            "Injection from inline JSON",
+            "Invalid spec handling",
+            "File not found handling",
+            "Unknown scenario handling",
+            "Seeded reproducibility validation",
+            "Invalid format handling"
+          ]
+        },
+        "test_stress_scenarios": {
+          "file": "tests/test_stress_scenarios.py",
+          "tests": 15,
+          "coverage": [
+            "All 6 scenarios generate correct market counts",
+            "Market characteristics match scenario intent",
+            "Seeded reproducibility (same seed → same results)",
+            "Different seeds produce different results",
+            "Scenario-specific validations (liquidity, prices, expiry)"
+          ]
+        },
+        "test_verify_reports": {
+          "file": "tests/test_verify_reports.py",
+          "tests": 19,
+          "coverage": [
+            "Missing file returns EXIT_MISSING",
+            "Invalid JSON returns EXIT_INVALID_SCHEMA",
+            "Missing required keys returns EXIT_INVALID_SCHEMA",
+            "Empty iterations returns EXIT_NO_ITERATIONS",
+            "Missing executions returns EXIT_MISSING_DATA",
+            "No hedge on partial/cancelled returns EXIT_INVARIANT_FAILED",
+            "Residual exposure without flatten returns EXIT_INVARIANT_FAILED",
+            "Valid report returns EXIT_OK",
+            "Warnings are non-fatal (stale report, missing optional fields)",
+            "Summary printing works correctly"
+          ]
+        },
+        "run_all": "pytest tests/test_injection.py tests/test_stress_scenarios.py tests/test_verify_reports.py -v"
+      },
+      "benefits": [
+        "Zero network calls - fully deterministic testing",
+        "Reproducible with seeds - same test every time",
+        "Fast execution - no API latency",
+        "CI/CD friendly - meaningful exit codes",
+        "Comprehensive coverage - 6 scenarios test all major paths",
+        "Report validation - catches missing/broken data",
+        "Invariant checking - ensures hedge/flatten logic works",
+        "Flexible injection - scenarios, files, or inline JSON"
+      ]
+    },
     "2026_01_07_live_reporting": {
       "title": "Live Incremental Reporting System",
       "description": "Added production-grade live reporting that generates append-only CSV reports with automatic deduplication",

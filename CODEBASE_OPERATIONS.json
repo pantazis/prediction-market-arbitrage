@@ -43,12 +43,159 @@
             "env_requirements": "None (fixtures included)",
             "output": "Logs validation results, exits immediately",
             "when_to_use": "Verify code works without API, CI/CD pipeline"
+          },
+          {
+            "cmd": "python -m predarb stress",
+            "mode": "stress",
+            "description": "DRY-RUN stress test with injectable market data (no network calls)",
+            "injection_sources": [
+              "scenario:<name> - built-in stress scenarios",
+              "file:<path> - JSON fixture file",
+              "inline:<json> - inline JSON payload"
+            ],
+            "arguments": [
+              {
+                "arg": "--scenario NAME",
+                "description": "Use built-in stress scenario (shorthand for --inject scenario:NAME)",
+                "examples": ["high_volume", "many_risk_rejections", "partial_fill", "happy_path", "latency_freshness", "fee_slippage", "semantic_clustering"]
+              },
+              {
+                "arg": "--inject SPEC",
+                "description": "Full injection spec: scenario:<name> | file:<path> | inline:<json>",
+                "examples": [
+                  "scenario:happy_path",
+                  "file:tests/fixtures/markets.json",
+                  "inline:[{\"id\":\"m1\",\"question\":\"Test?\",\"outcomes\":[...]}]"
+                ]
+              },
+              {
+                "arg": "--iterations N",
+                "default": 1,
+                "description": "Number of stress test iterations (default: 1)"
+              },
+              {
+                "arg": "--seed N",
+                "default": 42,
+                "description": "Random seed for reproducible scenario generation"
+              },
+              {
+                "arg": "--no-verify",
+                "description": "Skip automatic report verification after stress test"
+              },
+              {
+                "arg": "--config PATH",
+                "description": "Custom config.yml (default: config.yml)"
+              }
+            ],
+            "example_commands": [
+              "python -m predarb stress --scenario happy_path (quick smoke test)",
+              "python -m predarb stress --scenario high_volume --iterations 10 (stress with 1000 markets)",
+              "python -m predarb stress --inject file:tests/fixtures/markets.json --seed 999",
+              "python -m predarb stress --scenario partial_fill --no-verify (skip verification)"
+            ],
+            "exit_codes": {
+              "0": "All checks passed (after auto-verification)",
+              "1": "General error or user interrupt",
+              "2": "Report file missing or unreadable",
+              "3": "Report schema invalid (malformed JSON or missing keys)",
+              "4": "No iterations recorded (unexpected empty report)",
+              "5": "Expected executions/trades missing (data inconsistency)",
+              "6": "Invariants failed (residual exposure not hedged, etc.)"
+            },
+            "stress_scenarios": {
+              "high_volume": {
+                "markets": 1000,
+                "description": "990 normal markets + 10 arbitrage opportunities",
+                "tests": "Performance and filtering efficiency"
+              },
+              "many_risk_rejections": {
+                "markets": 40,
+                "description": "20 low liquidity + 15 low edge + 5 good opportunities",
+                "tests": "Risk manager validation and rejection handling"
+              },
+              "partial_fill": {
+                "markets": 10,
+                "description": "Asymmetric liquidity (deep YES, shallow NO)",
+                "tests": "Hedge/cancel logic on execution failure"
+              },
+              "happy_path": {
+                "markets": 15,
+                "description": "Strong arbitrage opportunities with clean execution",
+                "tests": "Success case end-to-end with realized P&L"
+              },
+              "latency_freshness": {
+                "markets": 15,
+                "description": "10 expiring soon + 5 fresh markets",
+                "tests": "Expiry validation and freshness checks"
+              },
+              "fee_slippage": {
+                "markets": 20,
+                "description": "Marginal opportunities where fees/slippage eliminate edge",
+                "tests": "Cost modeling and rejection"
+              },
+              "semantic_clustering": {
+                "markets": 25,
+                "description": "Markets with semantic duplicates (BTC/Bitcoin, Democrat variations) + filter violations (spread, volume, liquidity, expiry, resolution source) + distinct entities",
+                "tests": "Semantic clustering with sentence-transformers, duplicate detection, all filter criteria (spread, volume, liquidity, expiry, resolution_source)"
+              }
+            },
+            "flow": [
+              "1. Parse injection spec (scenario/file/inline)",
+              "2. Create injected market provider (seeded, deterministic)",
+              "3. Replace Engine.client with injected provider",
+              "4. Run stress test (run_once or run loop)",
+              "5. Auto-verify reports/unified_report.json (unless --no-verify)",
+              "6. Exit with verification exit code"
+            ],
+            "output": "reports/unified_report.json + stdout logs",
+            "when_to_use": "CI/CD pipeline, pre-deployment validation, regression testing, stress testing filtering/risk/hedging logic",
+            "env_requirements": "None (no network calls, uses injected data)"
           }
         ],
         "config_override": {
-          "syntax": "python -m predarb [run|once|selftest] --config /path/to/config.yml",
-          "example": "python -m predarb once --config my_config.yml"
+          "syntax": "python -m predarb [run|once|selftest|stress] --config /path/to/config.yml",
+          "example": "python -m predarb stress --scenario happy_path --config my_config.yml"
         }
+      },
+      "verification": {
+        "entry": "src/predarb/verify_reports.py",
+        "cli": "python -m predarb.verify_reports [--report PATH] [--quiet]",
+        "description": "Verify unified_report.json structure, completeness, and invariants",
+        "arguments": [
+          {
+            "arg": "--report PATH",
+            "default": "reports/unified_report.json",
+            "description": "Path to unified report file"
+          },
+          {
+            "arg": "-q, --quiet",
+            "description": "Suppress summary output (return exit code only)"
+          }
+        ],
+        "checks": [
+          "File exists and readable",
+          "Valid JSON with required schema",
+          "Metadata section present",
+          "At least one iteration recorded",
+          "Execution/trade data consistency",
+          "Invariants: residual exposure hedged, non-success has hedge, etc."
+        ],
+        "exit_codes": {
+          "0": "OK - all checks passed",
+          "2": "Report file missing or unreadable",
+          "3": "Invalid schema (malformed JSON or missing keys)",
+          "4": "No iterations recorded",
+          "5": "Expected executions/trades missing",
+          "6": "Invariants failed (hedge/flatten logic violated)"
+        },
+        "example_commands": [
+          "python -m predarb.verify_reports (verify default report)",
+          "python -m predarb.verify_reports --report custom/path.json",
+          "python -m predarb.verify_reports --quiet (exit code only)",
+          "echo $? (check exit code on Unix)",
+          "$LASTEXITCODE (check exit code on Windows PowerShell)"
+        ],
+        "when_to_use": "Post-run validation, CI/CD pipeline checks, debugging report issues"
       },
       "simulation": {
         "entry": "sim_run.py",
@@ -899,6 +1046,55 @@
           "telegram/security.py - auth, confirmation, formatting",
           "telegram/rate_limit.py - rate limiting"
         ]
+      },
+      "stress_testing": {
+        "injection": {
+          "location": "src/predarb/injection.py",
+          "classes": [
+            "MarketProvider (Protocol) - interface for real/injected clients",
+            "InjectionSource - factory for creating providers from specs",
+            "FileMarketProvider - load markets from JSON file",
+            "InlineMarketProvider - parse markets from inline JSON string"
+          ],
+          "purpose": "Enable network-free testing with deterministic market data"
+        },
+        "scenarios": {
+          "location": "src/predarb/stress_scenarios.py",
+          "classes": [
+            "StressScenario (base class) - seeded scenario generation",
+            "HighVolumeScenario - 1000 markets (performance test)",
+            "ManyRiskRejectionsScenario - 40 markets (risk validation test)",
+            "PartialFillScenario - 10 markets (hedge logic test)",
+            "HappyPathScenario - 15 markets (success case test)",
+            "LatencyFreshnessScenario - 15 markets (expiry validation test)",
+            "FeeSlippageScenario - 20 markets (cost modeling test)",
+            "SemanticClusteringScenario - 25 markets (semantic clustering + filter test)"
+          ],
+          "functions": [
+            "get_scenario(name, seed) - get scenario by name",
+            "list_scenarios() - list available scenario names"
+          ],
+          "purpose": "Built-in stress test scenarios for comprehensive pipeline testing"
+        },
+        "verification": {
+          "location": "src/predarb/verify_reports.py",
+          "classes": [
+            "ReportVerifier - verify unified_report.json structure and invariants"
+          ],
+          "functions": [
+            "verify_reports(report_path, verbose) - verify and return exit code",
+            "main() - CLI entry point"
+          ],
+          "exit_codes": {
+            "EXIT_OK": 0,
+            "EXIT_MISSING": 2,
+            "EXIT_INVALID_SCHEMA": 3,
+            "EXIT_NO_ITERATIONS": 4,
+            "EXIT_MISSING_DATA": 5,
+            "EXIT_INVARIANT_FAILED": 6
+          },
+          "purpose": "Validate reports and return meaningful exit codes for CI/CD"
+        }
       }
     },
     "environment_variables": {
@@ -1025,7 +1221,12 @@
       "start_once": "python -m predarb once (requires API creds)",
       "start_production": "python -m predarb run (infinite loop)",
       "start_simulation": "python sim_run.py --days 5",
+      "start_stress_test": "python -m predarb stress --scenario happy_path",
+      "start_stress_heavy": "python -m predarb stress --scenario high_volume --iterations 10",
+      "start_stress_semantic": "python -m predarb stress --scenario semantic_clustering",
+      "verify_reports": "python -m predarb.verify_reports",
       "run_tests": "pytest tests/ (34/36 tests passing as of 2026-01-07)",
+      "run_stress_tests": "pytest tests/test_injection.py tests/test_stress_scenarios.py tests/test_verify_reports.py -v",
       "enable_telegram": "Set TELEGRAM_ENABLED=true, bot_token, chat_id",
       "view_unified_report": "cat reports/unified_report.json | python -m json.tool",
       "export_legacy_csv": "python -c 'from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()'",
@@ -1034,7 +1235,8 @@
       "telegram_commands": "/start /pause /stop /status /daily /mode /freeze /unfreeze /forceclose /help",
       "rate_limits": "VIEW: 10/min, CONTROL: 5/min, DANGEROUS: 2/min",
       "confirmation": "Dangerous commands need 2-step: command → code → /confirm code",
-      "test_status": "34/36 tests passing (94% success rate)"
+      "test_status": "34/36 tests passing (94% success rate)",
+      "stress_scenarios": "high_volume, many_risk_rejections, partial_fill, happy_path, latency_freshness, fee_slippage"
     }
   }
 }

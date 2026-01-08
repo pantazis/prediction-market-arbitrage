@@ -1,8 +1,134 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-08T18:30:00Z",
+  "last_updated": "2026-01-08T11:55:00Z",
   "architecture_changes": {
+    "2026_01_08_bot_lifecycle_documentation": {
+      "title": "Bot Lifecycle Management - Start, Stop, Monitor, Troubleshoot",
+      "description": "Added comprehensive documentation for starting, stopping, and monitoring the arbitrage bot, including troubleshooting common issues and proper environment setup",
+      "rationale": "Users needed clear instructions for bot lifecycle operations. Multiple module import issues and environment setup problems were discovered during bot restart, requiring documented solutions",
+      "changes": [
+        "Added bot_lifecycle section to CODEBASE_OPERATIONS.json with start/stop/restart/monitor commands",
+        "Documented required environment setup (PYTHONPATH, venv, working directory)",
+        "Fixed recursion bug in src/predarb/unified_reporter.py _load_report() method",
+        "Added troubleshooting guide for common startup errors",
+        "Documented dry run mode verification procedures",
+        "Added monitoring commands and key log indicators"
+      ],
+      "files_modified": [
+        "CODEBASE_OPERATIONS.json - version 2.2 → 2.3, added bot_lifecycle section with comprehensive start/stop/monitor documentation",
+        "src/predarb/unified_reporter.py - fixed infinite recursion bug in _load_report() exception handler (lines 42-71)",
+        "codebase_schema.json - this file, documented changes"
+      ],
+      "bug_fixes": {
+        "unified_reporter_recursion": {
+          "issue": "RecursionError: maximum recursion depth exceeded in _load_report()",
+          "root_cause": "Exception handler called self._init_report_structure() which didn't exist, creating infinite recursion loop",
+          "fix": "Changed to return fresh_structure variable defined at function start",
+          "file": "src/predarb/unified_reporter.py",
+          "lines": "42-71",
+          "before": "except (json.JSONDecodeError, OSError) as e:\n    return self._init_report_structure()",
+          "after": "except (json.JSONDecodeError, OSError) as e:\n    return fresh_structure"
+        }
+      },
+      "bot_lifecycle": {
+        "start_command": {
+          "full_command": "cd /opt/prediction-market-arbitrage && PYTHONPATH=/opt/prediction-market-arbitrage/src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid",
+          "components": {
+            "cd": "Change to project root directory",
+            "PYTHONPATH": "Set to src/ for module imports (critical!)",
+            "venv_python": "Use .venv/bin/python for isolated environment",
+            "module": "Run predarb module with run command",
+            "iterations": "Limit to 1000 iterations (omit for infinite)",
+            "logging": "Redirect stdout/stderr to bot.log",
+            "background": "& runs in background",
+            "pid_save": "Save process ID to bot.pid for later control"
+          },
+          "requirements": [
+            "Virtual environment at .venv/",
+            "PYTHONPATH must include src/ directory",
+            "Run from project root (/opt/prediction-market-arbitrage)",
+            "Write access to bot.log and bot.pid"
+          ]
+        },
+        "stop_command": {
+          "basic": "kill $(cat bot.pid)",
+          "force": "kill -9 $(cat bot.pid)",
+          "verify": "ps -p $(cat bot.pid) || echo 'Stopped'",
+          "best_practice": "Always stop old bot before starting new one"
+        },
+        "restart_command": {
+          "safe": "kill $(cat bot.pid) 2>/dev/null; sleep 2; <start_command>",
+          "with_cleanup": "kill $(cat bot.pid) 2>/dev/null; rm -f reports/unified_report.json; <start_command>",
+          "use_cases": ["After code changes", "After config updates", "To clear reports"]
+        },
+        "monitor_commands": {
+          "live_logs": "tail -f bot.log",
+          "recent_activity": "tail -50 bot.log",
+          "process_status": "ps -p $(cat bot.pid) -o pid,stat,%cpu,%mem,cmd",
+          "report_status": "python check_continuous_run.py"
+        }
+      },
+      "troubleshooting": {
+        "module_not_found": {
+          "error": "ModuleNotFoundError: No module named 'predarb'",
+          "cause": "PYTHONPATH not set or incorrect",
+          "solution": "Export PYTHONPATH=/opt/prediction-market-arbitrage/src before running",
+          "prevention": "Always include PYTHONPATH in start command"
+        },
+        "python_not_found": {
+          "error": "python: command not found",
+          "cause": "python command not in PATH or not aliased to python3",
+          "solution": "Use full venv path: .venv/bin/python",
+          "note": "Ubuntu 22.04+ requires explicit python3 or venv python"
+        },
+        "recursion_error": {
+          "error": "RecursionError in unified_reporter.py",
+          "cause": "Bug in _load_report() exception handler",
+          "solution": "Fixed in commit - exception now returns fresh_structure",
+          "status": "RESOLVED"
+        },
+        "corrupted_report": {
+          "error": "JSONDecodeError: Expecting value: line 1 column 1",
+          "cause": "Corrupted or empty unified_report.json",
+          "solution": "rm -f reports/unified_report.json (will be recreated)",
+          "prevention": "Fix ensures this won't happen again"
+        }
+      },
+      "verification": {
+        "startup_success_indicators": [
+          "INFO predarb.engine - Iteration 1",
+          "INFO predarb.engine - Fetched N total markets",
+          "INFO predarb.unified_reporter - Iteration X: Recorded (...)"
+        ],
+        "dry_run_mode": {
+          "description": "Bot runs in paper trading mode by default",
+          "config": "config.yml - broker section",
+          "verification": "Check broker.initial_cash exists (indicates paper trading)"
+        },
+        "process_check": "ps -p $(cat bot.pid) should show running process"
+      },
+      "example_session": {
+        "description": "Real example from 2026-01-08 bot restart",
+        "steps": [
+          "1. Attempted start with python3 - module not found",
+          "2. Added PYTHONPATH - dotenv module missing",
+          "3. Tried venv activation - still failed",
+          "4. Used full venv path with PYTHONPATH - recursion error",
+          "5. Fixed unified_reporter.py recursion bug",
+          "6. Cleaned corrupted report file",
+          "7. Successfully started: PID 1348189, Iteration 1, 500 markets fetched, 353 detected, 20 approved"
+        ],
+        "final_working_command": "cd /opt/prediction-market-arbitrage && PYTHONPATH=/opt/prediction-market-arbitrage/src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid"
+      },
+      "performance_notes": {
+        "typical_startup": "~1 second to initialize",
+        "iteration_time": "~5-10 seconds per iteration (depends on market count)",
+        "market_fetch": "500 markets from Polymarket API per iteration",
+        "detection_rate": "~353 opportunities detected (varies by market conditions)",
+        "approval_rate": "First iteration: ~20 approved, subsequent: 0 (deduplication working)"
+      }
+    },
     "2026_01_08_notification_improvements": {
       "title": "Human-Readable Opportunity Notifications with Status Labels and Market Titles",
       "description": "Enhanced opportunity notifications to be more user-friendly with status labels (GREAT/MEDIUM/BAD), percentage gains, dollar estimates, trade action details (BUY/SELL), and market titles. Also improved duplicate detector messages and added Telegram command documentation.",

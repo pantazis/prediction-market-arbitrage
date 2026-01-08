@@ -1,10 +1,101 @@
 {
   "codebase_operations": {
-    "version": "2.2",
+    "version": "2.3",
     "generated": "2026-01-08",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
+    "bot_lifecycle": {
+      "start_bot": {
+        "description": "Start the arbitrage bot in background mode with proper environment setup",
+        "commands": {
+          "production_command": "cd /opt/prediction-market-arbitrage && PYTHONPATH=/opt/prediction-market-arbitrage/src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid",
+          "explanation": "Starts bot with venv, PYTHONPATH set to src/, logs to bot.log, saves PID to bot.pid",
+          "required_setup": [
+            "Virtual environment must exist at .venv/",
+            "PYTHONPATH must point to src/ directory for module imports",
+            "Python module predarb must be importable from src/",
+            "Run from /opt/prediction-market-arbitrage root directory"
+          ]
+        },
+        "verification": {
+          "check_pid": "cat bot.pid",
+          "check_process": "ps -p $(cat bot.pid) -o pid,stat,cmd --no-headers",
+          "check_logs": "tail -f bot.log",
+          "check_recent_activity": "tail -50 bot.log"
+        },
+        "troubleshooting": {
+          "module_not_found_predarb": {
+            "error": "ModuleNotFoundError: No module named 'predarb'",
+            "solution": "Set PYTHONPATH=/opt/prediction-market-arbitrage/src before running"
+          },
+          "recursion_error_unified_reporter": {
+            "error": "RecursionError in _load_report()",
+            "solution": "Fixed in unified_reporter.py - exception handler now returns fresh_structure instead of calling self recursively",
+            "file": "src/predarb/unified_reporter.py lines 42-71"
+          },
+          "corrupted_report": {
+            "error": "JSONDecodeError: Expecting value",
+            "solution": "Remove corrupted report: rm -f /opt/prediction-market-arbitrage/reports/unified_report.json"
+          },
+          "python_command_not_found": {
+            "error": "Command 'python' not found",
+            "solution": "Use .venv/bin/python (full path to venv python) or python3"
+          }
+        },
+        "dry_run_mode": {
+          "description": "Bot runs in paper trading mode by default (no real money)",
+          "config_location": "config.yml - broker section controls dry_run setting",
+          "verification": "Check logs for 'Paper trading mode' or broker.initial_cash in config.yml"
+        }
+      },
+      "stop_bot": {
+        "description": "Stop a running bot process safely",
+        "commands": {
+          "using_pid_file": "kill $(cat bot.pid)",
+          "force_kill": "kill -9 $(cat bot.pid)",
+          "find_and_kill": "ps aux | grep '[p]ython.*predarb' | awk '{print $2}' | xargs kill"
+        },
+        "verification": {
+          "check_stopped": "ps -p $(cat bot.pid) || echo 'Process stopped'",
+          "check_no_orphans": "ps aux | grep '[p]ython.*predarb'"
+        },
+        "notes": [
+          "Always stop old bot before starting new one to avoid conflicts",
+          "PID file (bot.pid) tracks currently running bot",
+          "Use regular kill first (allows graceful shutdown), only use kill -9 if process hangs"
+        ]
+      },
+      "restart_bot": {
+        "description": "Stop existing bot and start fresh instance",
+        "commands": {
+          "safe_restart": "kill $(cat bot.pid) 2>/dev/null; sleep 2; cd /opt/prediction-market-arbitrage && PYTHONPATH=/opt/prediction-market-arbitrage/src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid",
+          "with_cleanup": "kill $(cat bot.pid) 2>/dev/null; rm -f reports/unified_report.json; cd /opt/prediction-market-arbitrage && PYTHONPATH=/opt/prediction-market-arbitrage/src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid"
+        },
+        "when_to_use": [
+          "After fixing bugs in source code",
+          "After updating configuration",
+          "When bot process becomes unresponsive",
+          "To start fresh with clean reports"
+        ]
+      },
+      "monitor_bot": {
+        "description": "Monitor running bot status and performance",
+        "commands": {
+          "live_logs": "tail -f bot.log",
+          "recent_logs": "tail -50 bot.log",
+          "process_status": "ps -p $(cat bot.pid) -o pid,stat,%cpu,%mem,etime,cmd",
+          "report_status": "python check_continuous_run.py",
+          "detailed_monitoring": "./monitor_bot.sh"
+        },
+        "key_indicators": {
+          "markets_fetched": "INFO predarb.engine - Fetched N total markets",
+          "opportunities_detected": "INFO predarb.unified_reporter - Iteration X: Recorded (markets=M, detected=D, approved=A)",
+          "trades_executed": "INFO predarb.unified_reporter - Logged N trades to unified report",
+          "errors": "ERROR or Traceback lines indicate issues"
+        }
+      }
+    },
     "run_commands": {
       "main_cli": {
         "entry": "src/predarb/__main__.py",

@@ -41,32 +41,34 @@ class UnifiedReporter:
     
     def _load_report(self) -> Dict[str, Any]:
         """Load existing unified report or create new structure."""
+        fresh_structure = {
+            "metadata": {
+                "version": "1.0",
+                "created_at": datetime.utcnow().isoformat(),
+                "last_updated": datetime.utcnow().isoformat(),
+                "description": "Unified arbitrage bot reporting: iterations, opportunities, trades",
+                "last_state": {
+                    "market_ids_hash": None,
+                    "approved_opp_ids_hash": None,
+                    "last_markets_count": 0,
+                    "last_opps_detected": 0,
+                    "last_opps_approved": 0,
+                }
+            },
+            "iterations": [],
+            "opportunity_executions": [],
+            "trades": []
+        }
+        
         if not self.report_file.exists():
-            return {
-                "metadata": {
-                    "version": "1.0",
-                    "created_at": datetime.utcnow().isoformat(),
-                    "last_updated": datetime.utcnow().isoformat(),
-                    "description": "Unified arbitrage bot reporting: iterations, opportunities, trades",
-                    "last_state": {
-                        "market_ids_hash": None,
-                        "approved_opp_ids_hash": None,
-                        "last_markets_count": 0,
-                        "last_opps_detected": 0,
-                        "last_opps_approved": 0,
-                    }
-                },
-                "iterations": [],
-                "opportunity_executions": [],
-                "trades": []
-            }
+            return fresh_structure
         
         try:
             with open(self.report_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Could not load report file: {e}. Creating new report.")
-            return self._load_report()  # Return fresh structure
+            return fresh_structure  # Return fresh structure
     
     def _save_report(self):
         """Save report data atomically to disk."""

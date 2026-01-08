@@ -339,7 +339,43 @@
         {
           "script": "python get_keys.py",
           "purpose": "Retrieve/manage API keys"
-          },
+        },
+        {
+          "script": "python analyze_filter_effectiveness.py",
+          "purpose": "Analyze filter effectiveness from unified_report.json",
+          "output": "Approval rates, rejection analysis, filter recommendations",
+          "when_to_use": "After continuous run to diagnose filter performance"
+        },
+        {
+          "script": "python debug_rejections.py",
+          "purpose": "Debug why opportunities are rejected by risk manager",
+          "output": "Breakdown of rejections by category (edge_too_low, liquidity_too_low, etc.)",
+          "when_to_use": "When approval rate is unexpectedly low"
+        },
+        {
+          "script": "python check_continuous_run.py",
+          "purpose": "Quick status check for continuous bot run",
+          "output": "Latest iteration stats, approval rate, market mix analysis",
+          "when_to_use": "Monitor running bot without stopping it"
+        },
+        {
+          "script": "python test_filters_quick.py",
+          "purpose": "Fast validation of filter changes with happy_path scenario",
+          "output": "Detection and approval counts with comparison to baseline",
+          "when_to_use": "After editing config.yml to validate changes"
+        },
+        {
+          "script": "./tune_filters.sh",
+          "purpose": "Interactive filter preset selector (relaxed/current/strict/custom)",
+          "output": "Updated config.yml with selected preset",
+          "when_to_use": "Need to quickly change filter aggressiveness",
+          "presets": [
+            "RELAXED - min_liquidity_usd: 250, min_net_edge: 0.002, min_volume: 500",
+            "CURRENT - min_liquidity_usd: 500, min_net_edge: 0.005, min_volume: 1000",
+            "STRICT - min_liquidity_usd: 1000, min_net_edge: 0.01, min_volume: 5000",
+            "CUSTOM - opens config.yml in editor"
+          ]
+        },
           {
             "script": "python -c \"from src.predarb.unified_reporter import read_unified_report; data = read_unified_report(); print(f'Iterations: {len(data.get(\\\"iterations\\\", []))}, Opportunities: {len(data.get(\\\"opportunity_executions\\\", []))}')\"",
             "purpose": "Read and summarize reports/unified_report.json (unified JSON reporting)",

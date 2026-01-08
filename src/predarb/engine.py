@@ -110,6 +110,14 @@ class Engine:
             end_ns = time.perf_counter_ns()
             executed.append(opp)
             if self.notifier:
+                # Enrich opportunity with market titles for better notifications
+                market_titles = []
+                for mid in opp.market_ids:
+                    market = market_lookup.get(mid)
+                    if market:
+                        market_titles.append(market.question)
+                if market_titles:
+                    opp.metadata["market_titles"] = market_titles
                 self.notifier.notify_opportunity(opp)
             # Build execution trace
             prices_before: Dict[str, float] = {}

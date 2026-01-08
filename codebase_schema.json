@@ -1,8 +1,85 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-08T10:00:00Z",
+  "last_updated": "2026-01-08T18:30:00Z",
   "architecture_changes": {
+    "2026_01_08_notification_improvements": {
+      "title": "Human-Readable Opportunity Notifications with Status Labels and Market Titles",
+      "description": "Enhanced opportunity notifications to be more user-friendly with status labels (GREAT/MEDIUM/BAD), percentage gains, dollar estimates, trade action details (BUY/SELL), and market titles. Also improved duplicate detector messages and added Telegram command documentation.",
+      "rationale": "User feedback indicated that opportunity messages with raw decimal edges (0.3825) were hard to read and understand. Users wanted human-readable percentages, dollar amounts, quality indicators, trade sides visibility, and market context (titles/questions).",
+      "changes": [
+        "Added status classification to notify_opportunity() based on edge percentage (GREAT >= 5%, MEDIUM >= 2%, BAD < 2%)",
+        "Changed edge display from decimal (0.3825) to percentage (38.25%)",
+        "Added estimated gain in dollars per $100 trade for reference",
+        "Shortened long market ID hashes in notifications (0x7130b8d...e2f7df)",
+        "Added trade action details with 📗 BUY and 📕 SELL emojis showing sides and prices",
+        "Added market title enrichment in engine - extracts question from market_lookup before notifying",
+        "Added market title display in notifications - shows first title (truncated to 80 chars) or indicates multiple markets",
+        "Updated duplicate detector description to show prices as percentages and gaps in both % and $",
+        "Created TELEGRAM_BOT_GUIDE.md explaining why /status doesn't work in standard CLI mode",
+        "Documented the difference between predarb CLI and TelegramControlledArbitrageBot"
+      ],
+      "files_modified": [
+        "src/predarb/notifier.py - Enhanced notify_opportunity() with status labels, trade actions, market titles, and human-readable formatting",
+        "src/predarb/notifiers/telegram.py - Updated both TelegramNotifierReal and TelegramNotifierMock with same enhancements including trade actions and market titles",
+        "src/predarb/detectors/duplicates.py - Changed description format to show % and $ instead of decimals",
+        "src/predarb/engine.py - Added market title enrichment (lines 105-120) extracting question from market_lookup into opportunity.metadata['market_titles']",
+        "codebase_schema.json - Updated this entry"
+      ],
+      "files_created": [
+        "TELEGRAM_BOT_GUIDE.md - Comprehensive guide explaining Telegram bot modes and why /status requires TelegramControlledArbitrageBot"
+      ],
+      "notification_format": {
+        "old_format": "Edge: 0.3825, Details: Duplicate price gap 0.385 vs 0.003",
+        "new_format": "🔎 Opportunity DUPLICATE 🟢 GREAT\nMarket: Will Bitcoin reach $100,000 by end of 2026?\nTrades: 📗 BUY yes @ 0.385 vs 📕 SELL yes @ 0.003\nIDs: 0x7130b8d...e2f7df, 0x9a23ef1...b4c8da\nEdge: 38.25% (Est. gain: $38.25 per $100)\nDetails: Duplicate: 38.5% vs 0.3% (gap: 38.2%, $38.20/$100)",
+        "status_labels": {
+          "great": "🟢 GREAT (edge >= 5%)",
+          "medium": "🟡 MEDIUM (edge >= 2%)",
+          "bad": "🔴 BAD (edge < 2%)"
+        },
+        "market_id_shortening": "Long hashes truncated: 0x7130b8d9bb59393...e2f7df",
+        "trade_actions": {
+          "buy_emoji": "📗 BUY",
+          "sell_emoji": "📕 SELL",
+          "format": "📗 BUY outcome @ price vs 📕 SELL outcome @ price"
+        },
+        "market_titles": {
+          "source": "opportunity.metadata['market_titles'] - populated by engine from market_lookup",
+          "single_market": "Truncate to 80 chars if longer",
+          "multiple_markets": "Show first title (60 chars) + '+N more'",
+          "location_in_notification": "Second line after opportunity header"
+        }
+      },
+      "telegram_command_clarification": {
+        "issue": "User reported /status command not working",
+        "root_cause": "Standard predarb CLI (python -m predarb run) only sends one-way notifications, doesn't listen for commands",
+        "solution": "Documented that /status and other commands require TelegramControlledArbitrageBot from arbitrage_bot/main.py",
+        "documentation": "TELEGRAM_BOT_GUIDE.md with setup instructions and command list",
+        "resolution": "User confirmed '/status works from telgram side' - successfully using TelegramControlledArbitrageBot"
+      },
+      "implementation_details": {
+        "market_title_enrichment": {
+          "location": "src/predarb/engine.py lines 105-120",
+          "process": "Before calling notifier.notify_opportunity(), engine extracts market.question for each market_id in opportunity.market_ids and stores in opportunity.metadata['market_titles']",
+          "benefits": "Notifiers can display market context without needing direct access to market_lookup"
+        },
+        "notification_display_logic": {
+          "files": ["src/predarb/notifier.py", "src/predarb/notifiers/telegram.py (TelegramNotifierReal and TelegramNotifierMock)"],
+          "display_rules": [
+            "Extract market_titles from opportunity.metadata",
+            "Single market: show first 80 chars of title + '...' if longer",
+            "Multiple markets: show first 60 chars + ' (+N more)' where N = len(market_titles)-1",
+            "No titles: skip market title line entirely"
+          ]
+        },
+        "trade_action_display": {
+          "format": "side_emoji SIDE outcome_id @ limit_price",
+          "emojis": {"BUY": "📗", "SELL": "📕"},
+          "outcome_shortening": "Show first 6 chars + '...' if outcome_id > 8 chars",
+          "aggregation": "Join with ' vs ' if <= 3 actions, else show 'N trades'"
+        }
+      }
+    },
     "2026_01_08_filter_tuning_tools": {
       "title": "Filter Effectiveness Analysis & Tuning Tools",
       "description": "Added diagnostic tools to analyze filter effectiveness, debug rejections, and tune filter parameters based on actual bot performance",

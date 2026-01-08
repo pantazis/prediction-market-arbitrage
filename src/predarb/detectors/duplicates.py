@@ -21,11 +21,18 @@ class DuplicateDetector:
             if diff < self.config.duplicate_price_diff_threshold:
                 continue
             better, worse = (m1, m2) if p1.price > p2.price else (m2, m1)
+            # Format description with % and $ for better readability
+            price1_pct = p1.price * 100
+            price2_pct = p2.price * 100
+            gap_pct = diff * 100
+            gain_per_100 = diff * 100
+            description = f"Duplicate: {price1_pct:.1f}% vs {price2_pct:.1f}% (gap: {gap_pct:.1f}%, ${gain_per_100:.2f}/$100)"
+            
             opps.append(
                 Opportunity(
                     type="DUPLICATE",
                     market_ids=[m1.id, m2.id],
-                    description=f"Duplicate price gap {p1.price:.3f} vs {p2.price:.3f}",
+                    description=description,
                     net_edge=diff,
                     actions=[
                         TradeAction(market_id=better.id, outcome_id=better.outcomes[0].id, side="SELL", amount=1.0, limit_price=better.outcomes[0].price),

@@ -1,6 +1,6 @@
 {
   "codebase_operations": {
-    "version": "2.1",
+    "version": "2.2",
     "generated": "2026-01-08",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
@@ -688,7 +688,21 @@
       },
       "outbound_messages": {
         "description": "Bot sends these messages to user",
+        "notification_features": {
+          "status_labels": "🟢 GREAT (edge >= 5%), 🟡 MEDIUM (edge >= 2%), 🔴 BAD (edge < 2%)",
+          "market_titles": "Shows market question/title for context (truncated to 80 chars for single market, 60 chars + '+N more' for multiple)",
+          "trade_actions": "Displays BUY/SELL sides with 📗 BUY and 📕 SELL emojis plus prices",
+          "human_readable_format": "Percentages (38.25%) and dollar gains ($38.25 per $100) instead of raw decimals (0.3825)",
+          "market_id_shortening": "Long hashes truncated (0x7130b8d...e2f7df)",
+          "enrichment": "Engine enriches opportunities with market_titles from market_lookup before notifying"
+        },
         "message_types": [
+          {
+            "type": "opportunity_detected",
+            "trigger": "Arbitrage opportunity detected and approved by risk manager",
+            "format": "🔎 Opportunity [TYPE] [STATUS_LABEL]\nMarket: [market_title]\nTrades: 📗 BUY [outcome] @ [price] vs 📕 SELL [outcome] @ [price]\nIDs: [shortened_market_ids]\nEdge: [XX.XX]% (Est. gain: $[XX.XX] per $100)\nDetails: [description]",
+            "example": "🔎 Opportunity DUPLICATE 🟢 GREAT\nMarket: Will Bitcoin reach $100,000 by end of 2026?\nTrades: 📗 BUY yes @ 0.385 vs 📕 SELL yes @ 0.003\nIDs: 0x7130b8d...e2f7df, 0x9a23ef1...b4c8da\nEdge: 38.25% (Est. gain: $38.25 per $100)\nDetails: Duplicate: 38.5% vs 0.3% (gap: 38.2%, $38.20/$100)"
+          },
           {
             "type": "trade_entered",
             "trigger": "Opportunity executed, position opened",

@@ -60,14 +60,21 @@ class Engine:
         self.target_order_size = float(filter_kwargs.pop("target_order_size_usd", 0.0))
         self.filter_settings = FilterSettings(**filter_kwargs)
 
-        self.detectors: Sequence = [
-            ParityDetector(config.detectors, config.broker),
-            LadderDetector(config.detectors),
-            DuplicateDetector(config.detectors),
-            ExclusiveSumDetector(config.detectors),
-            TimeLagDetector(config.detectors),
-            ConsistencyDetector(config.detectors),
-        ]
+        # Build detector list based on config flags
+        self.detectors: Sequence = []
+        if config.detectors.enable_parity:
+            self.detectors.append(ParityDetector(config.detectors, config.broker))
+        if config.detectors.enable_ladder:
+            self.detectors.append(LadderDetector(config.detectors))
+        if config.detectors.enable_duplicate:
+            self.detectors.append(DuplicateDetector(config.detectors))
+        if config.detectors.enable_exclusive_sum:
+            self.detectors.append(ExclusiveSumDetector(config.detectors))
+        if config.detectors.enable_timelag:
+            self.detectors.append(TimeLagDetector(config.detectors))
+        if config.detectors.enable_consistency:
+            self.detectors.append(ConsistencyDetector(config.detectors))
+        
         self.report_path = Path(config.engine.report_path)
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
         

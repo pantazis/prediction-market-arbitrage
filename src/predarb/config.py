@@ -78,6 +78,13 @@ class DetectorConfig(BaseModel):
     ladder_tolerance: float = 0.0
     timelag_price_jump: float = 0.05
     timelag_persistence_minutes: float = 5.0
+    # Enable/disable specific detectors
+    enable_duplicate: bool = True  # Requires short selling - disable for live Polymarket trading
+    enable_ladder: bool = True
+    enable_parity: bool = True
+    enable_exclusive_sum: bool = True
+    enable_timelag: bool = True
+    enable_consistency: bool = True
 
 
 class LLMVerificationConfig(BaseModel):

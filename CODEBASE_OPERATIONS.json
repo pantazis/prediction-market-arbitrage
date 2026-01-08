@@ -1,6 +1,6 @@
 {
   "codebase_operations": {
-    "version": "2.3",
+    "version": "2.4",
     "generated": "2026-01-08",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",

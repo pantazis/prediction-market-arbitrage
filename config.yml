@@ -33,6 +33,13 @@ detectors:
   ladder_tolerance: 0.0
   timelag_price_jump: 0.05
   timelag_persistence_minutes: 5
+  # Enable/disable specific detectors
+  enable_duplicate: false       # DISABLED: Requires cross-market shorting (not supported on Polymarket)
+  enable_ladder: true            # ENABLED: Works within same market
+  enable_parity: true            # ENABLED: Works within same market (Yes + No ≠ 1.0)
+  enable_exclusive_sum: true     # ENABLED: Works within same market (outcomes don't sum to 1.0)
+  enable_timelag: true           # ENABLED: Price movement detection
+  enable_consistency: true       # ENABLED: Logical consistency checks
 telegram:
   enabled: true
   bot_token: ""

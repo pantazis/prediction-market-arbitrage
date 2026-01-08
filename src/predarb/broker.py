@@ -54,18 +54,26 @@ class PaperBroker:
                 else:
                     self.avg_cost[position_key] = action.limit_price
                 pnl = -cost
-            else:
+            else:  # SELL
                 position_key = f"{action.market_id}:{action.outcome_id}"
                 held = self.positions.get(position_key, 0.0)
-                qty = min(qty, held)
+                # Allow short selling: qty is NOT limited by held position
+                # qty = min(qty, held)  # REMOVED: This prevented short selling
                 if qty <= 0:
                     continue
                 proceeds = action.limit_price * qty - fee - slippage
                 self.cash += proceeds
-                self.positions[position_key] = held - qty
-                # Cost basis remains for remaining qty; if position closed, remove
+                self.positions[position_key] = held - qty  # Can go negative (short position)
+                # Update cost basis for short positions
                 if self.positions[position_key] == 0.0:
                     self.avg_cost.pop(position_key, None)
+                elif held <= 0:  # Opening or adding to short position
+                    prev_cost = self.avg_cost.get(position_key, 0.0)
+                    if held < 0:  # Already short, weighted average
+                        weighted = (prev_cost * abs(held) + action.limit_price * qty) / abs(held - qty)
+                        self.avg_cost[position_key] = weighted
+                    else:  # New short position
+                        self.avg_cost[position_key] = action.limit_price
                 pnl = proceeds
             trade = Trade(
                 id=str(uuid.uuid4()),
@@ -122,26 +130,37 @@ class PaperBroker:
         outcome_id: str,
         qty: float | None = None,
     ) -> List[Trade]:
-        """Simulate closing (SELL) up to qty for a held position. If qty is None, closes all.
-
+        """Simulate closing a position (long or short). If qty is None, closes all.
+        
+        For long positions (qty > 0): SELL to close
+        For short positions (qty < 0): BUY to close
+        
         Returns list of execution trades produced by the close.
         """
         key = f"{market_id}:{outcome_id}"
         held = self.positions.get(key, 0.0)
-        if held <= 0:
+        if held == 0:
             return []
-        close_qty = held if qty is None else min(qty, held)
+        
+        # Determine close quantity and side
+        if held > 0:  # Long position: SELL to close
+            close_qty = held if qty is None else min(qty, held)
+            side = "SELL"
+        else:  # Short position: BUY to close
+            close_qty = abs(held) if qty is None else min(qty, abs(held))
+            side = "BUY"
+        
         price = self._mark_price(market_lookup, market_id, outcome_id)
-        action = TradeAction(market_id=market_id, outcome_id=outcome_id, side="SELL", amount=close_qty, limit_price=price)
+        action = TradeAction(market_id=market_id, outcome_id=outcome_id, side=side, amount=close_qty, limit_price=price)
         opp = Opportunity(type="HEDGE", market_ids=[market_id], description="hedge_close", net_edge=0.0, actions=[action])
         return self.execute(market_lookup, opp)
 
     def flatten_all(self, market_lookup: Dict[str, Market]) -> List[Trade]:
-        """Close all open positions across all markets/outcomes (SELL)."""
+        """Close all open positions across all markets/outcomes (both long and short)."""
         hedges: List[Trade] = []
         for key, qty in list(self.positions.items()):
-            if qty <= 0:
+            if qty == 0:
                 continue
             mid, oid = key.split(":")
-            hedges.extend(self.close_position(market_lookup, mid, oid, qty))
+            hedges.extend(self.close_position(market_lookup, mid, oid, abs(qty)))
         return hedges

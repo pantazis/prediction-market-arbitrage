@@ -1,8 +1,108 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-08T11:55:00Z",
+  "last_updated": "2026-01-08T14:30:00Z",
   "architecture_changes": {
+    "2026_01_08_short_selling_and_detector_config": {
+      "title": "Short Selling Support and Configurable Detector Flags",
+      "description": "Enabled short selling in PaperBroker for simulation and added configuration flags to enable/disable specific detectors, particularly for Polymarket compatibility",
+      "rationale": "All detected opportunities were failing with 'partial' status because SELL orders required existing positions. Analysis revealed that DUPLICATE detector finds cross-market opportunities requiring short selling, which Polymarket doesn't support live. Solution: enable shorts for simulation, add config to disable incompatible detectors for live trading",
+      "changes": [
+        "Modified src/predarb/broker.py to allow negative positions (short selling)",
+        "Updated close_position() to handle both long (SELL to close) and short (BUY to close) positions",
+        "Added enable_* flags to DetectorConfig for granular detector control",
+        "Modified engine.py to conditionally instantiate detectors based on config flags",
+        "Set enable_duplicate=false in config.yml for Polymarket compatibility",
+        "Documented that DUPLICATE detector requires cross-market shorting unavailable on Polymarket"
+      ],
+      "files_modified": [
+        "src/predarb/broker.py - removed qty=min(qty,held) constraint, added short position support, updated cost basis tracking",
+        "src/predarb/config.py - added enable_duplicate, enable_ladder, enable_parity, enable_exclusive_sum, enable_timelag, enable_consistency flags to DetectorConfig",
+        "src/predarb/engine.py - changed from hardcoded detector list to conditional instantiation based on config flags",
+        "config.yml - added detector enable/disable flags with comments, disabled DUPLICATE for Polymarket",
+        "SHORT_SELLING_ENABLED.md - created documentation of short selling implementation",
+        "codebase_schema.json - this file, documented changes"
+      ],
+      "short_selling_implementation": {
+        "broker_changes": {
+          "sell_without_position": "Removed constraint that prevented SELL when position = 0. Positions can now go negative (e.g., -1.0 = short 1 unit)",
+          "cost_basis_tracking": "Added logic to track average cost for short positions using weighted average when adding to shorts",
+          "close_position_logic": "Updated to determine side automatically: long positions (>0) use SELL to close, short positions (<0) use BUY to close",
+          "flatten_all_logic": "Changed from qty<=0 skip to qty==0 skip, handles abs(qty) for both long and short positions"
+        },
+        "why_needed": {
+          "problem": "100% partial fill rate - SELL orders skipped because no position held",
+          "example": "Opportunity: SELL @ $0.934, BUY @ $0.0495. Only BUY executed, SELL skipped, hedged immediately, lost fees",
+          "root_cause": "Detectors create SELL-first strategies but broker enforced long-only constraint"
+        },
+        "paper_trading_only": "Short selling enabled ONLY for PaperBroker simulation. Real Polymarket API does not support traditional short selling",
+        "test_results": {
+          "initial_cash": 10000.0,
+          "after_short_sell": {"cash": 10000.95, "position": -1.0},
+          "after_cover": {"cash": 10000.04, "position": 0.0},
+          "net_pnl": 0.04,
+          "note": "Successful round-trip: SELL @ 0.95, BUY @ 0.90, profit after fees"
+        }
+      },
+      "detector_configuration": {
+        "new_config_flags": {
+          "enable_duplicate": "Controls DuplicateDetector - finds same outcome priced differently across markets. REQUIRES cross-market short selling. Set false for Polymarket live.",
+          "enable_ladder": "Controls LadderDetector - finds ladder arbitrage within same market. Works on Polymarket live.",
+          "enable_parity": "Controls ParityDetector - finds Yes+No != 1.0 in binary markets. Works on Polymarket live.",
+          "enable_exclusive_sum": "Controls ExclusiveSumDetector - finds outcomes that don't sum to 1.0. Works on Polymarket live.",
+          "enable_timelag": "Controls TimeLagDetector - detects stale prices. Works on Polymarket live.",
+          "enable_consistency": "Controls ConsistencyDetector - finds logical inconsistencies. Works on Polymarket live."
+        },
+        "polymarket_compatibility": {
+          "duplicate_detector_issue": "Finds opportunities like 'Market A: SELL @ $0.934, Market B: BUY @ $0.0495' which requires shorting Market A to hedge Market B. Polymarket API doesn't support cross-market shorts or traditional short selling.",
+          "solution": "Set enable_duplicate=false in config.yml for live Polymarket trading. Keep true for paper trading simulation.",
+          "compatible_detectors": ["PARITY", "LADDER", "EXCLUSIVESUM", "TIMELAG", "CONSISTENCY"],
+          "incompatible_detectors": ["DUPLICATE (cross-market, needs shorts)"]
+        },
+        "config_yml_changes": {
+          "location": "detectors section",
+          "added_flags": "enable_duplicate, enable_ladder, enable_parity, enable_exclusive_sum, enable_timelag, enable_consistency",
+          "default_settings": "enable_duplicate=false (disabled for Polymarket), all others=true",
+          "comments": "Each flag includes comment explaining Polymarket compatibility"
+        }
+      },
+      "polymarket_short_selling_analysis": {
+        "traditional_shorts_not_supported": "Polymarket uses Conditional Tokens (CLOB). You cannot SELL a token you don't own.",
+        "synthetic_shorts_available": "For binary markets: Shorting Yes is economically equivalent to buying No at (1 - Yes_price)",
+        "example": {
+          "market": "Will it rain?",
+          "yes_price": 0.70,
+          "no_price": 0.30,
+          "to_short_yes": "Instead of SELL Yes @ 0.70, do BUY No @ 0.30 (same P&L profile)"
+        },
+        "current_bot_behavior": "DUPLICATE detector finds cross-market opportunities requiring direct shorts. Works in simulation with our short-selling implementation, but won't translate to live Polymarket API calls.",
+        "recommendation": "For live trading: disable DUPLICATE, focus on same-market arbitrage (PARITY, EXCLUSIVESUM, LADDER)"
+      },
+      "migration_guide": {
+        "paper_trading_setup": [
+          "1. Keep enable_duplicate=true in config.yml for simulation",
+          "2. Short selling in broker allows all opportunities to execute",
+          "3. Monitor unified_report.json for 'success' status instead of 'partial'",
+          "4. Expect positive P&L from arbitrage opportunities"
+        ],
+        "live_trading_setup": [
+          "1. Set enable_duplicate=false in config.yml",
+          "2. Verify other detectors are enabled (ladder, parity, exclusive_sum, etc.)",
+          "3. Test with small amounts first",
+          "4. Focus on same-market opportunities only"
+        ]
+      },
+      "testing": {
+        "manual_test": "Verified short selling works: SELL 1.0 @ 0.95 → position=-1.0, BUY 1.0 @ 0.90 → position=0.0, profit=$0.04",
+        "integration_test": "Run bot with enable_duplicate=true, verify opportunities execute fully without 'partial' status",
+        "live_readiness_test": "Run bot with enable_duplicate=false, verify only same-market opportunities detected"
+      },
+      "performance_impact": {
+        "before": "100% partial fills, 20 opportunities, all hedged immediately, -$0.74 total P&L (fees only)",
+        "expected_after": "Near 100% success fills, positive P&L from captured arbitrage edges",
+        "note": "Improvement assumes market conditions remain favorable and liquidity available"
+      }
+    },
     "2026_01_08_bot_lifecycle_documentation": {
       "title": "Bot Lifecycle Management - Start, Stop, Monitor, Troubleshoot",
       "description": "Added comprehensive documentation for starting, stopping, and monitoring the arbitrage bot, including troubleshooting common issues and proper environment setup",

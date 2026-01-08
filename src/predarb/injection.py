@@ -89,6 +89,10 @@ class FileMarketProvider:
             )
         
         return [Market(**m) for m in markets_data]
+    
+    def fetch_markets(self) -> List[Market]:
+        """Alias for get_active_markets() for Engine compatibility."""
+        return self.get_active_markets()
 
 
 class InlineMarketProvider:
@@ -112,3 +116,7 @@ class InlineMarketProvider:
             )
         
         return [Market(**m) for m in markets_data]
+    
+    def fetch_markets(self) -> List[Market]:
+        """Alias for get_active_markets() for Engine compatibility."""
+        return self.get_active_markets()

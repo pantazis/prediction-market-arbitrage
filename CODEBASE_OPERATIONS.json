@@ -1,7 +1,7 @@
 {
   "codebase_operations": {
-    "version": "2.0",
-    "generated": "2026-01-07",
+    "version": "2.1",
+    "generated": "2026-01-08",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
@@ -156,6 +156,86 @@
           "syntax": "python -m predarb [run|once|selftest|stress] --config /path/to/config.yml",
           "example": "python -m predarb stress --scenario happy_path --config my_config.yml"
         }
+      },
+      "continuous_mixed_mode": {
+        "entry": "run_continuous_mixed.py",
+        "cmd": "python run_continuous_mixed.py",
+        "description": "Run bot continuously with MIXED real Polymarket + injected stress data for comprehensive testing and monitoring",
+        "when_to_use": "Long-term testing (hours/days), stress testing with real API calls, production-like monitoring with controlled test scenarios",
+        "features": [
+          "Combines real Polymarket API data with injected stress scenarios",
+          "Configurable mix ratio (default: 10% injected)",
+          "Uses existing UnifiedReporter + LiveReporter systems",
+          "Runs in background with nohup for multi-day testing",
+          "Auto-generates iteration reports every cycle"
+        ],
+        "arguments": [
+          {
+            "arg": "--scenario NAME",
+            "default": "high_volume",
+            "choices": ["high_volume", "happy_path", "many_risk_rejections", "partial_fill", "latency_freshness", "fee_slippage", "semantic_clustering"],
+            "description": "Stress scenario to inject alongside real data"
+          },
+          {
+            "arg": "--days N",
+            "default": 2.0,
+            "description": "Number of days to run (can be fractional, e.g., 0.1 = 2.4 hours)"
+          },
+          {
+            "arg": "--mix-ratio N",
+            "default": 0.1,
+            "description": "Ratio of injected to real markets (0.1 = 10% injected, 90% real)"
+          },
+          {
+            "arg": "--config PATH",
+            "default": "config.yml",
+            "description": "Config file path"
+          },
+          {
+            "arg": "--seed N",
+            "default": 42,
+            "description": "Random seed for reproducible injected scenarios"
+          }
+        ],
+        "example_commands": [
+          "python run_continuous_mixed.py --scenario high_volume --days 2 (2 days, 10% injected)",
+          "python run_continuous_mixed.py --scenario happy_path --days 0.1 --mix-ratio 0.2 (2.4 hours, 20% injected)",
+          "nohup python run_continuous_mixed.py --scenario high_volume --days 2 > bot.log 2>&1 & (background)",
+          "./monitor_bot.sh (monitor running bot)"
+        ],
+        "how_it_works": [
+          "1. Creates PolymarketClient for real API calls",
+          "2. Creates InjectionSource for stress scenario",
+          "3. Wraps both in MixedMarketProvider",
+          "4. Each iteration: fetches real markets + injects N% stress markets",
+          "5. Engine processes combined markets (detectors, risk, broker)",
+          "6. UnifiedReporter + LiveReporter log all activity",
+          "7. Sleeps refresh_seconds, repeats until end_time"
+        ],
+        "output": [
+          "reports/unified_report.json (comprehensive JSON with iterations, opportunities, trades)",
+          "reports/live_summary.csv (CSV with iteration-by-iteration deltas)",
+          "bot_continuous.log (stdout/stderr when run with nohup)",
+          "bot.pid (process ID for monitoring/stopping)"
+        ],
+        "monitoring": {
+          "script": "monitor_bot.sh",
+          "commands": [
+            "tail -f bot_continuous.log (watch live)",
+            "./monitor_bot.sh (status summary)",
+            "cat reports/live_summary.csv | column -t -s, (formatted CSV)",
+            "python demo_unified_reporting.py (human-readable report)"
+          ],
+          "stop": "kill $(cat bot.pid)"
+        },
+        "env_requirements": ["POLYMARKET_API_KEY", "POLYMARKET_SECRET", "POLYMARKET_PASSPHRASE"],
+        "notes": [
+          "Runs for specified duration, then auto-exits",
+          "Combines real market volatility with controlled stress scenarios",
+          "Useful for multi-day validation before production deployment",
+          "All injected markets prefixed with INJECTED_XXX_ to avoid ID conflicts",
+          "Reports accumulate over entire run - analyze after completion"
+        ]
       },
       "verification": {
         "entry": "src/predarb/verify_reports.py",

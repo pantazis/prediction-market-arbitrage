@@ -34,22 +34,14 @@ def main():
         engine.run_once()
     elif args.command == "selftest":
         import json
-        from predarb.models import Market, Outcome
+        from predarb.models import Market
 
         with open(args.fixtures, "r", encoding="utf-8") as f:
             data = json.load(f)
         markets = []
         for m in data:
-            outs = [Outcome(**o) for o in m["outcomes"]]
-            markets.append(
-                Market(
-                    id=m["id"],
-                    question=m["question"],
-                    outcomes=outs,
-                    liquidity=m.get("liquidity", 0.0),
-                    volume=m.get("volume", 0.0),
-                )
-            )
+            # Market model handles conversion of string outcomes to Outcome objects
+            markets.append(Market(**m))
         opps = engine.run_self_test(markets)
         print(f"Self-test detected {len(opps)} opportunities")
     elif args.command == "stress":
@@ -92,6 +84,13 @@ def main():
         
         if config.engine.iterations == 1:
             engine.run_once()
+            # Manually report the iteration since run_once() doesn't call reporter
+            engine.reporter.report_iteration(
+                iteration=1,
+                all_markets=engine._last_markets,
+                detected_opportunities=engine._last_detected,
+                approved_opportunities=engine._last_approved,
+            )
         else:
             engine.run()
         

@@ -20,6 +20,10 @@ class StressScenario:
     def get_active_markets(self) -> List[Market]:
         """Generate markets for this scenario."""
         raise NotImplementedError
+    
+    def fetch_markets(self) -> List[Market]:
+        """Alias for get_active_markets() for Engine compatibility."""
+        return self.get_active_markets()
 
 
 class HighVolumeScenario(StressScenario):

@@ -22,7 +22,12 @@
         "src/predarb/verify_reports.py (313 lines, verification + exit codes)",
         "tests/test_injection.py (189 lines, 14 tests)",
         "tests/test_stress_scenarios.py (318 lines, 18 tests)",
-        "tests/test_verify_reports.py (366 lines, 19 tests)"
+        "tests/test_verify_reports.py (366 lines, 19 tests)",
+        "demo_semantic_clustering.py (demo script for semantic_clustering scenario)",
+        "demo_testing_visual.py (visual guide showing all test scenarios)",
+        "demo_rebalancing_guide.py (step-by-step rebalancing test walkthrough)",
+        "TESTING_GUIDE_SIMPLE.md (beginner-friendly testing guide)",
+        "SEMANTIC_CLUSTERING_SCENARIO.md (detailed semantic clustering documentation)"
       ],
       "files_modified": [
         "src/predarb/cli.py (added stress command with --scenario, --inject, --seed, --no-verify flags)",

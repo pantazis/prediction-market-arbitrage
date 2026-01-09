@@ -1,6 +1,6 @@
 {
   "codebase_operations": {
-    "version": "2.7",
+    "version": "2.8",
     "generated": "2026-01-09",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
@@ -122,14 +122,85 @@
         "Position tracking accurate across all venues"
       ],
       "files": {
-        "config_live_paper.yml": "Configuration for live paper trading (500 USDC, 8h, conservative risk)",
+        "config_live_paper.yml": "Configuration for live paper trading (500 USDC, 8h, conservative risk, dual-venue support)",
         "run_live_paper.py": "Main runner (481 lines) - LivePaperTradingRunner class",
         "run_live_paper_setup.sh": "Automated setup script (215 lines)",
         "validate_live_paper_setup.py": "Pre-flight validation (160 lines)",
+        "test_dual_markets.py": "Dual-market data verification (120 lines) - Tests Polymarket + Kalshi data quality",
         "LIVE_PAPER_TRADING_GUIDE.md": "Complete user guide (520+ lines)",
         "LIVE_PAPER_TRADING_COMMANDS.md": "Command reference (350+ lines)",
         "README_LIVE_PAPER_TRADING.md": "Executive summary (520+ lines)",
         "QUICKSTART_LIVE_PAPER.md": "Quick reference card"
+      },
+      "dual_venue_validation": {
+        "status": "VERIFIED",
+        "date": "2026-01-09",
+        "test_script": "test_dual_markets.py",
+        "description": "Validates real-time data flow from both Polymarket and Kalshi APIs",
+        "credentials_required": {
+          "polymarket": "No credentials required (read-only public API)",
+          "kalshi": "Requires KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PEM, KALSHI_API_HOST environment variables"
+        },
+        "test_results": {
+          "polymarket": "✓ 500 active markets fetched successfully",
+          "kalshi": "✓ 200 markets fetched from API, filtered to 1 market based on liquidity/expiry",
+          "data_quality": "✓ All prices validated (0.0-1.0 range), metadata complete",
+          "bot_integration": "✓ Engine successfully initializes with both clients"
+        },
+        "usage": {
+          "command": "export KALSHI_API_KEY_ID=<id> && export KALSHI_PRIVATE_KEY_PEM=<pem> && export KALSHI_API_HOST=<host> && python3 test_dual_markets.py",
+          "expected_output": "✅ BOTH MARKETS WORKING: 500 Polymarket + N Kalshi = total markets"
+        }
+      },
+      "multiday_dry_run": {
+        "status": "ACTIVE",
+        "started": "2026-01-09 13:19:44",
+        "description": "72-hour continuous paper trading dry run with real-time crypto prediction markets",
+        "purpose": "Long-duration stability test and performance validation under realistic conditions",
+        "configuration": {
+          "duration": "72 hours (3 days)",
+          "starting_capital": "1000 USDC",
+          "refresh_interval": "5 seconds",
+          "total_iterations": 51840,
+          "config_file": "config_live_paper.yml",
+          "log_file": "bot_multiday_dryrun.log",
+          "markets": "Real-time Polymarket API (500+ crypto prediction markets)"
+        },
+        "features": {
+          "paper_trading": "Simulated orders, no real money",
+          "wallet_tracking": "Virtual 1000 USDC balance with PnL calculation",
+          "position_management": "Full inventory tracking across venues",
+          "fees_slippage": "Realistic 0.2% fee + 0.3% slippage modeling",
+          "risk_management": "15% drawdown kill switch, position limits",
+          "arbitrage_detection": "Parity, ladder, composite, exclusive sum strategies"
+        },
+        "monitoring": {
+          "dashboard_script": "monitor_multiday_dryrun.sh",
+          "status_document": "MULTIDAY_DRYRUN_STATUS.md",
+          "real_time_tracking": [
+            "Bot process status (PID, uptime, CPU, memory)",
+            "Log file size and line count",
+            "Latest log entries",
+            "Generated reports (CSV, JSON)",
+            "Performance metrics (opportunities, trades, PnL)",
+            "Recent activity snapshot"
+          ]
+        },
+        "files": {
+          "bot_multiday_dryrun.log": "Complete execution log (68,000+ lines, continuously growing)",
+          "MULTIDAY_DRYRUN_STATUS.md": "Human-readable status document (218 lines)",
+          "monitor_multiday_dryrun.sh": "Monitoring dashboard script (110 lines)",
+          "config_live_paper.yml": "Bot configuration (Kalshi enabled for dual-venue testing)"
+        },
+        "validation_objectives": [
+          "Long-term stability (72h continuous operation)",
+          "Memory leak detection",
+          "Performance consistency over time",
+          "Real-world API behavior handling",
+          "Report generation accuracy",
+          "PnL tracking correctness",
+          "Risk management enforcement"
+        ]
       }
     },
     "dual_venue_stress_testing": {

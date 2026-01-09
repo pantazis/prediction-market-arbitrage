@@ -27,9 +27,9 @@ Failure to respect this file = INVALID OUTPUT.
 ===============================================================================
 */
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-09T17:00:00Z",
+  "last_updated": "2026-01-09T22:00:00Z",
   "project": {
     "name": "prediction-market-arbitrage",
     "description": "Python arbitrage detection bot for multi-exchange prediction markets (Polymarket + Kalshi)",
@@ -169,6 +169,81 @@ Failure to respect this file = INVALID OUTPUT.
         "Interactive confirmation",
         "Bot execution",
         "Post-run summary"
+      ]
+    },
+    {
+      "name": "dual_market_verification",
+      "path": "test_dual_markets.py",
+      "type": "cli",
+      "added": "2026-01-09",
+      "description": "Data verification test for both Polymarket and Kalshi market feeds",
+      "purpose": "Validate real-time API connectivity and data quality from both exchanges",
+      "requirements": [
+        "KALSHI_API_KEY_ID environment variable",
+        "KALSHI_PRIVATE_KEY_PEM environment variable (RSA private key in PEM format)",
+        "KALSHI_API_HOST environment variable (default: https://api.elections.kalshi.com)"
+      ],
+      "verification_steps": [
+        "1. Check Kalshi credentials in environment",
+        "2. Initialize Polymarket client and fetch markets",
+        "3. Validate Polymarket data (questions, prices, exchange tags)",
+        "4. Initialize Kalshi client with credentials",
+        "5. Fetch and filter Kalshi markets (liquidity, expiry)",
+        "6. Validate Kalshi data quality",
+        "7. Report total markets and data integrity"
+      ],
+      "test_coverage": {
+        "polymarket_tests": [
+          "Market count (expected: 500)",
+          "Sample market structure validation",
+          "Exchange tag verification",
+          "Price range validation (0.0-1.0)",
+          "Outcome data completeness"
+        ],
+        "kalshi_tests": [
+          "API authentication",
+          "Market fetch (raw count ~200)",
+          "Liquidity filtering (min 500 USD)",
+          "Expiry filtering (min 1 day)",
+          "Price range validation (0.0-1.0)",
+          "Outcome data completeness"
+        ]
+      },
+      "expected_results": {
+        "polymarket": "500 active markets with valid price data",
+        "kalshi": "1-200 markets after filtering (varies by market conditions)",
+        "exit_status": "Success message showing total market count from both venues"
+      },
+      "usage_example": "export KALSHI_API_KEY_ID='xxx' && export KALSHI_PRIVATE_KEY_PEM='$(cat key.pem)' && export KALSHI_API_HOST='https://api.elections.kalshi.com' && python3 test_dual_markets.py"
+    },
+    {
+      "name": "multiday_monitoring",
+      "path": "monitor_multiday_dryrun.sh",
+      "type": "bash",
+      "added": "2026-01-09",
+      "description": "Real-time monitoring dashboard for 72-hour paper trading dry run",
+      "purpose": "Track bot health, performance metrics, and execution status during extended runs",
+      "monitoring_capabilities": [
+        "Process status (running/stopped, PID, uptime, resource usage)",
+        "Configuration display (duration, capital, iterations, config files)",
+        "Log file health (size, line count, recent entries)",
+        "Report generation status (CSV, JSON reports)",
+        "Performance metrics (opportunities detected/approved, trades executed)",
+        "Recent activity snapshot (last detections)"
+      ],
+      "related_files": {
+        "status_doc": "MULTIDAY_DRYRUN_STATUS.md (218 lines, human-readable mission status)",
+        "log_file": "bot_multiday_dryrun.log (68,000+ lines, complete execution trace)",
+        "config": "config_live_paper.yml (Kalshi enabled for dual-venue testing)"
+      },
+      "usage": "./monitor_multiday_dryrun.sh",
+      "output_sections": [
+        "Bot Status (process health)",
+        "Configuration (runtime parameters)",
+        "Log File Status (size, recent entries)",
+        "Generated Reports (available files)",
+        "Performance Snapshot (PnL, opportunities, trades)",
+        "Recent Activity (latest detections)"
       ]
     },
     {

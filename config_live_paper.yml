@@ -15,7 +15,7 @@ polymarket:
   # Note: API credentials not required for read-only market data fetching
 
 kalshi:
-  enabled: false  # Can enable if you have credentials
+  enabled: true  # ENABLED for dual-venue testing
   env: prod
   min_liquidity_usd: 500.0
   min_days_to_expiry: 1

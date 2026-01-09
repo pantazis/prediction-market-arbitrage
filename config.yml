@@ -6,6 +6,15 @@ risk:
   min_liquidity_usd: 100.0         # RELAXED: was 500 (too strict for current data)
   min_net_edge_threshold: 0.001    # RELAXED: was 0.005 (0.1% edge vs 0.5%)
   kill_switch_drawdown: 0.2
+  
+  # ==================== SHORT SELLING PREVENTION FILTERS ==================== #
+  # These filters ensure NO strategy requiring short selling reaches execution
+  min_gross_edge: 0.05              # 5% minimum gross edge (before fees/slippage)
+  min_buy_price: 0.02               # Reject BUY prices < $0.02 (dust liquidity filter)
+  min_liquidity_multiple_strict: 3.0  # BUY-side depth must be >= 3x trade size
+  min_expiry_hours: 24.0            # Reject markets expiring within 24 hours
+  max_entry_spread_pct: 0.10        # Maximum 10% spread for entry
+  kill_switch_on_partial: true      # Cancel remaining orders on partial fill
 broker:
   initial_cash: 10000.0
   fee_bps: 10.0
@@ -34,7 +43,11 @@ detectors:
   timelag_price_jump: 0.05
   timelag_persistence_minutes: 5
   # Enable/disable specific detectors
-  enable_duplicate: false       # DISABLED: Requires cross-market shorting (not supported on Polymarket)
+  # ==================== DUPLICATE DETECTOR: PERMANENTLY DISABLED ==================== #
+  # DUPLICATE arbitrage requires cross-market short selling which is NOT supported
+  # on this venue (Polymarket). This detector is HARD-DISABLED in ALL MODES.
+  # RiskManager will reject any DUPLICATE opportunity that reaches approval stage.
+  enable_duplicate: false       # HARD-DISABLED: Requires short selling (not supported)
   enable_ladder: true            # ENABLED: Works within same market
   enable_parity: true            # ENABLED: Works within same market (Yes + No ≠ 1.0)
   enable_exclusive_sum: true     # ENABLED: Works within same market (outcomes don't sum to 1.0)

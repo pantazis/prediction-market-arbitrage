@@ -25,6 +25,23 @@ class RiskConfig(BaseModel):
     min_liquidity_usd: float = 500.0
     min_net_edge_threshold: float = 0.005
     kill_switch_drawdown: float = 0.2
+    
+    # ==================== SHORT SELLING PREVENTION FILTERS ==================== #
+    # Minimum gross edge (before fees/slippage) - default 5%
+    min_gross_edge: float = 0.05
+    # Minimum BUY price to avoid dust/fake liquidity (default $0.02)
+    min_buy_price: float = 0.02
+    # BUY-side liquidity multiple: orderbook depth must be >= N × trade_size (default 3x)
+    min_liquidity_multiple_strict: float = 3.0
+    # Minimum time to market expiry in hours (default 24h)
+    min_expiry_hours: float = 24.0
+    # Maximum spread percentage for entry (default 10%)
+    max_entry_spread_pct: float = 0.10
+    
+    # ==================== PARTIAL FILL BEHAVIOR ==================== #
+    # If True, cancel remaining orders on partial fill and mark as CANCELLED
+    # If False, allow partial fills (NOT RECOMMENDED for venues without short selling)
+    kill_switch_on_partial: bool = True
 
     @field_validator("max_allocation_per_market")
     @classmethod

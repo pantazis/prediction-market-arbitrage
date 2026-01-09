@@ -26,7 +26,36 @@ class PaperBroker:
         return max_qty
 
     def execute(self, market_lookup: Dict[str, Market], opportunity: Opportunity) -> List[Trade]:
+        """Execute trades for an opportunity.
+        
+        MANDATORY INVARIANT CHECK (FAIL-FAST):
+        No SELL action is allowed unless reducing an existing position.
+        This prevents short selling attempts from reaching execution.
+        """
         trades: List[Trade] = []
+        
+        # ==================== MANDATORY INVARIANT: NO SELL WITHOUT POSITION ==================== #
+        for action in opportunity.actions:
+            if action.side.upper() == "SELL":
+                position_key = f"{action.market_id}:{action.outcome_id}"
+                inventory = self.positions.get(position_key, 0.0)
+                if inventory <= 0:
+                    error_msg = (
+                        f"FATAL INVARIANT VIOLATION: SELL action reached execution without position! "
+                        f"Market: {action.market_id}, Outcome: {action.outcome_id}, "
+                        f"Inventory: {inventory}, Requested: {action.amount}. "
+                        f"Short selling is FORBIDDEN on this venue. This should have been blocked by RiskManager."
+                    )
+                    raise RuntimeError(error_msg)
+                if action.amount > inventory:
+                    error_msg = (
+                        f"FATAL INVARIANT VIOLATION: SELL amount exceeds position! "
+                        f"Market: {action.market_id}, Outcome: {action.outcome_id}, "
+                        f"Inventory: {inventory}, Requested: {action.amount}. "
+                        f"Cannot sell more than owned. This should have been blocked by RiskManager."
+                    )
+                    raise RuntimeError(error_msg)
+        
         for action in opportunity.actions:
             market = market_lookup.get(action.market_id)
             if not market:

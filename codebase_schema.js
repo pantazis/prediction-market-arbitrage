@@ -27,9 +27,9 @@ Failure to respect this file = INVALID OUTPUT.
 ===============================================================================
 */
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-09T10:45:00Z",
+  "last_updated": "2026-01-09T15:30:00Z",
   "project": {
     "name": "prediction-market-arbitrage",
     "description": "Python arbitrage detection bot for multi-exchange prediction markets (Polymarket + Kalshi)",
@@ -65,6 +65,70 @@ Failure to respect this file = INVALID OUTPUT.
         "dual-stress"
       ],
       "description": "Main arbitrage engine CLI with run loop, single iteration, self-test, and dual-venue stress testing modes"
+    },
+    {
+      "name": "live_paper_trading",
+      "path": "run_live_paper.py",
+      "type": "cli",
+      "call": "run_live_paper:main()",
+      "added": "2026-01-09",
+      "description": "Live paper-trading arbitrage runner with ONLY real-time market data (no historical/injected)",
+      "purpose": "Run the bot TODAY with paper trades, full PnL tracking, and comprehensive reporting",
+      "config": "config_live_paper.yml",
+      "options": [
+        "--duration HOURS (default: 8.0)",
+        "--capital USDC (default: 500.0)",
+        "--config PATH (default: config_live_paper.yml)",
+        "--log-level LEVEL (default: INFO)"
+      ],
+      "features": [
+        "Real-time API data only (Polymarket + optional Kalshi)",
+        "Paper wallet: 500 USDC starting balance",
+        "Full PnL tracking (realized + unrealized)",
+        "Position tracking per venue",
+        "Fee/slippage modeling (20bps + 30bps)",
+        "Stop conditions (duration, 15% drawdown, manual)",
+        "Live console logging with wallet state",
+        "Comprehensive end-of-run report",
+        "No short selling (enforced)",
+        "All safety invariants validated"
+      ],
+      "outputs": [
+        "reports/live_paper_trades.csv",
+        "reports/unified_report.json",
+        "reports/live_summary.csv"
+      ]
+    },
+    {
+      "name": "live_paper_setup",
+      "path": "run_live_paper_setup.sh",
+      "type": "bash",
+      "added": "2026-01-09",
+      "description": "Automated setup and execution script for live paper trading",
+      "actions": [
+        "Environment validation (Python 3.10+)",
+        "Dependency installation",
+        "Config verification",
+        "API connectivity test",
+        "Interactive confirmation",
+        "Bot execution",
+        "Post-run summary"
+      ]
+    },
+    {
+      "name": "validate_live_paper",
+      "path": "validate_live_paper_setup.py",
+      "type": "cli",
+      "added": "2026-01-09",
+      "description": "Pre-flight validation for live paper trading setup",
+      "checks": [
+        "Python version (3.10+)",
+        "Dependencies installed",
+        "Config file valid",
+        "Required files present",
+        "Reports directory setup",
+        "API connectivity"
+      ]
     },
     {
       "name": "dual_stress_runner",

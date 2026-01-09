@@ -1,10 +1,137 @@
 {
   "codebase_operations": {
-    "version": "2.6",
+    "version": "2.7",
     "generated": "2026-01-09",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
+    "live_paper_trading": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-09",
+      "description": "Live paper-trading arbitrage runner using ONLY real-time market data with full PnL tracking and rebalancing",
+      "purpose": "Run the bot TODAY with real-time API data, paper trades (no real orders), and comprehensive reporting",
+      "architecture": {
+        "components": [
+          "LivePaperTradingRunner - Main execution controller with wallet tracking",
+          "PaperBroker - Simulates order execution with fees/slippage",
+          "Engine - Core arbitrage detection engine",
+          "UnifiedReporter - Comprehensive reporting system"
+        ],
+        "data_sources": [
+          "Real-time Polymarket API (gamma-api.polymarket.com)",
+          "Real-time Kalshi API (optional, if credentials provided)",
+          "Order book depth data for execution simulation",
+          "NO historical data, NO injected data, NO backfill"
+        ]
+      },
+      "paper_wallet_tracking": {
+        "available_usdc": "Cash available for new trades",
+        "reserved_usdc": "Cash locked in pending orders",
+        "realized_pnl_usdc": "Closed position profits/losses",
+        "unrealized_pnl_usdc": "Open position mark-to-market PnL",
+        "fees_paid_usdc": "Total taker fees incurred",
+        "slippage_cost_usdc": "Total slippage costs",
+        "positions": "Inventory per venue/market/outcome (Dict[str, float])"
+      },
+      "bot_loop": {
+        "frequency": "Every 5 seconds (configurable)",
+        "steps": [
+          "1. Check wallet balances",
+          "2. Fetch real-time prices from API",
+          "3. Fetch real-time order books (depth)",
+          "4. Calculate spreads and edges",
+          "5. Validate fees, slippage, depth, risk limits",
+          "6. Detect arbitrage opportunities",
+          "7. Calculate position sizes based on wallet",
+          "8. Construct both legs of trade",
+          "9. Paper-place orders (simulate execution)",
+          "10. Monitor fills (based on book depth)",
+          "11. Handle partial fills (hedge or cancel)",
+          "12. Confirm executions",
+          "13. Update wallet and inventory",
+          "14. Record realized PnL",
+          "15. Rebalance inventory if needed",
+          "16. Log everything",
+          "17. Sleep until next iteration"
+        ]
+      },
+      "stop_conditions": {
+        "duration_limit": "Default 8 hours (--duration flag overrides)",
+        "drawdown_limit": "15% loss triggers emergency stop",
+        "manual_interrupt": "Ctrl+C for graceful shutdown"
+      },
+      "commands": {
+        "automated_setup": {
+          "command": "./run_live_paper_setup.sh",
+          "description": "One-command setup: installs deps, validates config, tests API, runs bot",
+          "options": [
+            "--duration HOURS - Run duration (default 8.0)",
+            "--capital USDC - Starting capital (default 500.0)",
+            "--log-level LEVEL - DEBUG|INFO|WARNING|ERROR"
+          ]
+        },
+        "direct_execution": {
+          "command": "python3 run_live_paper.py",
+          "description": "Run live paper trading with real-time data",
+          "options": [
+            "--duration HOURS - How long to run (default 8.0)",
+            "--capital USDC - Starting balance (default 500.0)",
+            "--config PATH - Config file (default config_live_paper.yml)",
+            "--log-level LEVEL - Logging verbosity"
+          ],
+          "examples": [
+            "python3 run_live_paper.py --duration 0.1  # Quick 6-minute test",
+            "python3 run_live_paper.py --duration 4 --capital 1000  # 4 hours, 1000 USDC",
+            "python3 run_live_paper.py --log-level DEBUG  # Debug mode"
+          ]
+        },
+        "validation": {
+          "command": "python3 validate_live_paper_setup.py",
+          "description": "Pre-flight validation: checks Python, deps, config, API, files",
+          "exit_codes": {
+            "0": "All checks passed, ready to run",
+            "1": "One or more checks failed"
+          }
+        }
+      },
+      "outputs": {
+        "live_console": "Real-time wallet state, opportunities, trades (every 10 iterations)",
+        "end_report": "Comprehensive summary: PnL, trades, opportunities, positions",
+        "files": [
+          "reports/live_paper_trades.csv - Complete trade log",
+          "reports/unified_report.json - Full session metrics",
+          "reports/live_summary.csv - Iteration summaries"
+        ]
+      },
+      "safety_features": {
+        "kill_switch": "Auto-stop at 15% drawdown",
+        "position_limits": "Max 5 concurrent positions",
+        "size_limits": "Max 10% capital per trade",
+        "liquidity_checks": "Requires 5x depth for order size",
+        "time_filters": "Rejects markets expiring within 48 hours",
+        "spread_limits": "Rejects markets with >8% spread",
+        "no_short_selling": "Hard-blocked at broker level",
+        "data_validation": "Verifies no injection/fake clients on startup"
+      },
+      "invariants": [
+        "Balances never negative (enforced at broker)",
+        "No short selling (SELL only if position exists)",
+        "Reserved funds properly tracked and released",
+        "PnL reconciliation (realized + unrealized = total)",
+        "Position tracking accurate across all venues"
+      ],
+      "files": {
+        "config_live_paper.yml": "Configuration for live paper trading (500 USDC, 8h, conservative risk)",
+        "run_live_paper.py": "Main runner (481 lines) - LivePaperTradingRunner class",
+        "run_live_paper_setup.sh": "Automated setup script (215 lines)",
+        "validate_live_paper_setup.py": "Pre-flight validation (160 lines)",
+        "LIVE_PAPER_TRADING_GUIDE.md": "Complete user guide (520+ lines)",
+        "LIVE_PAPER_TRADING_COMMANDS.md": "Command reference (350+ lines)",
+        "README_LIVE_PAPER_TRADING.md": "Executive summary (520+ lines)",
+        "QUICKSTART_LIVE_PAPER.md": "Quick reference card"
+      }
+    },
     "dual_venue_stress_testing": {
       "status": "PRODUCTION_READY",
       "version": "1.0",

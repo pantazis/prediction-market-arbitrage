@@ -1,0 +1,91 @@
+# ========================================================================
+# LIVE PAPER-TRADING CONFIGURATION
+# ========================================================================
+# This config is for running the bot with:
+# - ONLY real-time market data (no historical/injected data)
+# - Paper trading (no real orders)
+# - Starting balance: 500 USDC
+# - Full PnL tracking and rebalancing
+# - Duration: 8 hours (configurable via CLI)
+# ========================================================================
+
+polymarket:
+  enabled: true
+  host: "https://gamma-api.polymarket.com"
+  # Note: API credentials not required for read-only market data fetching
+
+kalshi:
+  enabled: false  # Can enable if you have credentials
+  env: prod
+  min_liquidity_usd: 500.0
+  min_days_to_expiry: 1
+
+# ==================== RISK MANAGEMENT (STRICT LIVE SETTINGS) ==================== #
+risk:
+  max_allocation_per_market: 0.10      # Max 10% of capital per trade (50 USDC from 500)
+  max_open_positions: 5                # Conservative position limit for 500 capital
+  min_liquidity_usd: 500.0             # Require at least 500 USD liquidity
+  min_net_edge_threshold: 0.01         # Minimum 1% net edge after fees/slippage
+  kill_switch_drawdown: 0.15           # Stop if portfolio drops 15% (75 USDC loss)
+  
+  # SHORT SELLING PREVENTION (MANDATORY)
+  min_gross_edge: 0.05                 # 5% minimum gross edge
+  min_buy_price: 0.05                  # Reject BUY prices < $0.05
+  min_liquidity_multiple_strict: 5.0   # Depth must be 5x trade size
+  min_expiry_hours: 48.0               # Reject markets expiring within 48 hours
+  max_entry_spread_pct: 0.08           # Maximum 8% spread for entry
+  kill_switch_on_partial: true         # Cancel and hedge on partial fills
+
+# ==================== BROKER (PAPER WALLET) ==================== #
+broker:
+  initial_cash: 500.0                  # STARTING BALANCE: 500 USDC
+  fee_bps: 20.0                        # 0.2% taker fee (conservative estimate)
+  slippage_bps: 30.0                   # 0.3% slippage (realistic for live markets)
+  depth_fraction: 0.10                 # Use 10% of quoted depth for execution
+
+# ==================== ENGINE (LIVE CONTINUOUS MODE) ==================== #
+engine:
+  refresh_seconds: 5.0                 # Scan every 5 seconds
+  iterations: 5760                     # 8 hours at 5s refresh = 5760 iterations
+  report_path: "reports/live_paper_trades.csv"
+
+# ==================== MARKET FILTERING ==================== #
+filter:
+  max_spread_pct: 0.15                 # Maximum 15% spread
+  min_volume_24h: 0                    # No volume requirement (Polymarket doesn't provide)
+  min_liquidity: 1000.0                # Minimum 1000 USD liquidity
+  min_days_to_expiry: 2                # At least 2 days to expiry
+  min_liquidity_multiple: 5.0          # Need 5x depth for trade size
+  require_resolution_source: true      # Require resolution source
+  allow_missing_end_time: false        # Require end time
+  min_rank_score: 30.0                 # Quality threshold
+  target_order_size_usd: 50.0          # Target 50 USD per trade (10% of 500)
+
+# ==================== DETECTORS (LIVE TRADING) ==================== #
+detectors:
+  parity_threshold: 0.985              # YES+NO should equal 1.0 ± 1.5%
+  duplicate_price_diff_threshold: 0.05 # 5% price difference for duplicates
+  exclusive_sum_tolerance: 0.03        # 3% tolerance for exclusive outcomes
+  ladder_tolerance: 0.0                # No tolerance for ladder violations
+  timelag_price_jump: 0.05             # 5% price jump for timelag
+  timelag_persistence_minutes: 5
+  
+  # DETECTOR ENABLE FLAGS
+  enable_duplicate: false              # DISABLED: Requires short selling
+  enable_ladder: true                  # ENABLED: Single-market strategy
+  enable_parity: true                  # ENABLED: Single-market strategy
+  enable_exclusive_sum: true           # ENABLED: Single-market strategy
+  enable_timelag: false                # DISABLED: Requires historical data
+  enable_consistency: true             # ENABLED: Logical consistency checks
+
+# ==================== TELEGRAM NOTIFICATIONS ==================== #
+telegram:
+  enabled: false  # Set to true if you want notifications
+  bot_token: ""   # Set via TELEGRAM_BOT_TOKEN env var
+  chat_id: ""     # Set via TELEGRAM_CHAT_ID env var
+
+# ==================== LLM VERIFICATION ==================== #
+llm_verification:
+  enabled: false  # Disabled for live trading (adds latency)
+  provider: "mock"
+  fail_mode: "fail_open"

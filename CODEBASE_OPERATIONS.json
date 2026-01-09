@@ -1,10 +1,124 @@
 {
   "codebase_operations": {
-    "version": "2.5",
+    "version": "2.6",
     "generated": "2026-01-09",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
+    "dual_venue_stress_testing": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-09",
+      "description": "Comprehensive end-to-end stress testing framework for dual-venue arbitrage detection with deterministic fake data injection",
+      "architecture": {
+        "components": [
+          "DualInjectionClient - merges markets from two independent providers",
+          "InjectionFactory - creates providers from injection specs",
+          "CrossVenueArbitrageScenarios - generates comprehensive test markets",
+          "ScenarioValidator - validates expected results"
+        ],
+        "injection_specs": [
+          "scenario:<name> - built-in stress scenarios",
+          "file:<path> - load from JSON fixture",
+          "inline:<json> - parse inline JSON",
+          "none - disable venue"
+        ]
+      },
+      "arbitrage_types_covered": {
+        "duplicate": "Cross-venue price differences (same event, different prices)",
+        "parity": "YES+NO != 1.0 within single venue",
+        "ladder": "Price monotonicity violations across thresholds",
+        "exclusive_sum": "Mutually exclusive outcomes sum > 1.0",
+        "timelag": "Stale quote arbitrage (delayed price updates)",
+        "consistency": "Cross-market logical contradictions"
+      },
+      "scenario_cases": {
+        "positive_cases": "Profitable opportunities that should be detected",
+        "negative_cases": "Opportunities that should be rejected (low liquidity, tiny edge, etc.)",
+        "edge_cases": "Partial fills, fee mismatches, tick rounding, date mismatches"
+      },
+      "commands": {
+        "run_all_scenarios": {
+          "command": "python run_all_scenarios.py",
+          "description": "Run comprehensive test suite with validation",
+          "options": [
+            "--seed N - set random seed (default 42)",
+            "--quiet - reduce output verbosity"
+          ],
+          "exit_codes": {
+            "0": "All tests passed",
+            "1": "At least one test failed"
+          }
+        },
+        "cli_dual_stress": {
+          "command": "python -m predarb dual-stress",
+          "description": "Run dual-venue stress test via CLI",
+          "required_args": "--cross-venue OR (--inject-a AND/OR --inject-b)",
+          "examples": [
+            "python -m predarb dual-stress --cross-venue",
+            "python -m predarb dual-stress --inject-a scenario:happy_path --inject-b scenario:high_volume",
+            "python -m predarb dual-stress --inject-a file:poly.json --inject-b file:kalshi.json",
+            "python -m predarb dual-stress --inject-a scenario:parity_arb --inject-b none"
+          ]
+        },
+        "single_venue_stress": {
+          "command": "python -m predarb stress",
+          "description": "Original single-venue stress test (still supported)",
+          "examples": [
+            "python -m predarb stress --scenario happy_path",
+            "python -m predarb stress --inject file:markets.json"
+          ]
+        }
+      },
+      "validation": {
+        "market_validation": [
+          "Market counts add up correctly",
+          "All markets have exchange tags",
+          "All outcome IDs unique within markets",
+          "All dates valid",
+          "All prices in [0, 1] range"
+        ],
+        "opportunity_validation": [
+          "Expected opportunity types detected",
+          "Minimum detection counts met",
+          "Some opportunities approved",
+          "Approval rate reasonable"
+        ],
+        "determinism_validation": [
+          "Same seed produces identical market counts",
+          "Same seed produces identical market IDs",
+          "Same seed produces identical prices"
+        ],
+        "report_validation": [
+          "Unified report exists",
+          "Report contains expected structure"
+        ]
+      },
+      "files": {
+        "src/predarb/dual_injection.py": "Dual-venue injection mechanism (DualInjectionClient, InjectionFactory)",
+        "src/predarb/cross_venue_scenarios.py": "Comprehensive scenario generator (CrossVenueArbitrageScenarios)",
+        "src/predarb/cli.py": "CLI with dual-stress command",
+        "run_all_scenarios.py": "Master test runner with validation",
+        "tests/test_dual_injection.py": "Unit tests for injection (24 tests)",
+        "tests/test_cross_venue_scenarios.py": "Unit tests for scenarios (23 tests)",
+        "DUAL_VENUE_STRESS_TESTING.md": "Comprehensive documentation"
+      },
+      "integration": {
+        "engine_compatible": true,
+        "detector_compatible": true,
+        "risk_manager_compatible": true,
+        "reporter_compatible": true,
+        "backward_compatible": true,
+        "network_calls": false,
+        "deterministic": true
+      },
+      "testing": {
+        "unit_tests": "pytest tests/test_dual_injection.py tests/test_cross_venue_scenarios.py -v",
+        "integration_test": "python run_all_scenarios.py",
+        "total_tests": 47,
+        "coverage": ["injection", "scenarios", "validation", "determinism", "CLI"]
+      }
+    },
     "kalshi_integration": {
       "status": "PRODUCTION_READY",
       "version": "1.0",

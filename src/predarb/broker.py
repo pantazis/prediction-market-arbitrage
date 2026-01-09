@@ -126,7 +126,11 @@ class PaperBroker:
         for key, qty in self.positions.items():
             if qty == 0:
                 continue
-            market_id, outcome_id = key.split(":")
+            # Split on first colon only - outcome_id may contain colons
+            parts = key.split(":", 1)
+            if len(parts) != 2:
+                continue
+            market_id, outcome_id = parts
             market = market_lookup.get(market_id)
             if not market:
                 continue

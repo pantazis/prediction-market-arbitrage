@@ -184,7 +184,11 @@ class RiskManager:
         for key, qty in self.broker_state.positions.items():
             if qty == 0:
                 continue
-            mid, oid = key.split(":")
+            # Split on first colon only - outcome_id may contain colons
+            parts = key.split(":", 1)
+            if len(parts) != 2:
+                continue
+            mid, oid = parts
             market = market_lookup.get(mid)
             if not market:
                 continue

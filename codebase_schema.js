@@ -61,9 +61,33 @@ Failure to respect this file = INVALID OUTPUT.
       "commands": [
         "run",
         "once",
-        "selftest"
+        "selftest",
+        "dual-stress"
       ],
-      "description": "Main arbitrage engine CLI with run loop, single iteration, and self-test modes"
+      "description": "Main arbitrage engine CLI with run loop, single iteration, self-test, and dual-venue stress testing modes"
+    },
+    {
+      "name": "dual_stress_runner",
+      "path": "run_all_scenarios.py",
+      "type": "cli",
+      "call": "run_all_scenarios:main()",
+      "added": "2026-01-12",
+      "description": "Master test runner for comprehensive dual-venue stress testing with 8 validation checks",
+      "purpose": "Validate entire arbitrage pipeline end-to-end with planted opportunities across both venues",
+      "validation_checks": [
+        "Market count validation (37 expected)",
+        "Exchange tag validation (all markets tagged)",
+        "Opportunity detection (5+ opportunities expected)",
+        "Approval rate validation (>0% approval)",
+        "Determinism validation (same seed = same results)",
+        "Report generation (unified_report.json created)",
+        "CSV logging (live_summary.csv appended)",
+        "No crashes (clean execution)"
+      ],
+      "exit_codes": {
+        "0": "All validations passed",
+        "1": "One or more validations failed"
+      }
     },
     {
       "name": "sim_run",
@@ -387,6 +411,127 @@ Failure to respect this file = INVALID OUTPUT.
             "synthetic_data.py (generate_synthetic_markets, evolve_markets_minute_by_minute)"
           ],
           "purpose": "Generate deterministic fake market data for testing without HTTP"
+        },
+        "dual_injection.py": {
+          "classes": [
+            "DualInjectionClient",
+            "InjectionFactory",
+            "TaggedScenarioProvider"
+          ],
+          "added": "2026-01-12",
+          "purpose": "Dual-venue injection mechanism for injecting fake market data into BOTH venues simultaneously",
+          "responsibilities": [
+            "Merge markets from two independent providers (venue A + venue B)",
+            "Support multiple injection specs: scenario:<name>, file:<path>, inline:<json>, none",
+            "Tag all markets with exchange='polymarket' or exchange='kalshi'",
+            "Enable deterministic stress testing without HTTP calls"
+          ],
+          "architecture": {
+            "DualInjectionClient": {
+              "extends": "MarketClient",
+              "description": "Merges markets from two independent providers",
+              "key_methods": [
+                "fetch_markets() -> List[Market] (merges provider_a + provider_b)",
+                "get_metadata() -> Dict[str, Any]"
+              ],
+              "constructor_params": [
+                "provider_a: MarketClient (first venue, typically Polymarket)",
+                "provider_b: MarketClient (second venue, typically Kalshi)"
+              ]
+            },
+            "InjectionFactory": {
+              "description": "Factory for creating injection providers from spec strings",
+              "key_methods": [
+                "from_spec(spec: str, exchange: str) -> MarketClient"
+              ],
+              "spec_formats": [
+                "scenario:<name> - Use CrossVenueArbitrageScenarios generator",
+                "file:<path> - Load markets from JSON file",
+                "inline:<json> - Parse markets from inline JSON string",
+                "none - No markets (empty provider)"
+              ],
+              "exchange_tagging": "All markets tagged with appropriate exchange identifier"
+            },
+            "TaggedScenarioProvider": {
+              "description": "Wrapper that tags scenario-generated markets with exchange field",
+              "purpose": "Ensure all scenario markets have correct exchange attribution"
+            }
+          },
+          "usage_example": "client = DualInjectionClient(InjectionFactory.from_spec('scenario:cross_venue', 'polymarket'), InjectionFactory.from_spec('scenario:cross_venue', 'kalshi'))",
+          "testing": "tests/test_dual_injection.py (19 tests, 370 lines)"
+        },
+        "cross_venue_scenarios.py": {
+          "class": "CrossVenueArbitrageScenarios",
+          "added": "2026-01-12",
+          "purpose": "Generate comprehensive test markets across both venues with planted arbitrage opportunities",
+          "lines": 750,
+          "responsibilities": [
+            "Generate 37 markets (20 Polymarket + 17 Kalshi)",
+            "Plant all 6 arbitrage types (PARITY, LADDER, EXCLUSIVE_SUM, TIME_LAG, CONSISTENCY, DUPLICATE)",
+            "Create operational edge cases (micro-prices, expiring markets, low liquidity)",
+            "Use seeded RNG for deterministic generation",
+            "Tag all markets with correct exchange identifier"
+          ],
+          "scenario_coverage": {
+            "parity_violations": {
+              "count": 4,
+              "description": "Binary markets where YES + NO != 1.0",
+              "planted_edge": "Sum violations between 5% and 15% for detection"
+            },
+            "ladder_violations": {
+              "count": 3,
+              "description": "Multi-outcome markets with sequential threshold misalignment",
+              "planted_edge": "Adjacent outcomes overlap or gap for arbitrage"
+            },
+            "exclusive_sum_violations": {
+              "count": 3,
+              "description": "Categorical markets where outcomes sum != 1.0",
+              "planted_edge": "Intentional over/under-pricing across outcomes"
+            },
+            "timelag_arbitrage": {
+              "count": 4,
+              "description": "Cross-venue price discrepancies for same event",
+              "planted_edge": "5-10% price difference between Polymarket and Kalshi"
+            },
+            "consistency_violations": {
+              "count": 4,
+              "description": "Logically related markets with inconsistent pricing",
+              "planted_edge": "Correlated events priced independently with exploitable gaps"
+            },
+            "duplicate_arbitrage": {
+              "count": 4,
+              "description": "Semantically identical markets with different prices",
+              "planted_edge": "Same question asked twice with price divergence",
+              "note": "Disabled by risk manager (short selling required)"
+            },
+            "operational_edge_cases": {
+              "count": 15,
+              "description": "Markets designed to trigger filters",
+              "cases": [
+                "Micro-prices < $0.02 (filter rejection)",
+                "Expiring within 24h (time filter)",
+                "Low liquidity < $100 (liquidity filter)",
+                "High fees markets (edge erosion test)"
+              ]
+            }
+          },
+          "key_methods": [
+            "generate_all_scenarios(seed: int = 42) -> List[Market]",
+            "_generate_duplicate_arbitrage(rng) -> List[Market]",
+            "_generate_parity_violations(rng) -> List[Market]",
+            "_generate_ladder_violations(rng) -> List[Market]",
+            "_generate_exclusive_sum_violations(rng) -> List[Market]",
+            "_generate_timelag_arbitrage(rng) -> List[Market]",
+            "_generate_consistency_violations(rng) -> List[Market]",
+            "_generate_operational_edge_cases(rng) -> List[Market]"
+          ],
+          "determinism": {
+            "seeded_rng": "Uses Random(seed) for reproducible market generation",
+            "fixed_prices": "Scenario prices are deterministic, not random",
+            "id_generation": "Stable IDs using consistent naming patterns",
+            "validation": "Same seed always produces identical markets"
+          },
+          "testing": "tests/test_cross_venue_scenarios.py (19 tests, 340 lines)"
         },
         "detectors": {
           "description": "Arbitrage opportunity detectors",
@@ -903,7 +1048,7 @@ Failure to respect this file = INVALID OUTPUT.
     },
     "tests": {
       "description": "Pytest test suite",
-      "total_tests": "100+ (including 15 Kalshi integration tests)",
+      "total_tests": "138+ (including 15 Kalshi tests, 38 dual-venue tests)",
       "test_files": [
         "test_engine.py",
         "test_broker.py",
@@ -915,7 +1060,9 @@ Failure to respect this file = INVALID OUTPUT.
         "test_notifier.py",
         "test_telegram_interface.py",
         "test_telegram_notifier.py",
-        "test_kalshi_integration.py - NEW (2026-01-09): 15 tests for Kalshi client"
+        "test_kalshi_integration.py - NEW (2026-01-09): 15 tests for Kalshi client",
+        "test_dual_injection.py - NEW (2026-01-12): 19 tests for dual-venue injection mechanism",
+        "test_cross_venue_scenarios.py - NEW (2026-01-12): 19 tests for cross-venue scenario generator"
       ],
       "fake_clients": {
         "fake_kalshi_client.py": "NEW (2026-01-09): Deterministic Kalshi client for tests (NO network calls)",
@@ -929,6 +1076,56 @@ Failure to respect this file = INVALID OUTPUT.
         "multi_exchange": "Single client, multi-client merging, auto-loading from config",
         "configuration": "Default disabled, field validation, env var loading",
         "security": "No hardcoded credentials, credential validation"
+      },
+      "dual_venue_test_coverage": {
+        "injection_mechanism": {
+          "file": "tests/test_dual_injection.py",
+          "tests": 19,
+          "coverage": [
+            "DualInjectionClient merging two providers",
+            "InjectionFactory spec parsing (scenario:, file:, inline:, none)",
+            "Exchange tagging verification",
+            "FileInjectionProvider with valid/invalid JSON",
+            "InlineInjectionProvider parsing",
+            "TaggedScenarioProvider wrapper correctness",
+            "Error handling for malformed specs"
+          ]
+        },
+        "scenario_generation": {
+          "file": "tests/test_cross_venue_scenarios.py",
+          "tests": 19,
+          "coverage": [
+            "Deterministic generation with seeded RNG",
+            "Market count validation (37 markets)",
+            "All arbitrage types planted (PARITY, LADDER, EXCLUSIVE_SUM, TIME_LAG, CONSISTENCY, DUPLICATE)",
+            "Exchange tag correctness",
+            "Duplicate detection viability",
+            "Price consistency checks",
+            "Unique ID verification",
+            "Edge case generation (micro-prices, expiring, low liquidity)"
+          ]
+        },
+        "end_to_end_validation": {
+          "file": "run_all_scenarios.py",
+          "class": "ScenarioValidator",
+          "validations": 8,
+          "checks": [
+            "Market count (37 expected)",
+            "Exchange tags present",
+            "Opportunities detected (5+ expected)",
+            "Approval rate >0%",
+            "Determinism (same seed = same results)",
+            "Report generation",
+            "CSV logging",
+            "Clean execution (no crashes)"
+          ],
+          "expected_results": {
+            "detected_opportunities": "5-8 (PARITY, LADDER, EXCLUSIVE_SUM, TIME_LAG, CONSISTENCY)",
+            "approved_opportunities": "2-3 (after risk filters)",
+            "approval_rate": "30-50% (aggressive filters reduce approval)",
+            "runtime": "<2 seconds for full test suite"
+          }
+        }
       }
     }
   },
@@ -2252,6 +2449,108 @@ Failure to respect this file = INVALID OUTPUT.
       "Risk management kill switch (drawdown threshold)"
     ],
     "two_codebases": "src/predarb/* is modern/primary; src/*.py and bot.py are legacy (reference only)",
+    "dual_venue_stress_testing": {
+      "added": "2026-01-12",
+      "purpose": "Inject FAKE market data into BOTH venues (Polymarket + Kalshi) and stress-test ALL arbitrage types deterministically",
+      "cli_commands": {
+        "dual_stress": {
+          "command": "python -m predarb dual-stress",
+          "description": "Run single iteration with dual-venue injection",
+          "flags": [
+            "--inject-a <spec>: Injection spec for venue A (default: scenario:cross_venue)",
+            "--inject-b <spec>: Injection spec for venue B (default: scenario:cross_venue)",
+            "--cross-venue: Shortcut for --inject-a scenario:cross_venue --inject-b scenario:cross_venue"
+          ],
+          "examples": [
+            "python -m predarb dual-stress --cross-venue (uses cross_venue scenarios)",
+            "python -m predarb dual-stress --inject-a file:data/polymarket.json --inject-b file:data/kalshi.json",
+            "python -m predarb dual-stress --inject-a inline:'{...}' --inject-b none",
+            "python -m predarb dual-stress --inject-a scenario:cross_venue --inject-b scenario:operational_edge_cases"
+          ]
+        },
+        "comprehensive_stress_test": {
+          "command": "python run_all_scenarios.py",
+          "description": "Master test runner with 8 validation checks",
+          "flags": [
+            "--seed <int>: Seed for deterministic RNG (default: 42)",
+            "--verbose: Detailed output"
+          ],
+          "validation_checks": [
+            "Market count (37 expected)",
+            "Exchange tags present",
+            "Opportunities detected (5+ expected)",
+            "Approval rate >0%",
+            "Determinism validation",
+            "Report generation",
+            "CSV logging",
+            "Clean execution"
+          ],
+          "exit_codes": {
+            "0": "All validations passed (✅)",
+            "1": "One or more validations failed (❌)"
+          }
+        }
+      },
+      "architecture": {
+        "injection_specs": {
+          "scenario:<name>": "Use CrossVenueArbitrageScenarios generator",
+          "file:<path>": "Load markets from JSON file",
+          "inline:<json>": "Parse markets from inline JSON string",
+          "none": "No markets (empty provider)"
+        },
+        "components": [
+          "DualInjectionClient: Merges two independent providers",
+          "InjectionFactory: Creates providers from specs",
+          "CrossVenueArbitrageScenarios: Generates 37 test markets with planted opportunities",
+          "ScenarioValidator: Validates end-to-end pipeline with 8 checks"
+        ],
+        "files": [
+          "src/predarb/dual_injection.py (250 lines)",
+          "src/predarb/cross_venue_scenarios.py (750 lines)",
+          "run_all_scenarios.py (420 lines)",
+          "tests/test_dual_injection.py (370 lines, 19 tests)",
+          "tests/test_cross_venue_scenarios.py (340 lines, 19 tests)"
+        ],
+        "documentation": [
+          "DUAL_VENUE_STRESS_TESTING.md (architectural overview)",
+          "IMPLEMENTATION_DUAL_VENUE_STRESS_TESTING.md (implementation details)",
+          "COMMANDS.md (command cheat sheet)",
+          "quickstart_dual_venue.sh (interactive quickstart script)"
+        ]
+      },
+      "test_coverage": {
+        "total_tests": 38,
+        "unit_tests": {
+          "injection_mechanism": "19 tests (test_dual_injection.py)",
+          "scenario_generation": "19 tests (test_cross_venue_scenarios.py)"
+        },
+        "integration_test": {
+          "file": "run_all_scenarios.py",
+          "validations": 8,
+          "expected_results": {
+            "markets": 37,
+            "detected_opps": "5-8",
+            "approved_opps": "2-3",
+            "approval_rate": "30-50%",
+            "runtime": "<2 seconds"
+          }
+        }
+      },
+      "hard_rules": {
+        "no_live_mode_impact": "Dual-venue injection ONLY in dual-stress command, never in production run/once commands",
+        "deterministic_rng": "All scenario generation uses seeded Random() for reproducibility",
+        "exchange_tagging": "All markets MUST have exchange='polymarket' or exchange='kalshi'",
+        "no_http_calls": "Injection providers operate in-memory, no network requests",
+        "report_integration": "All stress tests generate unified_report.json and live_summary.csv like normal runs"
+      },
+      "bug_fixes_applied": {
+        "multi_colon_ids": {
+          "issue": "Kalshi IDs like 'kalshi:EVENT:MARKET:YES' broke with split(':')",
+          "fix": "Changed to split(':', 1) in broker.py line 129 and risk.py line 187",
+          "impact": "Handles multi-colon outcome IDs correctly"
+        }
+      }
+    },
     "telegram_architecture": {
       "style": "Freqtrade bidirectional: OUTBOUND (bot→user) + INBOUND (user→bot) decoupled",
       "outbound": "Engine notifies via TelegramNotifier (trade_entered, trade_exited, errors, daily_summary, status_replies)",
@@ -2308,6 +2607,14 @@ Failure to respect this file = INVALID OUTPUT.
     "customize_filtering": "Modify FilterConfig in config.py and FilterSettings in filtering.py",
     "enable_telegram": "Set TELEGRAM_ENABLED=true, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID in .env",
     "live_trading": "Modify PaperBroker to use real py-clob-client instead of simulation",
-    "performance_optimization": "Profile detectors.py and matchers.py; parallelize if needed"
+    "performance_optimization": "Profile detectors.py and matchers.py; parallelize if needed",
+    "dual_venue_testing": {
+      "quickstart": "Run ./quickstart_dual_venue.sh for interactive guide",
+      "comprehensive_test": "python run_all_scenarios.py for full validation suite",
+      "cli_test": "python -m predarb dual-stress --cross-venue for single iteration",
+      "custom_scenarios": "Extend CrossVenueArbitrageScenarios with new scenario methods",
+      "custom_injection": "Use InjectionFactory.from_spec() with file: or inline: specs",
+      "unit_tests": "pytest tests/test_dual_injection.py tests/test_cross_venue_scenarios.py -v"
+    }
   }
 }

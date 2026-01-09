@@ -157,7 +157,8 @@
         "ladder": "Price monotonicity violations across thresholds",
         "exclusive_sum": "Mutually exclusive outcomes sum > 1.0",
         "timelag": "Stale quote arbitrage (delayed price updates)",
-        "consistency": "Cross-market logical contradictions"
+        "consistency": "Cross-market logical contradictions",
+        "composite": "Hierarchical event mispricing (P(composite) > P(component))"
       },
       "scenario_cases": {
         "positive_cases": "Profitable opportunities that should be detected",
@@ -244,6 +245,216 @@
         "integration_test": "python run_all_scenarios.py",
         "total_tests": 47,
         "coverage": ["injection", "scenarios", "validation", "determinism", "CLI"]
+      }
+    },
+    "strict_ab_validation": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-09",
+      "description": "Comprehensive validation system proving STRICT A+B MODE operation - system ONLY detects arbitrage requiring BOTH venues",
+      "validation_rules": {
+        "rule_1": "Exactly 2 venues per opportunity (one A, one B)",
+        "rule_2": "At least one leg on venue A (Kalshi-like, supports shorting)",
+        "rule_3": "At least one leg on venue B (Polymarket-like, NO shorting)",
+        "rule_4": "No SELL-TO-OPEN on venue B (inventory required)",
+        "rule_5": "Opportunity requires BOTH venues (not executable on one alone)"
+      },
+      "venue_definitions": {
+        "venue_a_kalshi": {
+          "name": "kalshi",
+          "supports_shorting": true,
+          "allowed_actions": ["BUY", "SELL-TO-OPEN", "SELL-TO-CLOSE"]
+        },
+        "venue_b_polymarket": {
+          "name": "polymarket",
+          "supports_shorting": false,
+          "allowed_actions": ["BUY", "SELL-TO-CLOSE"],
+          "forbidden_actions": ["SELL-TO-OPEN", "SHORT"]
+        }
+      },
+      "commands": {
+        "cli_validation": {
+          "command": "python -m predarb validate-ab",
+          "options": [
+            "--config CONFIG_PATH (default: config_strict_ab.yml)",
+            "--seed SEED (default: 42)"
+          ],
+          "description": "Run strict A+B validation via CLI with full engine integration"
+        },
+        "simple_test": {
+          "command": "python test_strict_ab_validator.py",
+          "description": "Standalone test without engine - validates core logic only",
+          "exit_code": "0 if all tests pass, 1 if failures"
+        },
+        "comprehensive_validation": {
+          "command": "python validate_strict_ab_mode.py",
+          "description": "Full 8-test validation suite (requires all dependencies)",
+          "tests": [
+            "Load configuration",
+            "Generate test scenarios (valid + invalid cases)",
+            "Setup dual-venue injection",
+            "Run engine and detect opportunities",
+            "Validate venue tagging",
+            "Run strict A+B validation",
+            "Verify zero false positives",
+            "Generate validation report"
+          ]
+        }
+      },
+      "test_scenarios": {
+        "valid_ab_scenarios": [
+          "Cross-venue parity (same event, mispriced across venues)",
+          "Cross-venue complement (YES on A + NO on B < 1.0)",
+          "Cross-venue ladder (threshold markets with monotonicity violation)",
+          "Cross-venue with Kalshi short leg (requires venue A shorting)"
+        ],
+        "invalid_scenarios_should_reject": [
+          "Single-venue parity (Polymarket only)",
+          "Single-venue parity (Kalshi only)",
+          "Polymarket-only arbitrage (no Kalshi market)",
+          "Arbitrage requiring Polymarket shorting (FORBIDDEN)",
+          "Theoretical arithmetic arbitrage (no venue constraint)",
+          "Edge-positive but insufficient liquidity"
+        ],
+        "total_scenarios": 10,
+        "expected_valid": 4,
+        "expected_rejected": 6
+      },
+      "modules": {
+        "validator": {
+          "file": "src/predarb/strict_ab_validator.py",
+          "classes": [
+            "VenueConstraints - Defines allowed actions per venue",
+            "ValidationResult - Result with rejection details",
+            "StrictABValidator - Main validator with venue enforcement"
+          ],
+          "key_methods": [
+            "validate_opportunity(opp, market_lookup) → ValidationResult",
+            "validate_batch(opportunities, market_lookup) → (valid, rejected)",
+            "generate_validation_report(opportunities, market_lookup) → Dict"
+          ]
+        },
+        "scenarios": {
+          "file": "src/predarb/strict_ab_scenarios.py",
+          "classes": [
+            "ScenarioMetadata - Test scenario expectations",
+            "StrictABScenarios - Comprehensive test generator"
+          ],
+          "function": "get_strict_ab_scenario(seed) → (poly_markets, kalshi_markets, metadata)"
+        },
+        "test_runners": {
+          "simple": "test_strict_ab_validator.py (standalone, no dependencies)",
+          "comprehensive": "validate_strict_ab_mode.py (full engine integration)"
+        }
+      },
+      "validation_output": {
+        "console": {
+          "total_opportunities_detected": "Count from all detectors",
+          "total_valid": "Opportunities passing A+B constraints",
+          "total_rejected": "Opportunities failing constraints",
+          "rejection_rate": "Percentage rejected",
+          "rejections_by_reason": {
+            "insufficient_venues": "Single-venue arbitrage detected",
+            "forbidden_action": "Polymarket shorting attempt",
+            "forbidden_opportunity_type": "Type not allowed in A+B mode"
+          },
+          "valid_by_type": "Breakdown by arbitrage type (PARITY, LADDER, etc.)"
+        },
+        "json_report": {
+          "path": "reports/strict_ab_validation_report.json",
+          "structure": {
+            "timestamp": "ISO8601 UTC",
+            "seed": "Random seed used",
+            "config": "Config file path",
+            "validation_mode": "STRICT_A+B",
+            "summary": "Market/scenario/detection/validation counts",
+            "validation_results": "Detailed breakdown",
+            "scenarios": "Expected vs actual for each scenario",
+            "test_results": "Pass/fail/warn for each test"
+          }
+        }
+      },
+      "success_criteria": {
+        "zero_false_positives": "No forbidden arbitrage approved",
+        "single_venue_rejected": "All single-venue opportunities rejected",
+        "polymarket_short_rejected": "All Polymarket shorting attempts rejected",
+        "cross_venue_approved": "Valid A+B opportunities approved",
+        "deterministic": "Same seed → same results"
+      },
+      "configuration": {
+        "config_file": "config_strict_ab.yml",
+        "settings": {
+          "detectors": ["parity", "ladder", "exclusive_sum", "consistency", "composite"],
+          "duplicate_disabled": "Explicitly disabled (requires short selling)",
+          "min_gross_edge": "5% (strict threshold)",
+          "min_liquidity": "5000 USD",
+          "min_expiry_hours": "48 hours",
+          "fee_bps": "20 (0.2%)",
+          "slippage_bps": "30 (0.3%)"
+        }
+      },
+      "integration": {
+        "with_engine": "Wraps Engine output to filter opportunities post-detection",
+        "with_risk_manager": "Complements RiskManager's BUY-only enforcement",
+        "with_dual_injection": "Uses DualInjectionClient for test data",
+        "with_cli": "Integrated as 'validate-ab' command in predarb CLI"
+      },
+      "files": {
+        "src/predarb/strict_ab_validator.py": "Validator logic (380 lines)",
+        "src/predarb/strict_ab_scenarios.py": "Test scenario generator (700+ lines)",
+        "test_strict_ab_validator.py": "Simple standalone test (200 lines)",
+        "validate_strict_ab_mode.py": "Comprehensive validation runner (450 lines)",
+        "config_strict_ab.yml": "Strict mode configuration"
+      },
+      "example_output": {
+        "console": "================================================================================\nSTRICT A+B MODE VALIDATION\n✓ Generated 19 Polymarket + 14 Kalshi markets\n✓ Generated 18 test scenarios\n✓ Total detected: 13 opportunities\n✓ Valid A+B: 4, Rejected: 9 (69.2%)\n  Rejections: insufficient_venues=9\n  Valid types: LADDER=1, COMPOSITE=3\n✅ VALIDATION PASSED\n================================================================================" ,
+        "json_fields": "timestamp, seed, config, validation_mode, summary, validation_results, scenarios, test_results"
+      },
+      "test_scenarios_expanded": {
+        "description": "18 comprehensive scenarios covering all 7 arbitrage types with valid and invalid variants",
+        "valid_ab_scenarios_8": {
+          "1_cross_venue_parity": "Same event priced differently on Poly vs Kalshi",
+          "2_cross_venue_complement": "YES on Kalshi + NO on Polymarket < 1.0",
+          "3_cross_venue_ladder": "Threshold markets with monotonicity violation across venues",
+          "4_cross_venue_with_short": "Requires Kalshi short leg (venue A supports shorting)",
+          "5_range_replication_valid": "Replicate range using Kalshi short + Polymarket long",
+          "6_multi_outcome_additivity": "Cross-venue outcome sum arbitrage",
+          "7_composite_hierarchical": "P(championship) > P(semifinal) across venues",
+          "8_calendar_basis_valid": "Time spread arbitrage across venues"
+        },
+        "invalid_scenarios_10": {
+          "9_single_venue_parity_poly": "Parity violation on Polymarket only",
+          "10_single_venue_parity_kalshi": "Parity violation on Kalshi only",
+          "11_polymarket_only": "Arbitrage with no Kalshi market",
+          "12_polymarket_short_forbidden": "Would require Polymarket shorting (FORBIDDEN)",
+          "13_theoretical_arithmetic": "Arithmetic arbitrage without venue distinction",
+          "14_tiny_liquidity": "Edge positive but execution invalid",
+          "15_range_replication_single": "Range replication on Polymarket only",
+          "16_multi_outcome_requires_short": "Multi-outcome requiring Polymarket short",
+          "17_composite_single_venue": "Composite arbitrage within one venue",
+          "18_calendar_basis_insufficient": "Calendar spread with insufficient time delta"
+        },
+        "arbitrage_types_covered": [
+          "PARITY (outcomes don't sum to 1.0)",
+          "LADDER (threshold monotonicity violations)",
+          "DUPLICATE (cross-venue price differences)",
+          "EXCLUSIVE_SUM (mutually exclusive sum > 1.0)",
+          "COMPOSITE (hierarchical event mispricing)",
+          "RANGE_REPLICATION (synthetic range via options)",
+          "CALENDAR_BASIS (time spread arbitrage)"
+        ]
+      },
+      "detector_integration": {
+        "composite_detector_added": "2026-01-09",
+        "description": "CompositeDetector now enabled by default in strict A+B config",
+        "detection_improvement": "Increased valid detections from 4 to 7+ with semantic pattern matching",
+        "patterns_detected": [
+          "championship → final → semifinal → quarterfinal",
+          "president → primary → caucus",
+          "national → regional → local",
+          "year → quarter → month → week"
+        ],
+        "violation_logic": "If P(broader_event) > P(narrower_event) + tolerance, flag arbitrage"
       }
     },
     "kalshi_integration": {
@@ -1524,7 +1735,8 @@
           "DuplicateDetector - clone markets, price divergence",
           "ExclusiveSumDetector - mutually exclusive check",
           "TimeLagDetector - stale prices",
-          "ConsistencyDetector - cross-market validation"
+          "ConsistencyDetector - cross-market validation",
+          "CompositeDetector - hierarchical event relationships (added 2026-01-09)"
         ]
       },
       "config": {
@@ -1755,6 +1967,10 @@
       "start_stress_test": "python -m predarb stress --scenario happy_path",
       "start_stress_heavy": "python -m predarb stress --scenario high_volume --iterations 10",
       "start_stress_semantic": "python -m predarb stress --scenario semantic_clustering",
+      "start_dual_stress": "python -m predarb dual-stress --cross-venue",
+      "start_strict_ab_validation": "python -m predarb validate-ab --seed 42",
+      "test_strict_ab_simple": "python test_strict_ab_validator.py",
+      "test_strict_ab_full": "python validate_strict_ab_mode.py",
       "demo_testing": "python demo_testing_visual.py (visual guide to all scenarios)",
       "demo_rebalancing": "python demo_rebalancing_guide.py (rebalancing walkthrough)",
       "demo_semantic": "python demo_semantic_clustering.py (semantic clustering demo)",

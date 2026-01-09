@@ -21,6 +21,7 @@ from predarb.detectors.duplicates import DuplicateDetector
 from predarb.detectors.exclusivesum import ExclusiveSumDetector
 from predarb.detectors.timelag import TimeLagDetector
 from predarb.detectors.consistency import ConsistencyDetector
+from predarb.detectors.composite import CompositeDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .unified_reporter import UnifiedReporter
@@ -94,6 +95,8 @@ class Engine:
             self.detectors.append(TimeLagDetector(config.detectors))
         if config.detectors.enable_consistency:
             self.detectors.append(ConsistencyDetector(config.detectors))
+        if config.detectors.enable_composite:
+            self.detectors.append(CompositeDetector(config.detectors))
         
         self.report_path = Path(config.engine.report_path)
         self.report_path.parent.mkdir(parents=True, exist_ok=True)

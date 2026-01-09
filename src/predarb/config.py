@@ -113,6 +113,7 @@ class DetectorConfig(BaseModel):
     enable_exclusive_sum: bool = True
     enable_timelag: bool = True
     enable_consistency: bool = True
+    enable_composite: bool = True
 
 
 class LLMVerificationConfig(BaseModel):

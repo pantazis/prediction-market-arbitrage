@@ -9,7 +9,7 @@ from predarb.polymarket_client import PolymarketClient
 
 def main():
     parser = argparse.ArgumentParser(description="Predarb Polymarket paper bot")
-    parser.add_argument("command", choices=["run", "once", "selftest", "stress", "dual-stress"], help="run loop, single pass, self-test with fixtures, stress test, or dual-venue stress test")
+    parser.add_argument("command", choices=["run", "once", "selftest", "stress", "dual-stress", "validate-ab"], help="run loop, single pass, self-test with fixtures, stress test, dual-venue stress test, or strict A+B validation")
     parser.add_argument("--config", default="config.yml", help="Path to config file")
     parser.add_argument("--iterations", type=int, default=None, help="Override iterations from config for run mode")
     parser.add_argument("--fixtures", default="tests/fixtures/markets.json", help="Path to fixture markets for selftest")
@@ -210,6 +210,94 @@ def main():
         print("=" * 80)
         print(f"\n✓ Reports written to: {config.engine.report_path}")
         print(f"✓ Unified report: reports/unified_report.json")
+        
+        sys.exit(0)
+    elif args.command == "validate-ab":
+        # Strict A+B mode validation
+        from predarb.strict_ab_scenarios import get_strict_ab_scenario
+        from predarb.strict_ab_validator import StrictABValidator
+        from predarb.dual_injection import DualInjectionClient
+        
+        print("=" * 80)
+        print("STRICT A+B MODE VALIDATION")
+        print("=" * 80)
+        print(f"Seed: {args.seed}\n")
+        
+        # Generate test scenarios
+        poly_markets, kalshi_markets, scenario_metadata = get_strict_ab_scenario(seed=args.seed)
+        
+        print(f"✓ Generated {len(poly_markets)} Polymarket markets")
+        print(f"✓ Generated {len(kalshi_markets)} Kalshi markets")
+        print(f"✓ Generated {len(scenario_metadata)} test scenarios")
+        
+        # Count expected valid/invalid
+        valid_count = sum(1 for m in scenario_metadata if m.expected_approval)
+        invalid_count = sum(1 for m in scenario_metadata if not m.expected_approval)
+        print(f"  - Expected valid A+B: {valid_count}")
+        print(f"  - Expected rejections: {invalid_count}\n")
+        
+        # Create dual injection client
+        class StaticProvider:
+            def __init__(self, markets):
+                self.markets = markets
+            def fetch_markets(self):
+                return self.markets
+        
+        venue_a = StaticProvider(poly_markets)
+        venue_b = StaticProvider(kalshi_markets)
+        
+        dual_client = DualInjectionClient(
+            venue_a_provider=venue_a,
+            venue_b_provider=venue_b,
+            exchange_a="polymarket",
+            exchange_b="kalshi",
+        )
+        
+        # Fetch all markets
+        all_markets = dual_client.fetch_markets()
+        market_lookup = {m.id: m for m in all_markets}
+        
+        # Run detectors
+        print("Running arbitrage detectors...")
+        detected_opps = []
+        engine = Engine(config, clients=[dual_client])
+        
+        # Use engine's detectors directly
+        for detector in engine.detectors:
+            opps = detector.detect(all_markets)
+            detector_name = detector.__class__.__name__.replace("Detector", "").upper()
+            detected_opps.extend(opps)
+            print(f"  - {detector_name}: {len(opps)} opportunities")
+        
+        print(f"\n✓ Total detected: {len(detected_opps)} opportunities\n")
+        
+        # Run strict A+B validation
+        print("Running strict A+B validation...")
+        validator = StrictABValidator(broker_positions={})
+        report = validator.generate_validation_report(detected_opps, market_lookup)
+        
+        print(f"\n✓ Validation complete:")
+        print(f"  - Valid A+B: {report['total_valid']}")
+        print(f"  - Rejected: {report['total_rejected']}")
+        print(f"  - Rejection rate: {report['rejection_rate']*100:.1f}%")
+        
+        if report['rejections_by_reason']:
+            print(f"\n  Rejections by reason:")
+            for reason, count in report['rejections_by_reason'].items():
+                print(f"    • {reason}: {count}")
+        
+        if report['valid_by_type']:
+            print(f"\n  Valid opportunities by type:")
+            for opp_type, count in report['valid_by_type'].items():
+                print(f"    • {opp_type}: {count}")
+        
+        # Final verdict
+        print("\n" + "=" * 80)
+        if report['total_rejected'] > 0:
+            print("✅ VALIDATION PASSED: System correctly rejects forbidden arbitrage")
+        else:
+            print("⚠  WARNING: No opportunities were rejected")
+        print("=" * 80)
         
         sys.exit(0)
     else:

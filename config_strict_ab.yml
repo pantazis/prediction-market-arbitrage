@@ -1,0 +1,63 @@
+polymarket:
+  enabled: true
+  host: "https://gamma-api.polymarket.com"
+kalshi:
+  enabled: false  # Will be overridden by dual injection
+  env: prod
+  min_liquidity_usd: 500.0
+  min_days_to_expiry: 1
+risk:
+  max_allocation_per_market: 0.10
+  max_open_positions: 10
+  min_liquidity_usd: 5000.0
+  min_net_edge_threshold: 0.01    # 1% minimum net edge
+  kill_switch_drawdown: 0.2
+  
+  # SHORT SELLING PREVENTION FILTERS (STRICT MODE)
+  min_gross_edge: 0.05              # 5% minimum gross edge
+  min_buy_price: 0.02               # Reject BUY < $0.02
+  min_liquidity_multiple_strict: 5.0  # 5x depth required
+  min_expiry_hours: 48.0            # 48 hours minimum to expiry
+  max_entry_spread_pct: 0.08        # 8% max spread
+  kill_switch_on_partial: true
+broker:
+  initial_cash: 10000.0
+  fee_bps: 20.0     # 0.2% maker fee (conservative)
+  slippage_bps: 30.0  # 0.3% slippage (conservative)
+  depth_fraction: 0.05
+engine:
+  refresh_seconds: 5.0
+  iterations: 1
+  report_path: "reports/strict_ab_validation.csv"
+filter:
+  max_spread_pct: 0.08
+  min_volume_24h: 0
+  min_liquidity: 5000
+  min_days_to_expiry: 2
+  min_liquidity_multiple: 5
+  target_order_size_usd: 1000
+  require_resolution_source: false  # Relaxed for testing
+  allow_missing_end_time: false
+  min_rank_score: 0  # Accept all markets in test mode
+detectors:
+  parity_threshold: 0.97  # More strict: buy YES+NO only if sum < 0.97
+  duplicate_price_diff_threshold: 0.10  # 10% minimum price difference
+  exclusive_sum_tolerance: 0.05
+  ladder_tolerance: 0.0
+  timelag_price_jump: 0.05
+  timelag_persistence_minutes: 5
+  
+  # DETECTOR CONFIGURATION FOR STRICT A+B MODE
+  # Note: DUPLICATE detector is used to find cross-venue price differences,
+  # but RiskManager WILL REJECT if opportunity doesn't meet A+B constraints
+  enable_parity: true
+  enable_ladder: true
+  enable_exclusive_sum: true
+  enable_consistency: true
+  enable_composite: true  # Hierarchical event relationships
+  enable_duplicate: false  # Disabled - requires short selling
+  enable_timelag: true
+telegram:
+  enabled: false
+  bot_token: ""
+  chat_id: ""

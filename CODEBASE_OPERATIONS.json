@@ -1,10 +1,58 @@
 {
   "codebase_operations": {
-    "version": "2.4",
-    "generated": "2026-01-08",
+    "version": "2.5",
+    "generated": "2026-01-09",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
+    "kalshi_integration": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-09",
+      "description": "Multi-exchange support with Kalshi as second market source alongside Polymarket",
+      "architecture": {
+        "interface": "MarketClient (abstract base class)",
+        "implementations": ["PolymarketClient", "KalshiClient"],
+        "authentication": "RSA-SHA256 request signing for Kalshi",
+        "security": "NO hardcoded credentials - all from environment variables"
+      },
+      "configuration": {
+        "file": "config.yml",
+        "section": "kalshi",
+        "required_env_vars": [
+          "KALSHI_API_KEY_ID (UUID format)",
+          "KALSHI_PRIVATE_KEY_PEM (RSA private key in PEM format)",
+          "KALSHI_API_HOST (optional, defaults to https://trading-api.kalshi.com)",
+          "KALSHI_ENV (optional, prod or demo, defaults to prod)"
+        ],
+        "enable_disable": "Set kalshi.enabled: true/false in config.yml",
+        "filters": {
+          "min_liquidity_usd": "Minimum market liquidity filter (default 500.0)",
+          "min_days_to_expiry": "Minimum days until expiry (default 1)"
+        }
+      },
+      "market_normalization": {
+        "market_id_format": "kalshi:<event_ticker>:<market_ticker>",
+        "outcomes": "Always YES/NO with prices normalized to [0.0-1.0]",
+        "price_conversion": "Kalshi cents (0-100) divided by 100",
+        "liquidity_estimation": "open_interest × yes_price",
+        "exchange_tagging": "market.exchange = 'kalshi' or 'polymarket'"
+      },
+      "engine_behavior": {
+        "client_loading": "Dynamic - loads all enabled clients from config",
+        "market_fetching": "Sequential per exchange, then merged into single list",
+        "detector_compatibility": "ALL detectors are exchange-agnostic",
+        "risk_manager": "BUY-ONLY enforcement applies equally to all exchanges"
+      },
+      "testing": {
+        "fake_client": "tests/fake_kalshi_client.py (NO network calls)",
+        "test_suite": "tests/test_kalshi_integration.py (15 tests passing)",
+        "fixtures": ["default (2 markets)", "high_volume (50 markets)", "parity_arb", "empty"],
+        "coverage": ["normalization", "multi-exchange engine", "configuration", "security"]
+      },
+      "backward_compatibility": "FULLY COMPATIBLE - existing single-client code unchanged",
+      "documentation": "KALSHI_INTEGRATION.md"
+    },
     "bot_lifecycle": {
       "start_bot": {
         "description": "Start the arbitrage bot in background mode with proper environment setup",
@@ -90,10 +138,31 @@
         },
         "key_indicators": {
           "markets_fetched": "INFO predarb.engine - Fetched N total markets",
+          "markets_per_exchange": "INFO predarb.engine - Fetched N markets from polymarket/kalshi",
+          "clients_active": "INFO predarb.engine - Engine initialized with clients: polymarket, kalshi",
           "opportunities_detected": "INFO predarb.unified_reporter - Iteration X: Recorded (markets=M, detected=D, approved=A)",
           "trades_executed": "INFO predarb.unified_reporter - Logged N trades to unified report",
-          "errors": "ERROR or Traceback lines indicate issues"
+          "errors": "ERROR or Traceback lines indicate issues",
+          "kalshi_errors": "ERROR predarb.engine - Failed to fetch markets from kalshi"
         }
+      },
+      "enable_kalshi": {
+        "description": "Enable Kalshi as second market source",
+        "prerequisites": [
+          "Kalshi API credentials (KALSHI_API_KEY_ID and KALSHI_PRIVATE_KEY_PEM)",
+          "cryptography library installed (.venv/bin/pip install cryptography>=41.0.0)"
+        ],
+        "steps": [
+          "1. Set environment variables: export KALSHI_API_KEY_ID='...' KALSHI_PRIVATE_KEY_PEM='...'",
+          "2. Edit config.yml: Set kalshi.enabled: true",
+          "3. Restart bot: kill $(cat bot.pid); PYTHONPATH=src .venv/bin/python -m predarb run --iterations 1000 > bot.log 2>&1 & echo $! > bot.pid"
+        ],
+        "verification": {
+          "check_logs": "grep 'Engine initialized with clients' bot.log | tail -1",
+          "expect": "Should see: polymarket, kalshi",
+          "check_markets": "grep 'Fetched.*markets from kalshi' bot.log | tail -5"
+        },
+        "disable": "Set kalshi.enabled: false in config.yml and restart"
       }
     },
     "run_commands": {

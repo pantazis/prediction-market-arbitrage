@@ -43,6 +43,9 @@ class Market(BaseModel):
     best_ask: Dict[str, float] = Field(default_factory=dict)
     trades_1h: Optional[int] = None
     updated_at: Optional[datetime] = None
+    
+    # Exchange identifier (set by client: "polymarket", "kalshi", etc.)
+    exchange: Optional[str] = None
 
     # extracted / normalized fields
     comparator: Optional[str] = None

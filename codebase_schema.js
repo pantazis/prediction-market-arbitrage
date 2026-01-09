@@ -1,22 +1,54 @@
+/*
+===============================================================================
+AI CODEBASE SCHEMA — READ FIRST (DO NOT MODIFY STRUCTURE)
+===============================================================================
+
+Purpose:
+This file is a MACHINE-READABLE canonical schema of the entire project.
+It exists to prevent repeated explanations of the codebase to AI systems.
+
+Rules:
+- This file is NOT for humans.
+- This file MUST be read before any code generation or analysis.
+- The structure, keys, and meanings are authoritative.
+- NEVER guess project structure if this file is present.
+- ALWAYS update this file when the codebase changes.
+- NEVER introduce new architecture that contradicts this schema.
+
+AI Instructions:
+- Treat this file as ground truth.
+- Use it as long-term memory for the repository.
+- When adding features, update the schema FIRST or TOGETHER with code.
+- When refactoring, reflect changes here immediately.
+- When unsure, trust this file over assumptions.
+
+Failure to respect this file = INVALID OUTPUT.
+
+===============================================================================
+*/
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-08T14:30:00Z",
+  "last_updated": "2026-01-09T10:45:00Z",
   "project": {
     "name": "prediction-market-arbitrage",
-    "description": "Python arbitrage detection bot for Polymarket prediction markets",
+    "description": "Python arbitrage detection bot for multi-exchange prediction markets (Polymarket + Kalshi)",
     "repository": "pantazis/prediction-market-arbitrage",
     "languages": [
       "python"
     ],
     "python_version": "3.10+",
     "structure": {
-      "root": "c:\\Users\\pvast\\Documents\\arbitrage",
+      "root": "/opt/prediction-market-arbitrage",
       "primary_modules": [
-        "src/predarb (main engine)",
+        "src/predarb (main engine with multi-exchange support)",
         "arbitrage_bot (telegram integration)",
         "src (legacy client)",
-        "tests (pytest suite)"
+        "tests (pytest suite with 15 Kalshi tests)"
+      ],
+      "exchanges_supported": [
+        "Polymarket (default, always enabled)",
+        "Kalshi (opt-in via config.yml)"
       ]
     }
   },
@@ -87,9 +119,12 @@
       "submodules": {
         "engine.py": {
           "class": "Engine",
+          "updated": "2026-01-09",
           "responsibilities": [
-            "Fetch all markets (no pre-filtering to avoid missing opportunities)",
-            "Run detector pipeline on 100% of markets",
+            "Load enabled market clients dynamically from config",
+            "Fetch markets from all enabled exchanges (Polymarket, Kalshi)",
+            "Merge markets into single list for detector pipeline",
+            "Run detector pipeline on 100% of markets (exchange-agnostic)",
             "Risk manager validates each opportunity (edge, liquidity, allocation, positions)",
             "Execute only approved trades via broker",
             "Generate reports (both trades and live summaries)",
@@ -97,7 +132,19 @@
           ],
           "architecture_note": "Find-First approach: detectors find opportunities across all markets, risk manager decides viability",
           "key_change_2026_01": "Removed market filtering/ranking stage - now runs detectors on ALL markets instead of pre-filtered subset",
-          "key_change_2026_01_b": "Integrated LiveReporter for live incremental reporting with deduplication"
+          "key_change_2026_01_b": "Integrated LiveReporter for live incremental reporting with deduplication",
+          "key_change_2026_01_09": "Multi-exchange support: dynamically loads PolymarketClient and/or KalshiClient based on config",
+          "multi_exchange_architecture": {
+            "client_loading": "_load_clients_from_config() - auto-instantiates enabled clients",
+            "market_fetching": "Sequential per client, merged into single all_markets list",
+            "backward_compatible": "Supports legacy single-client constructor for tests",
+            "constructor_params": [
+              "config: AppConfig (required)",
+              "client: Optional[MarketClient] (deprecated, for backward compat)",
+              "clients: Optional[List[MarketClient]] (new multi-client API)",
+              "notifier: Optional[Notifier] (for testing)"
+            ]
+          }
         },
         "reporter.py": {
           "class": "LiveReporter",
@@ -155,12 +202,64 @@
           ],
           "notes": "Integrated in Engine.run_once() right after reporter.report() to ensure ordering and consistency"
         },
+        "market_client_base.py": {
+          "class": "MarketClient",
+          "type": "abstract_base_class",
+          "added": "2026-01-09",
+          "purpose": "Abstract interface for all market data providers (Polymarket, Kalshi, future exchanges)",
+          "responsibilities": [
+            "Define uniform interface for fetching markets",
+            "Ensure consistent market normalization across exchanges",
+            "Provide exchange-specific metadata"
+          ],
+          "abstract_methods": [
+            "fetch_markets() -> List[Market]",
+            "get_metadata() -> Dict[str, Any]"
+          ],
+          "implementations": ["PolymarketClient", "KalshiClient"]
+        },
+        "kalshi_client.py": {
+          "class": "KalshiClient",
+          "extends": "MarketClient",
+          "added": "2026-01-09",
+          "responsibilities": [
+            "Authenticate using RSA-SHA256 request signing",
+            "Fetch active Kalshi markets via REST API",
+            "Normalize Kalshi contracts into internal Market model",
+            "Convert prices from cents (0-100) to probability (0.0-1.0)",
+            "Filter markets by liquidity and expiry",
+            "Tag all markets with exchange='kalshi'"
+          ],
+          "authentication": {
+            "method": "RSA request signing",
+            "algorithm": "PKCS1v15 with SHA256",
+            "headers": ["KALSHI-ACCESS-KEY", "KALSHI-ACCESS-SIGNATURE", "KALSHI-ACCESS-TIMESTAMP"],
+            "credentials": ["KALSHI_API_KEY_ID (env)", "KALSHI_PRIVATE_KEY_PEM (env)"]
+          },
+          "normalization": {
+            "market_id": "kalshi:<event_ticker>:<market_ticker>",
+            "outcomes": "Always YES/NO",
+            "price_conversion": "cents / 100.0",
+            "liquidity": "open_interest * yes_price",
+            "expiry": "ISO8601 -> datetime UTC"
+          },
+          "security": "NO hardcoded credentials - all from environment variables",
+          "testing": "tests/fake_kalshi_client.py (NO network calls)"
+        },
         "polymarket_client.py": {
           "class": "PolymarketClient",
+          "extends": "MarketClient",
+          "updated": "2026-01-09",
           "responsibilities": [
-            "Fetch active markets",
+            "Fetch active markets from Polymarket Gamma API",
             "Parse market data",
-            "Extract entities and thresholds"
+            "Extract entities and thresholds",
+            "Tag all markets with exchange='polymarket'"
+          ],
+          "changes": [
+            "Now extends MarketClient interface",
+            "Added get_metadata() method",
+            "Added exchange tagging to all markets"
           ]
         },
         "broker.py": {
@@ -475,23 +574,34 @@
         "models.py": {
           "classes": [
             "Outcome (pydantic)",
-            "Market (pydantic)",
+            "Market (pydantic) - UPDATED: added exchange: Optional[str] field",
             "Opportunity (dataclass)",
             "Trade (dataclass)",
             "TradeAction (dataclass)"
-          ]
+          ],
+          "changes_2026_01_09": {
+            "Market": "Added exchange field to track source (polymarket/kalshi)",
+            "purpose": "Enable multi-exchange reporting and tracking"
+          }
         },
         "config.py": {
           "classes": [
-            "AppConfig",
-            "PolymarketConfig",
+            "AppConfig - UPDATED: added kalshi field",
+            "PolymarketConfig - UPDATED: added enabled field",
+            "KalshiConfig - NEW: Kalshi-specific configuration",
             "BrokerConfig",
             "RiskConfig",
             "FilterConfig",
             "DetectorConfig",
             "TelegramConfig",
             "EngineConfig"
-          ]
+          ],
+          "changes_2026_01_09": {
+            "KalshiConfig": "New config class for Kalshi credentials and filters",
+            "PolymarketConfig": "Added enabled: bool field (default True)",
+            "AppConfig": "Added kalshi: KalshiConfig field",
+            "load_config": "Updated to load Kalshi credentials from environment"
+          }
         }
       }
     },
@@ -793,6 +903,7 @@
     },
     "tests": {
       "description": "Pytest test suite",
+      "total_tests": "100+ (including 15 Kalshi integration tests)",
       "test_files": [
         "test_engine.py",
         "test_broker.py",
@@ -803,10 +914,21 @@
         "test_polymarket_client.py",
         "test_notifier.py",
         "test_telegram_interface.py",
-        "test_telegram_notifier.py"
+        "test_telegram_notifier.py",
+        "test_kalshi_integration.py - NEW (2026-01-09): 15 tests for Kalshi client"
       ],
+      "fake_clients": {
+        "fake_kalshi_client.py": "NEW (2026-01-09): Deterministic Kalshi client for tests (NO network calls)",
+        "fixtures": ["default (2 markets)", "high_volume (50 markets)", "parity_arb", "empty"]
+      },
       "fixtures": {
         "markets.json": "Mock Polymarket market data for selftest"
+      },
+      "kalshi_test_coverage": {
+        "normalization": "Market structure, exchange tagging, price normalization, ID format",
+        "multi_exchange": "Single client, multi-client merging, auto-loading from config",
+        "configuration": "Default disabled, field validation, env var loading",
+        "security": "No hardcoded credentials, credential validation"
       }
     }
   },
@@ -814,10 +936,11 @@
     "entry": "CLI (args: command, config path)",
     "pipeline": [
       "1. Load config from YAML (config.yml) + environment variables (.env)",
-      "2. Instantiate PolymarketClient with API credentials",
-      "3. Create Engine with config + client",
+      "2. Dynamically instantiate enabled market clients (PolymarketClient, KalshiClient)",
+      "3. Create Engine with config + clients (or legacy single client)",
       "4. Execute run() or run_once() based on command",
-      "5. Engine.run() fetches active markets from Polymarket CLOB API",
+      "5. Engine.run() fetches markets from all enabled exchanges sequentially",
+      "6. Markets merged into single list with exchange tags",
       "6. Filter markets by: spread, volume, liquidity, days_to_expiry",
       "7. Rank markets by composite score (spread, volume, liquidity weights)",
       "8. Run 6 detectors in sequence on filtered/ranked markets",
@@ -1063,6 +1186,12 @@
         "package": "python-dateutil",
         "version": "2.9.0.post0",
         "purpose": "Date parsing and manipulation"
+      },
+      {
+        "package": "cryptography",
+        "version": ">=41.0.0",
+        "purpose": "RSA signing for Kalshi API authentication",
+        "added": "2026-01-09"
       }
     ],
     "notifications": [

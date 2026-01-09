@@ -2,18 +2,19 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 import requests
 
 from predarb.config import PolymarketConfig
 from predarb.extractors import extract_entity, extract_expiry, extract_threshold
 from predarb.models import Market, Outcome
+from predarb.market_client_base import MarketClient
 
 logger = logging.getLogger(__name__)
 
 
-class PolymarketClient:
+class PolymarketClient(MarketClient):
     def __init__(self, config: PolymarketConfig):
         self.config = config
         self.host = config.host.rstrip("/")
@@ -96,7 +97,25 @@ class PolymarketClient:
                 asset=asset,
                 resolution_source=data.get("resolutionSource"),
             )
+            # Tag exchange
+            market.exchange = "polymarket"  # type: ignore
             return market
         except Exception as e:
             logger.warning("Failed to parse market: %s", e)
             return None
+    
+    def get_metadata(self) -> Dict[str, Any]:
+        """
+        Return Polymarket-specific metadata.
+        
+        Returns:
+            Dict with exchange info
+        """
+        return {
+            "exchange": "polymarket",
+            "fee_bps": 10,  # Polymarket charges ~0.10% per side
+            "tick_size": 0.01,  # $0.01 minimum price increment
+            "base_url": self.host,
+            "supports_orderbook": False,  # Gamma API doesn't provide full orderbook
+        }
+

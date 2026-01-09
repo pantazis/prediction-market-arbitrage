@@ -1,11 +1,11 @@
 {
   "mandatory_pre_read": [
     "CODEBASE_OPERATIONS.json",
-    "codebase_schema.json"
+    "codebase_schema.js"
   ],
   "authority_order": [
     "CODEBASE_OPERATIONS.json",
-    "codebase_schema.json",
+    "codebase_schema.js",
     "user_prompt"
   ],
   "rules": {

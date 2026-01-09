@@ -4,12 +4,14 @@ import csv
 import logging
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union
 
 from predarb.broker import PaperBroker
 from predarb.config import AppConfig
 from predarb.models import Market, Opportunity
+from predarb.market_client_base import MarketClient
 from predarb.polymarket_client import PolymarketClient
+from predarb.kalshi_client import KalshiClient
 from predarb.risk import RiskManager
 from predarb.notifiers import Notifier
 
@@ -30,19 +32,37 @@ class Engine:
     def __init__(
         self,
         config: AppConfig,
-        client: PolymarketClient,
+        client: Optional[Union[MarketClient, PolymarketClient]] = None,
+        clients: Optional[List[MarketClient]] = None,
         notifier: Optional[Notifier] = None,
     ):
         """Initialize Engine.
         
         Args:
             config: Application configuration
-            client: Polymarket client (real or fake)
+            client: DEPRECATED - Single client (for backward compatibility)
+            clients: List of market clients to use. If None, clients are auto-loaded
+                    from config based on enabled flags.
             notifier: Optional injected notifier for testing. If not provided,
                      a TelegramNotifier will be instantiated from config.
         """
         self.config = config
-        self.client = client
+        
+        # Support both old single-client API and new multi-client API
+        if clients is not None:
+            self.clients = clients
+        elif client is not None:
+            # Backward compatibility: wrap single client in list
+            self.clients = [client]
+        else:
+            # Auto-load clients from config
+            self.clients = self._load_clients_from_config(config)
+        
+        if not self.clients:
+            logger.warning("No market clients enabled - engine will fetch zero markets")
+        else:
+            exchanges = [c.get_exchange_name() for c in self.clients]
+            logger.info(f"Engine initialized with clients: {', '.join(exchanges)}")
         self.broker = PaperBroker(config.broker)
         self.risk = RiskManager(config.risk, self.broker)
         
@@ -85,6 +105,52 @@ class Engine:
         self._last_detected: List[Opportunity] = []
         self._last_approved: List[Opportunity] = []
         self._last_markets: List[Market] = []
+    
+    def _load_clients_from_config(self, config: AppConfig) -> List[MarketClient]:
+        """
+        Load enabled market clients from configuration.
+        
+        Args:
+            config: Application configuration
+        
+        Returns:
+            List of initialized MarketClient instances
+        """
+        clients: List[MarketClient] = []
+        
+        # Load Polymarket client if enabled
+        if config.polymarket.enabled:
+            try:
+                polymarket = PolymarketClient(config.polymarket)
+                clients.append(polymarket)
+                logger.info("Polymarket client enabled")
+            except Exception as e:
+                logger.error(f"Failed to initialize Polymarket client: {e}")
+        
+        # Load Kalshi client if enabled
+        if config.kalshi.enabled:
+            try:
+                # Validate credentials present
+                if not config.kalshi.api_key_id or not config.kalshi.private_key_pem:
+                    logger.warning(
+                        "Kalshi enabled but credentials missing "
+                        "(KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PEM). Skipping."
+                    )
+                else:
+                    kalshi = KalshiClient(
+                        api_key_id=config.kalshi.api_key_id,
+                        private_key_pem=config.kalshi.private_key_pem,
+                        api_host=config.kalshi.api_host,
+                        env=config.kalshi.env,
+                        min_liquidity_usd=config.kalshi.min_liquidity_usd,
+                        min_days_to_expiry=config.kalshi.min_days_to_expiry,
+                    )
+                    clients.append(kalshi)
+                    logger.info("Kalshi client enabled")
+            except Exception as e:
+                logger.error(f"Failed to initialize Kalshi client: {e}")
+        
+        return clients
 
     def run_once(self) -> List[Opportunity]:
         if self.notifier:
@@ -93,8 +159,18 @@ class Engine:
             except Exception as e:
                 logger.warning("Notifier startup failed: %s", e)
 
-        all_markets = self.client.fetch_markets()
-        logger.info(f"Fetched {len(all_markets)} total markets")
+        # Fetch markets from all enabled clients and merge
+        all_markets: List[Market] = []
+        for client in self.clients:
+            try:
+                exchange = client.get_exchange_name()
+                markets = client.fetch_markets()
+                logger.info(f"Fetched {len(markets)} markets from {exchange}")
+                all_markets.extend(markets)
+            except Exception as e:
+                logger.error(f"Failed to fetch markets from {client.get_exchange_name()}: {e}")
+        
+        logger.info(f"Total markets across all exchanges: {len(all_markets)}")
         
         # Scan ALL markets for opportunities (no pre-filtering)
         # Risk manager will validate if each opportunity is viable

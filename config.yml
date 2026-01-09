@@ -1,5 +1,13 @@
 polymarket:
+  enabled: true
   host: "https://gamma-api.polymarket.com"
+kalshi:
+  enabled: false  # Set to true to enable Kalshi markets
+  # Credentials loaded from environment variables:
+  # KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PEM, KALSHI_API_HOST, KALSHI_ENV
+  env: prod  # "prod" or "demo"
+  min_liquidity_usd: 500.0
+  min_days_to_expiry: 1
 risk:
   max_allocation_per_market: 0.05
   max_open_positions: 20

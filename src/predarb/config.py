@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 
 class PolymarketConfig(BaseModel):
+    enabled: bool = True  # Enable/disable Polymarket client
     host: str = "https://clob.polymarket.com"
     api_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_API_KEY"))
     secret: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_SECRET"))
@@ -17,6 +18,16 @@ class PolymarketConfig(BaseModel):
     private_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PRIVATE_KEY"))
     chain_id: int = 137
     funder: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_FUNDER"))
+
+
+class KalshiConfig(BaseModel):
+    enabled: bool = False  # Enable/disable Kalshi client
+    api_key_id: Optional[str] = Field(default_factory=lambda: os.getenv("KALSHI_API_KEY_ID"))
+    private_key_pem: Optional[str] = Field(default_factory=lambda: os.getenv("KALSHI_PRIVATE_KEY_PEM"))
+    api_host: str = Field(default_factory=lambda: os.getenv("KALSHI_API_HOST", "https://trading-api.kalshi.com"))
+    env: str = Field(default_factory=lambda: os.getenv("KALSHI_ENV", "prod"))
+    min_liquidity_usd: float = 500.0
+    min_days_to_expiry: int = 1
 
 
 class RiskConfig(BaseModel):
@@ -138,6 +149,7 @@ class LLMVerificationConfig(BaseModel):
 
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
+    kalshi: KalshiConfig = Field(default_factory=KalshiConfig)
     risk: RiskConfig = Field(default_factory=RiskConfig)
     broker: BrokerConfig = Field(default_factory=BrokerConfig)
     engine: EngineConfig = Field(default_factory=EngineConfig)
@@ -174,4 +186,9 @@ def load_config(path: str | Path) -> AppConfig:
         cfg.polymarket.private_key = os.getenv("POLYMARKET_PRIVATE_KEY", "")
     if not cfg.polymarket.funder:
         cfg.polymarket.funder = os.getenv("POLYMARKET_FUNDER", "")
+    # Kalshi environment overrides
+    if not cfg.kalshi.api_key_id:
+        cfg.kalshi.api_key_id = os.getenv("KALSHI_API_KEY_ID", "")
+    if not cfg.kalshi.private_key_pem:
+        cfg.kalshi.private_key_pem = os.getenv("KALSHI_PRIVATE_KEY_PEM", "")
     return cfg

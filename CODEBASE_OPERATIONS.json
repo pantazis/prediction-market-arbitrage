@@ -248,6 +248,8 @@
         "Date proximity validation (24h default)",
         "Top-K pair ranking by similarity",
         "Batched processing to reduce memory usage (configurable batch_size)",
+        "LLM verification layer (OpenAI, Gemini, Mock) for top semantic pairs (pass/fail with reason)",
+        "Telegram notification of LLM pass/fail verdicts for each pair",
         "Graceful degradation if model unavailable",
         "Lazy model loading (80MB one-time)",
         "Configurable thresholds via config.yml"
@@ -277,9 +279,11 @@
         "performance": "Depends on market counts; batching reduces memory usage. Typical 30–60s for ~600 markets on CPU."
       },
       "output": {
-        "type": "Logging only (no file output)",
+        "type": "Logging + Telegram notification (no file output)",
         "log_format": "Cross-venue matcher found {count} semantic pairs",
         "debug_details": "Logs top 3 pairs with similarity scores",
+        "telegram_notification": "If Telegram is enabled, sends full match list when pairs change; LLM pass/fail verdicts for each pair are sent as separate messages",
+        "llm_verification": "If LLM verification enabled, each top pair is verified with OpenAI/Gemini/Mock, and PASS/FAIL with reason is sent to Telegram",
         "integration": "Pairs used by detectors for opportunity detection"
       },
       "advantages": {

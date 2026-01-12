@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import logging
 import time
 from pathlib import Path
@@ -26,6 +27,7 @@ from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .unified_reporter import UnifiedReporter
 from predarb.cross_venue_matcher import CrossVenueMatcher
+from predarb.llm_verifier import LLMVerifier, VerificationResult
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +132,32 @@ class Engine:
         self._last_detected: List[Opportunity] = []
         self._last_approved: List[Opportunity] = []
         self._last_markets: List[Market] = []
+        self._startup_notified = False
+        self._last_cross_venue_match_hash: Optional[str] = None
+        self._last_cross_venue_verify_hash: Optional[str] = None
+
+        llm_config = getattr(config, "llm_verification", None)
+        if llm_config and getattr(llm_config, "enabled", False):
+            self.llm_verifier: Optional[LLMVerifier] = LLMVerifier(llm_config)
+        else:
+            self.llm_verifier = None
+
+    def _verify_cross_venue_pairs(
+        self,
+        pairs: List[tuple[Market, Market, float]],
+    ) -> List[tuple[Market, Market, float, VerificationResult]]:
+        if not self.llm_verifier:
+            return []
+
+        min_similarity = float(getattr(self.llm_verifier.config, "min_similarity_to_verify", 0.0))
+        max_pairs = int(getattr(self.llm_verifier.config, "max_pairs_per_group", len(pairs)))
+        candidates = [p for p in pairs if p[2] >= min_similarity][:max_pairs]
+
+        results: List[tuple[Market, Market, float, VerificationResult]] = []
+        for k_market, p_market, score in candidates:
+            result = self.llm_verifier.verify_pair(k_market, p_market)
+            results.append((k_market, p_market, score, result))
+        return results
     
     def _load_clients_from_config(self, config: AppConfig) -> List[MarketClient]:
         """
@@ -176,7 +204,8 @@ class Engine:
         return clients
 
     def run_once(self) -> List[Opportunity]:
-        if self.notifier:
+        if self.notifier and not self._startup_notified:
+            self._startup_notified = True
             try:
                 self.notifier.notify_startup("Iteration started")
             except Exception as e:
@@ -216,6 +245,45 @@ class Engine:
                             f"Pair: {k.question[:50]} <-> {p.question[:50]} "
                             f"(similarity={score:.2f})"
                         )
+                    if self.notifier and hasattr(self.notifier, "notify_cross_venue_matches"):
+                        signature = "|".join(
+                            f"{k.id}:{p.id}:{score:.4f}" for k, p, score in pairs
+                        )
+                        match_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+                        if match_hash != self._last_cross_venue_match_hash:
+                            self._last_cross_venue_match_hash = match_hash
+                            try:
+                                self.notifier.notify_cross_venue_matches(pairs)
+                            except Exception as e:
+                                logger.warning("Notifier match alert failed: %s", e)
+
+                    verification_results = self._verify_cross_venue_pairs(pairs)
+                    if verification_results:
+                        for k_market, p_market, score, result in verification_results:
+                            verdict = "PASS" if result.same_event else "FAIL"
+                            logger.info(
+                                "LLM verify %s sim=%.2f conf=%.2f | K=%s | P=%s | reason=%s",
+                                verdict,
+                                score,
+                                result.confidence,
+                                k_market.question,
+                                p_market.question,
+                                result.reason,
+                            )
+                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_verification"):
+                            signature = "|".join(
+                                f"{k.id}:{p.id}:{score:.4f}:{int(result.same_event)}:{result.reason}"
+                                for k, p, score, result in verification_results
+                            )
+                            verify_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+                            if verify_hash != self._last_cross_venue_verify_hash:
+                                self._last_cross_venue_verify_hash = verify_hash
+                                try:
+                                    self.notifier.notify_cross_venue_verification(
+                                        verification_results
+                                    )
+                                except Exception as e:
+                                    logger.warning("Notifier verify alert failed: %s", e)
             except Exception as e:
                 logger.error(f"Cross-venue matching failed: {e}")
         

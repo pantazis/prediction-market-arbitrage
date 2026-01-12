@@ -125,6 +125,65 @@ class TestTelegramNotifierMock:
         assert "100" in notifier.messages[0]
         assert "50" in notifier.messages[0]
 
+    def test_mock_notifier_compatibility_notify_cross_venue_matches(self):
+        """Test compatibility method notify_cross_venue_matches()."""
+        notifier = TelegramNotifierMock()
+        now = datetime.utcnow()
+        k_market = Market(
+            id="kalshi_1",
+            question="Kalshi Market One",
+            outcomes=[
+                {"id": "yes", "label": "Yes", "price": 0.55},
+                {"id": "no", "label": "No", "price": 0.45},
+            ],
+            end_date=now,
+        )
+        p_market = Market(
+            id="poly_1",
+            question="Polymarket Market One",
+            outcomes=[
+                {"id": "yes", "label": "Yes", "price": 0.52},
+                {"id": "no", "label": "No", "price": 0.48},
+            ],
+            end_date=now + timedelta(hours=3),
+        )
+        notifier.notify_cross_venue_matches([(k_market, p_market, 0.78)])
+        assert len(notifier.messages) == 1
+        assert "Cross-venue matches" in notifier.messages[0]
+        assert "Kalshi Market One" in notifier.messages[0]
+        assert "Polymarket Market One" in notifier.messages[0]
+
+    def test_mock_notifier_compatibility_notify_cross_venue_verification(self):
+        """Test compatibility method notify_cross_venue_verification()."""
+        notifier = TelegramNotifierMock()
+        now = datetime.utcnow()
+        k_market = Market(
+            id="kalshi_2",
+            question="Bitcoin to $100,000 by year end?",
+            outcomes=[
+                {"id": "yes", "label": "Yes", "price": 0.55},
+                {"id": "no", "label": "No", "price": 0.45},
+            ],
+            end_date=now,
+        )
+        p_market = Market(
+            id="poly_2",
+            question="Will BTC hit $100,000 by Dec 31?",
+            outcomes=[
+                {"id": "yes", "label": "Yes", "price": 0.52},
+                {"id": "no", "label": "No", "price": 0.48},
+            ],
+            end_date=now + timedelta(hours=2),
+        )
+        class Verdict:
+            same_event = True
+            confidence = 0.88
+            reason = "Both reference Bitcoin at $100,000"
+        notifier.notify_cross_venue_verification([(k_market, p_market, 0.91, Verdict())])
+        assert len(notifier.messages) == 1
+        assert "LLM cross-venue verification" in notifier.messages[0]
+        assert "PASS" in notifier.messages[0]
+
 
 class TestTelegramNotifierReal:
     """Test TelegramNotifierReal implementation."""
@@ -149,6 +208,8 @@ class TestTelegramNotifierReal:
         assert hasattr(notifier, "notify_opportunity")
         assert hasattr(notifier, "notify_trade_summary")
         assert hasattr(notifier, "notify_filtering")
+        assert hasattr(notifier, "notify_cross_venue_matches")
+        assert hasattr(notifier, "notify_cross_venue_verification")
 
 
 class TestSyntheticDataGeneration:
@@ -330,6 +391,53 @@ class TestSimulationIntegration:
         assert len(messages) > 0
         # Should have filtering, startup, or other messages
         assert any("market" in msg.lower() or "iteration" in msg.lower() for msg in messages)
+
+    def test_startup_notification_sent_once(self, tmp_path):
+        """Startup notification should only be sent once per run."""
+        from predarb.config import AppConfig, DetectorConfig
+        from predarb.engine import Engine
+
+        class StaticClient:
+            def __init__(self, markets, exchange):
+                self._markets = markets
+                self._exchange = exchange
+            def fetch_markets(self):
+                return self._markets
+            def get_exchange_name(self):
+                return self._exchange
+
+        config = AppConfig()
+        config.engine.report_path = str(tmp_path / "trades.csv")
+        config.engine.iterations = 3
+        config.engine.refresh_seconds = 0
+        config.detectors = DetectorConfig(
+            enable_duplicate=False,
+            enable_ladder=False,
+            enable_parity=False,
+            enable_exclusive_sum=False,
+            enable_timelag=False,
+            enable_consistency=False,
+            enable_composite=False,
+        )
+
+        markets = [
+            Market(
+                id="m1",
+                question="Test Market",
+                outcomes=[
+                    {"id": "yes", "label": "Yes", "price": 0.5},
+                    {"id": "no", "label": "No", "price": 0.5},
+                ],
+            )
+        ]
+        client = StaticClient(markets, "polymarket")
+        notifier = TelegramNotifierMock()
+
+        engine = Engine(config, clients=[client], notifier=notifier)
+        engine.run()
+
+        startup_count = sum("Predarb started" in msg for msg in notifier.messages)
+        assert startup_count == 1
 
 
 # --- New hedge/flatten simulation tests ---

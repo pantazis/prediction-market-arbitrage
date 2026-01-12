@@ -104,3 +104,65 @@ class TelegramNotifier:
             f"High-quality markets: {high_quality}",
         ]
         self._post("\n".join(lines))
+
+    def notify_cross_venue_matches(self, pairs):
+        def _shorten(text: object, limit: int = 80) -> str:
+            raw = str(text) if text is not None else ""
+            return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
+
+        lines = [f"🔗 Cross-venue matches ({len(pairs)})"]
+        for idx, (k_market, p_market, score) in enumerate(pairs, 1):
+            k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
+            p_title = _shorten(getattr(p_market, "question", None) or getattr(p_market, "id", ""))
+            time_note = ""
+            try:
+                k_end = getattr(k_market, "end_date", None)
+                p_end = getattr(p_market, "end_date", None)
+                if k_end and p_end:
+                    hours = abs((k_end - p_end).total_seconds()) / 3600.0
+                    time_note = f" | Δt={hours:.1f}h"
+            except Exception:
+                time_note = ""
+            lines.append(f"{idx}. {score:.2f} | K: {k_title} | P: {p_title}{time_note}")
+
+        max_len = 3500
+        chunk: list[str] = []
+        chunk_len = 0
+        for line in lines:
+            if chunk and chunk_len + len(line) + 1 > max_len:
+                self._post("\n".join(chunk))
+                chunk = []
+                chunk_len = 0
+            chunk.append(line)
+            chunk_len += len(line) + 1
+        if chunk:
+            self._post("\n".join(chunk))
+
+    def notify_cross_venue_verification(self, results):
+        def _shorten(text: object, limit: int = 80) -> str:
+            raw = str(text) if text is not None else ""
+            return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
+
+        lines = [f"✅ LLM cross-venue verification ({len(results)})"]
+        for idx, (k_market, p_market, score, verdict) in enumerate(results, 1):
+            status = "PASS" if verdict.same_event else "FAIL"
+            k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
+            p_title = _shorten(getattr(p_market, "question", None) or getattr(p_market, "id", ""))
+            reason = _shorten(getattr(verdict, "reason", "") or "n/a")
+            lines.append(
+                f"{idx}. {status} | sim={score:.2f} conf={verdict.confidence:.2f} | "
+                f"K: {k_title} | P: {p_title} | Reason: {reason}"
+            )
+
+        max_len = 3500
+        chunk: list[str] = []
+        chunk_len = 0
+        for line in lines:
+            if chunk and chunk_len + len(line) + 1 > max_len:
+                self._post("\n".join(chunk))
+                chunk = []
+                chunk_len = 0
+            chunk.append(line)
+            chunk_len += len(line) + 1
+        if chunk:
+            self._post("\n".join(chunk))

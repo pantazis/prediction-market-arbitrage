@@ -410,19 +410,22 @@ Failure to respect this file = INVALID OUTPUT.
       "submodules": {
         "engine.py": {
           "class": "Engine",
-          "updated": "2026-01-09",
+          "updated": "2026-01-12",
           "responsibilities": [
             "Load enabled market clients dynamically from config",
             "Fetch markets from all enabled exchanges (Polymarket, Kalshi)",
             "Merge markets into single list for detector pipeline",
             "Run cross-venue semantic matcher (batched) before detectors",
+            "Send cross-venue match summaries to Telegram when enabled (deduped)",
+            "Verify top cross-venue matches with LLM (OpenAI, Gemini, Mock) and report PASS/FAIL with reason to Telegram",
             "Run detector pipeline on 100% of markets (exchange-agnostic)",
             "Risk manager validates each opportunity (edge, liquidity, allocation, positions)",
             "Execute only approved trades via broker",
             "Generate reports (both trades and live summaries)",
-            "Accept injected notifier for testing"
+            "Accept injected notifier for testing",
+            "Send startup notification once per engine run"
           ],
-          "architecture_note": "Find-First approach: detectors find opportunities across all markets, risk manager decides viability",
+          "architecture_note": "Find-First approach: detectors find opportunities across all markets, risk manager decides viability. LLM verification layer (OpenAI, Gemini, Mock) runs after cross-venue matcher and before detectors, sending pass/fail verdicts to Telegram for each top pair.",
           "key_change_2026_01": "Removed market filtering/ranking stage - now runs detectors on ALL markets instead of pre-filtered subset",
           "key_change_2026_01_b": "Integrated LiveReporter for live incremental reporting with deduplication",
           "key_change_2026_01_09": "Multi-exchange support: dynamically loads PolymarketClient and/or KalshiClient based on config",
@@ -696,7 +699,8 @@ Failure to respect this file = INVALID OUTPUT.
           "class": "TelegramNotifier",
           "responsibilities": [
             "Send Telegram alerts",
-            "Log opportunities and trades"
+            "Log opportunities and trades",
+            "Send cross-venue match summaries"
           ],
           "note": "Legacy module; use src/predarb/notifiers/ for new code"
         },
@@ -2108,6 +2112,7 @@ Failure to respect this file = INVALID OUTPUT.
   "test_coverage": {
     "test_files": [
       "tests/test_engine.py",
+      "tests/test_engine_llm_verification.py",
       "tests/test_broker.py",
       "tests/test_detectors.py",
       "tests/test_filtering.py",

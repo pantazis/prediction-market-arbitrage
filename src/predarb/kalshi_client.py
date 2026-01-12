@@ -240,6 +240,7 @@ class KalshiClient(MarketClient):
         params = {
             "status": "open",
             "limit": 200,
+            "mve_filter": "exclude",  # Exclude multivariate/combo markets
         }
         
         response = self._make_request("GET", endpoint, params=params)

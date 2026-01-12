@@ -44,7 +44,8 @@ Failure to respect this file = INVALID OUTPUT.
         "src/predarb (main engine with multi-exchange support)",
         "arbitrage_bot (telegram integration)",
         "src (legacy client)",
-        "tests (pytest suite with 15 Kalshi tests)"
+        "tests (pytest suite with 15 Kalshi tests)",
+        "scripts (standalone utility scripts)"
       ],
       "exchanges_supported": [
         "Polymarket (default, always enabled)",
@@ -169,6 +170,74 @@ Failure to respect this file = INVALID OUTPUT.
         "Interactive confirmation",
         "Bot execution",
         "Post-run summary"
+      ]
+    },
+    {
+      "name": "market_data_downloader",
+      "path": "scripts/download_markets.py",
+      "type": "cli",
+      "added": "2026-01-12",
+      "description": "Standalone market data downloader for Kalshi and Polymarket APIs",
+      "purpose": "Download and archive market data (markets + orderbooks) to timestamped JSON/JSONL files",
+      "requirements": [
+        "python-dotenv (for .env loading)",
+        "requests (for HTTP calls)"
+      ],
+      "environment_variables": [
+        "ENV_FILE - Path to .env file (default: .env)",
+        "KALSHI_API_KEY_ID - Kalshi API key (optional)",
+        "KALSHI_PRIVATE_KEY_PATH - Path to Kalshi PEM file (optional)",
+        "KALSHI_PRIVATE_KEY_PEM - Kalshi PEM content (optional)",
+        "POLYMARKET_API_KEY - Polymarket API key (optional)",
+        "POLYMARKET_SECRET - Polymarket API secret (optional)",
+        "POLYMARKET_PASSPHRASE - Polymarket passphrase (optional)",
+        "POLYMARKET_FUNDER - Polymarket wallet address (optional)",
+        "HTTP_TIMEOUT - Request timeout in seconds (default: 30)"
+      ],
+      "cli_arguments": [
+        "--out DIR - Output directory base (default: market_dumps)",
+        "--kalshi - Download Kalshi markets (flag)",
+        "--poly - Download Polymarket markets (flag)",
+        "--kalshi-status STATUS - Kalshi market status filter (default: open)",
+        "--kalshi-series TICKER - Kalshi series ticker filter (optional)",
+        "--kalshi-orderbooks N - Fetch orderbooks for top N Kalshi markets by volume",
+        "--poly-orderbooks N - Fetch orderbooks for top N Polymarket markets by volume"
+      ],
+      "features": [
+        "Automatic pagination for both APIs",
+        "Exponential backoff retry logic (3 attempts, 1s/2s/4s)",
+        "Timestamped output folders (YYYYMMDD_HHMMSS_UTC)",
+        "Dual format output (JSON + JSONL)",
+        "Top-N orderbook fetching by volume",
+        "Environment variable loading from configurable .env",
+        "No hardcoded secrets",
+        "Progress logging without secret exposure",
+        "Manifest file with metadata"
+      ],
+      "api_endpoints": {
+        "kalshi": [
+          "GET https://api.elections.kalshi.com/trade-api/v2/markets (cursor pagination)",
+          "GET https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook"
+        ],
+        "polymarket": [
+          "GET https://gamma-api.polymarket.com/markets (limit+offset pagination)",
+          "GET https://clob.polymarket.com/book?token_id=... (orderbook)"
+        ]
+      },
+      "output_structure": {
+        "base_dir": "market_dumps/{TIMESTAMP}/",
+        "files": [
+          "manifest.json - Download metadata",
+          "kalshi_markets.json + .jsonl",
+          "kalshi_orderbooks_top.json + .jsonl (optional)",
+          "polymarket_gamma_markets.json + .jsonl",
+          "polymarket_clob_orderbooks_top.json + .jsonl (optional)"
+        ]
+      },
+      "example_usage": [
+        "python scripts/download_markets.py --kalshi --poly",
+        "ENV_FILE=.env python scripts/download_markets.py --kalshi --poly --kalshi-orderbooks 50 --poly-orderbooks 50",
+        "python scripts/download_markets.py --kalshi --kalshi-series KXPRES --kalshi-orderbooks 20"
       ]
     },
     {

@@ -212,7 +212,10 @@ Failure to respect this file = INVALID OUTPUT.
         "Environment variable loading from configurable .env",
         "No hardcoded secrets",
         "Progress logging without secret exposure",
-        "Manifest file with metadata"
+        "Manifest file with metadata",
+        "Kalshi: mve_filter=exclude (single-event markets only)",
+        "Kalshi: Sports category exclusion (NBA, NFL, NHL, tennis, soccer, NCAA, esports)",
+        "Polymarket: closed=false (active markets only)"
       ],
       "api_endpoints": {
         "kalshi": [
@@ -510,12 +513,15 @@ Failure to respect this file = INVALID OUTPUT.
           "class": "KalshiClient",
           "extends": "MarketClient",
           "added": "2026-01-09",
+          "updated": "2026-01-12",
           "responsibilities": [
             "Authenticate using RSA-SHA256 request signing",
             "Fetch active Kalshi markets via REST API",
             "Normalize Kalshi contracts into internal Market model",
             "Convert prices from cents (0-100) to probability (0.0-1.0)",
             "Filter markets by liquidity and expiry",
+            "Filter out sports categories not present in Polymarket",
+            "Exclude multivariate/combo markets (mve_filter=exclude)",
             "Tag all markets with exchange='kalshi'"
           ],
           "authentication": {
@@ -524,6 +530,19 @@ Failure to respect this file = INVALID OUTPUT.
             "headers": ["KALSHI-ACCESS-KEY", "KALSHI-ACCESS-SIGNATURE", "KALSHI-ACCESS-TIMESTAMP"],
             "credentials": ["KALSHI_API_KEY_ID (env)", "KALSHI_PRIVATE_KEY_PEM (env)"]
           },
+          "market_filtering": {
+            "api_level": "mve_filter=exclude (excludes multivariate event markets)",
+            "client_level": "excluded_sports_prefixes - filters NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching",
+            "rationale": "Align with Polymarket's focus on politics, economics, culture (no sports betting)"
+          },
+          "excluded_sports_categories": [
+            "KXNBA (NBA)", "KXNFL (NFL)", "KXNHL (NHL)", "KXPGATOUR (Golf)",
+            "KXATPMATCH (ATP Tennis)", "KXWTAMATCH (WTA Tennis)",
+            "KXNCAAWBGAME (NCAA Women's Basketball)", "KXNCAAMB (NCAA Men's Basketball)",
+            "KXLALIGA (La Liga Soccer)", "KXLIGUE1 (Ligue 1 Soccer)", "KXBUNDESLIGA (Bundesliga Soccer)",
+            "KXTGLMATCH (Tennis)", "KXCOACH (Coaching)", "KXNYG (NY Giants)", "KXNEXT (Next Coach)",
+            "KXDOTA2 (Dota 2 Esports)", "KXLOL (League of Legends)"
+          ],
           "normalization": {
             "market_id": "kalshi:<event_ticker>:<market_ticker>",
             "outcomes": "Always YES/NO",

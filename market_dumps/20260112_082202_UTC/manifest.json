@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-01-12T08:22:02.814256+00:00",
+  "output_directory": "market_dumps/20260112_082202_UTC",
+  "options": {
+    "kalshi_enabled": true,
+    "polymarket_enabled": false
+  },
+  "kalshi": {
+    "markets_count": 100,
+    "status_filter": "open",
+    "series_filter": null,
+    "category_filter": null
+  }
+}

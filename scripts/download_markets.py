@@ -106,6 +106,13 @@ class KalshiClient:
     
     BASE_URL = "https://api.elections.kalshi.com/trade-api/v2"
     
+    # Sports category prefixes to exclude (not in Polymarket)
+    EXCLUDED_SPORTS_PREFIXES = {
+        "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
+        "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA", "KXTGLMATCH",
+        "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"  # Coaching and esports
+    }
+    
     def __init__(self, http_client: HTTPClient):
         self.http = http_client
     
@@ -140,7 +147,16 @@ class KalshiClient:
             data = self.http.get(f"{self.BASE_URL}/markets", params=params)
             
             batch = data.get("markets", [])
-            markets.extend(batch)
+            
+            # Filter out sports markets (not present in Polymarket)
+            filtered_batch = []
+            for market in batch:
+                event_ticker = market.get("event_ticker", "")
+                is_sports = any(event_ticker.startswith(prefix) for prefix in self.EXCLUDED_SPORTS_PREFIXES)
+                if not is_sports:
+                    filtered_batch.append(market)
+            
+            markets.extend(filtered_batch)
             
             # Check if we've hit the limit
             if max_markets > 0 and len(markets) >= max_markets:

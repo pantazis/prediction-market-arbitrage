@@ -95,6 +95,13 @@ class KalshiClient(MarketClient):
         self.min_liquidity_usd = min_liquidity_usd
         self.min_days_to_expiry = min_days_to_expiry
         
+        # Sports category prefixes to exclude (not in Polymarket)
+        self.excluded_sports_prefixes = {
+            "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
+            "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA", "KXTGLMATCH",
+            "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"  # Coaching and esports
+        }
+        
         # Session for connection pooling
         self.session = requests.Session()
         
@@ -292,6 +299,11 @@ class KalshiClient(MarketClient):
             
             if not ticker:
                 return None
+            
+            # Filter out sports markets (not present in Polymarket)
+            for prefix in self.excluded_sports_prefixes:
+                if event_ticker.startswith(prefix):
+                    return None
             
             # Parse prices (Kalshi uses cents, need to convert to probability)
             yes_bid = float(data.get("yes_bid", 0)) / 100.0

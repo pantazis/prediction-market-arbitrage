@@ -1,0 +1,21 @@
+/usr/local/lib/python3.12/dist-packages/pydantic/_internal/_fields.py:149: UserWarning: Field "model_name" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+2026-01-12 11:35:44,355 INFO predarb.engine - Polymarket client enabled
+2026-01-12 11:35:44,426 INFO predarb.kalshi_client - KalshiClient initialized: env=prod, host=https://api.elections.kalshi.com
+2026-01-12 11:35:44,426 INFO predarb.engine - Kalshi client enabled
+2026-01-12 11:35:44,426 INFO predarb.engine - Engine initialized with clients: polymarket, kalshi
+2026-01-12 11:35:44,427 INFO predarb.engine - Cross-venue semantic matcher enabled
+2026-01-12 11:35:44,928 INFO predarb.engine - Fetched 500 markets from polymarket
+2026-01-12 11:35:44,928 INFO predarb.kalshi_client - Fetching all open markets from Kalshi...
+2026-01-12 11:35:45,071 INFO predarb.kalshi_client - Page 1: Fetched 1000 markets (total: 1000)
+2026-01-12 11:35:45,072 INFO predarb.kalshi_client - Fetched 1000 raw markets from Kalshi
+2026-01-12 11:35:45,141 INFO predarb.kalshi_client - After filtering: 1000 Kalshi markets
+2026-01-12 11:35:45,144 INFO predarb.engine - Fetched 1000 markets from kalshi
+2026-01-12 11:35:45,144 INFO predarb.engine - Total markets across all exchanges: 1500
+2026-01-12 11:35:45,146 INFO predarb.cross_venue_matcher - Cross-venue matching: 1000 Kalshi × 459 Poly
+2026-01-12 11:35:45,146 INFO predarb.cross_venue_matcher - Loading semantic model: all-MiniLM-L6-v2
+2026-01-12 11:35:45,148 INFO sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-12 11:35:45,148 INFO sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2026-01-12 11:35:46,851 INFO predarb.cross_venue_matcher - Model loaded successfully

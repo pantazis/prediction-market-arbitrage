@@ -160,6 +160,24 @@ python3 run_live_paper.py --duration 4 --capital 1000
 python3 run_live_paper.py --duration 0.1
 ```
 
+### Cross-Venue Semantic Matcher (Config Snippet)
+
+Enable high-quality cross-venue matching with batching to avoid OOM:
+
+```yaml
+# In config_live_paper.yml
+cross_venue_matcher:
+  enabled: true
+  model_name: "all-MiniLM-L6-v2"
+  min_similarity: 0.60      # stricter matching
+  max_hours_diff: 24         # expiry proximity window (hours)
+  batch_size: 50             # process Kalshi in batches to reduce memory
+```
+
+Notes:
+- Batch encoding keeps memory stable while scaling market counts.
+- Raise `min_similarity` to reduce false positives; lower it to explore more candidates.
+
 ---
 
 ## 📊 Expected Output

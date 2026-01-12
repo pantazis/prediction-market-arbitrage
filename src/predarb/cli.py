@@ -30,10 +30,11 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
 
     config = load_config(args.config)
-    client = PolymarketClient(config.polymarket)
     if args.iterations is not None:
         config.engine.iterations = args.iterations
-    engine = Engine(config, client)
+    
+    # Let Engine auto-load clients from config (supports multi-venue)
+    engine = Engine(config)
 
     if args.command == "once":
         engine.run_once()

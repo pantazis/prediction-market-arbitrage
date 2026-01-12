@@ -12,13 +12,14 @@
 polymarket:
   enabled: true
   host: "https://gamma-api.polymarket.com"
+  limit: 1000  # Fetch 1000 markets for cross-venue matching
   # Note: API credentials not required for read-only market data fetching
 
 kalshi:
-  enabled: true  # ENABLED for dual-venue testing
+  enabled: true  # ENABLED for dual-venue cross-exchange arbitrage
   env: prod
-  min_liquidity_usd: 500.0
-  min_days_to_expiry: 1
+  min_liquidity_usd: 0.0
+  min_days_to_expiry: 0
 
 # ==================== RISK MANAGEMENT (STRICT LIVE SETTINGS) ==================== #
 risk:
@@ -70,13 +71,14 @@ detectors:
   timelag_price_jump: 0.05             # 5% price jump for timelag
   timelag_persistence_minutes: 5
   
-  # DETECTOR ENABLE FLAGS
-  enable_duplicate: false              # DISABLED: Requires short selling
-  enable_ladder: true                  # ENABLED: Single-market strategy
-  enable_parity: true                  # ENABLED: Single-market strategy
-  enable_exclusive_sum: true           # ENABLED: Single-market strategy
+  # DETECTOR ENABLE FLAGS (ALL DISABLED - ONLY CROSS-VENUE ALLOWED)
+  enable_duplicate: false              # DISABLED: Single-venue, requires short selling
+  enable_ladder: false                 # DISABLED: Single-venue, requires short selling
+  enable_parity: false                 # DISABLED: Single-venue, requires short selling
+  enable_exclusive_sum: false          # DISABLED: Single-venue, requires short selling
   enable_timelag: false                # DISABLED: Requires historical data
-  enable_consistency: true             # ENABLED: Logical consistency checks
+  enable_consistency: false            # DISABLED: Single-venue, requires short selling
+  enable_composite: false              # DISABLED: Single-venue, requires short selling
 
 # ==================== TELEGRAM NOTIFICATIONS ==================== #
 telegram:
@@ -96,3 +98,4 @@ cross_venue_matcher:
   model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
   min_similarity: 0.60             # 0.50-0.80 range (higher = stricter matching)
   max_hours_diff: 24               # Maximum hours between market expiry dates
+  batch_size: 50                   # Process in batches to avoid memory issues

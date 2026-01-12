@@ -34,7 +34,9 @@
           "sports_prefixes": [
             "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
             "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA",
-            "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"
+            "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL",
+            "KXMVESPORTSMULTIGAME", "KXMVENFLSINGLEGAME", "KXMVESPORTS", "KXMVENFL",
+            "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
           ],
           "description": "Filters out sports betting categories after fetching",
           "effect": "Removes NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching markets"
@@ -47,9 +49,13 @@
           "api_endpoint_updated": "https://api.elections.kalshi.com (was trading-api.kalshi.com)"
         },
         "polymarket": {
+          "active": "true",
           "closed": "false",
-          "description": "Returns only active markets",
-          "effect": "Excludes resolved/closed markets"
+          "order": "volume24hr (descending)",
+          "description": "Returns only live tradable markets sorted by liquidity",
+          "effect": "Excludes resolved/closed/archived markets, prioritizes liquid markets",
+          "api_endpoint": "https://gamma-api.polymarket.com (was clob.polymarket.com)",
+          "no_category_filtering": "Unlike Kalshi, Polymarket has no sports markets, so no category filtering needed. Smart semantic matching handles relevance."
         }
       },
       "cli_options": {
@@ -76,10 +82,16 @@
         ]
       },
       "integration": {
-        "description": "Same filtering logic applied to main app market clients",
+        "description": "Minimal filtering at client level - smart semantic matching handles quality control",
         "files": [
-          "src/predarb/kalshi_client.py (mve_filter + sports exclusion)",
-          "src/predarb/polymarket_client.py (closed=false already present)"
+          "src/predarb/kalshi_client.py (NO liquidity/expiry filters - pure semantic matching)",
+          "src/predarb/polymarket_client.py (closed=false only)"
+        ],
+        "notes": [
+          "Removed min_liquidity_usd filter from KalshiClient",
+          "Removed min_days_to_expiry filter from KalshiClient", 
+          "All quality control delegated to smart_matcher.py semantic similarity + date proximity",
+          "Sports filtering kept at client level for performance"
         ]
       }
     },
@@ -103,27 +115,29 @@
         "Robust date parsing with timezone handling",
         "Text normalization (URLs, financial terms, special chars)",
         "Top-K candidate ranking per market",
-        "Complex derivative exclusion (parlays, combos, same-game bets)"
+        "NO liquidity or expiry filters - pure semantic + date matching",
+        "Sports exclusion handled in Kalshi client via ticker prefix filters",
+        "Batched embeddings to avoid OOM (configurable batch_size)"
       ],
       "filtering": {
         "polymarket_validation": {
           "active_status": "active=True, closed=False",
           "binary_outcomes": "Must have ['Yes', 'No'] outcomes exactly",
           "required_fields": "endDate, clobTokenIds must be present",
-          "group_markets": "NOW ALLOWED (e.g., Election subcategories)",
-          "effect": "Keeps high-quality binary markets including grouped events"
+          "group_markets": "ALLOWED (e.g., Election subcategories)",
+          "effect": "Keeps all binary markets - smart semantic matching handles quality"
         },
         "kalshi_validation": {
           "status_check": "status='active'",
           "market_type": "market_type='binary'",
-          "derivative_exclusion": "Rejects combo, parlay, same game, tri-fecta in title",
-          "effect": "Returns clean single-event binary markets"
+          "effect": "Returns all binary markets - smart semantic matching handles quality"
         },
         "semantic_matching": {
           "model": "sentence-transformers/all-MiniLM-L6-v2",
           "min_similarity": "0.60 (configurable, higher = stricter)",
           "max_hours_diff": "24 hours (configurable date proximity)",
           "top_k": "5 best matches per Kalshi market",
+          "batch_size": "50 (configurable; encodes Kalshi in batches, Polymarket once)",
           "scoring": "Cosine similarity on normalized embeddings"
         },
         "safety_checks": {
@@ -134,13 +148,13 @@
       },
       "text_representation": {
         "polymarket": {
-          "fields": "groupItemTitle + question + description",
-          "example": "US Presidential Election 2024 + Trump to win? + Market resolves...",
+          "fields": "question + description + tags/category when present",
+          "example": "Trump to win? + Market resolves... + [politics]",
           "normalization": "Lowercase, URL removal, financial term standardization"
         },
         "kalshi": {
-          "fields": "title + subtitle + rules_primary",
-          "example": "Donald Trump 2024 Election + Resolves YES if... + Official results",
+          "fields": "title + rules_primary (+ subtitle when present)",
+          "example": "Donald Trump 2024 Election + Resolves YES if...",
           "normalization": "Lowercase, URL removal, financial term standardization"
         }
       },
@@ -233,6 +247,7 @@
         "Sentence-BERT semantic matching",
         "Date proximity validation (24h default)",
         "Top-K pair ranking by similarity",
+        "Batched processing to reduce memory usage (configurable batch_size)",
         "Graceful degradation if model unavailable",
         "Lazy model loading (80MB one-time)",
         "Configurable thresholds via config.yml"
@@ -244,20 +259,22 @@
           "enabled": "true/false (default: false for safety)",
           "model_name": "all-MiniLM-L6-v2 (80MB, fast)",
           "min_similarity": "0.60 (range 0.50-0.80)",
-          "max_hours_diff": "24 (hours between expiry dates)"
+          "max_hours_diff": "24 (hours between expiry dates)",
+          "batch_size": "50 (encode Kalshi in batches; Polymarket encoded once)"
         },
         "example": {
           "enabled": true,
           "model_name": "all-MiniLM-L6-v2",
           "min_similarity": 0.6,
-          "max_hours_diff": 24
+          "max_hours_diff": 24,
+          "batch_size": 50
         }
       },
       "usage": {
         "automatic": "Runs every iteration if enabled in config.yml",
         "manual_disable": "Set cross_venue_matcher.enabled: false",
         "logging": "INFO level logs pair count, DEBUG logs top 3 matches",
-        "performance": "Adds ~2-5 seconds per iteration (depends on market count)"
+        "performance": "Depends on market counts; batching reduces memory usage. Typical 30–60s for ~600 markets on CPU."
       },
       "output": {
         "type": "Logging only (no file output)",

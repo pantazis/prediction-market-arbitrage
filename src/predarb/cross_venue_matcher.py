@@ -104,7 +104,8 @@ class CrossVenueMatcher:
         model_name: str = 'all-MiniLM-L6-v2',
         min_similarity: float = 0.60,
         max_hours_diff: int = 24,
-        enabled: bool = True
+        enabled: bool = True,
+        batch_size: int = 50
     ):
         """
         Initialize cross-venue matcher.
@@ -114,11 +115,13 @@ class CrossVenueMatcher:
             min_similarity: Minimum cosine similarity (0.0-1.0)
             max_hours_diff: Maximum hours between expiry dates
             enabled: If False, matcher is disabled (returns empty list)
+            batch_size: Number of markets to process per batch (default: 50)
         """
         self.model_name = model_name
         self.min_similarity = min_similarity
         self.max_hours_diff = max_hours_diff
         self.enabled = enabled
+        self.batch_size = batch_size
         self._model: Optional[SentenceTransformer] = None
         
         if not SEMANTIC_AVAILABLE and enabled:
@@ -192,40 +195,55 @@ class CrossVenueMatcher:
         k_texts = [_get_text_blob(m) for m in k_binary]
         p_texts = [_get_text_blob(m) for m in p_binary]
         
-        # Encode to embeddings
+        # Process in batches to avoid memory issues
+        pairs: List[Tuple[Market, Market, float]] = []
+        
         try:
-            logger.debug("Encoding Kalshi markets...")
-            k_emb = model.encode(k_texts, convert_to_tensor=True, show_progress_bar=False)
+            # Encode Polymarket markets once (corpus)
+            logger.info(f"Encoding {len(p_binary)} Polymarket markets...")
+            p_emb = model.encode(p_texts, convert_to_tensor=True, show_progress_bar=False, batch_size=32)
             
-            logger.debug("Encoding Polymarket markets...")
-            p_emb = model.encode(p_texts, convert_to_tensor=True, show_progress_bar=False)
+            # Process Kalshi markets in batches
+            total_batches = (len(k_binary) + self.batch_size - 1) // self.batch_size
+            logger.info(f"Processing {len(k_binary)} Kalshi markets in {total_batches} batches of {self.batch_size}...")
             
-            logger.debug("Computing similarity matrix...")
-            hits = util.semantic_search(k_emb, p_emb, top_k=5)
+            for batch_idx in range(0, len(k_binary), self.batch_size):
+                batch_end = min(batch_idx + self.batch_size, len(k_binary))
+                batch_markets = k_binary[batch_idx:batch_end]
+                batch_texts = k_texts[batch_idx:batch_end]
+                
+                logger.info(f"Batch {batch_idx // self.batch_size + 1}/{total_batches}: Processing markets {batch_idx+1}-{batch_end}...")
+                
+                # Encode batch
+                k_batch_emb = model.encode(batch_texts, convert_to_tensor=True, show_progress_bar=False, batch_size=32)
+                
+                # Search for matches
+                hits = util.semantic_search(k_batch_emb, p_emb, top_k=5)
+                
+                # Filter by similarity and date proximity
+                for k_local_idx, hit_list in enumerate(hits):
+                    k_market = batch_markets[k_local_idx]
+                    
+                    for hit in hit_list:
+                        score = hit['score']
+                        if score < self.min_similarity:
+                            continue
+                        
+                        p_idx = hit['corpus_id']
+                        p_market = p_binary[p_idx]
+                        
+                        # Date proximity check
+                        time_diff = _time_diff_hours(k_market, p_market)
+                        if time_diff is None or time_diff > self.max_hours_diff:
+                            continue
+                        
+                        pairs.append((k_market, p_market, float(score)))
+                
+                logger.info(f"Batch {batch_idx // self.batch_size + 1}/{total_batches}: Found {len(pairs)} matches so far")
+                
         except Exception as e:
             logger.error(f"Embedding/search failed: {e}")
             return []
-        
-        # Filter by similarity and date proximity
-        pairs: List[Tuple[Market, Market, float]] = []
-        
-        for k_idx, hit_list in enumerate(hits):
-            k_market = k_binary[k_idx]
-            
-            for hit in hit_list:
-                score = hit['score']
-                if score < self.min_similarity:
-                    continue
-                
-                p_idx = hit['corpus_id']
-                p_market = p_binary[p_idx]
-                
-                # Date proximity check
-                time_diff = _time_diff_hours(k_market, p_market)
-                if time_diff is None or time_diff > self.max_hours_diff:
-                    continue
-                
-                pairs.append((k_market, p_market, float(score)))
         
         # Sort by similarity descending
         pairs.sort(key=lambda x: x[2], reverse=True)

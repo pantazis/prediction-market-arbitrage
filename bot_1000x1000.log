@@ -1,0 +1,25 @@
+/usr/local/lib/python3.12/dist-packages/pydantic/_internal/_fields.py:149: UserWarning: Field "model_name" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+2026-01-12 11:41:16,034 INFO predarb.engine - Polymarket client enabled
+2026-01-12 11:41:16,099 INFO predarb.kalshi_client - KalshiClient initialized: env=prod, host=https://api.elections.kalshi.com
+2026-01-12 11:41:16,099 INFO predarb.engine - Kalshi client enabled
+2026-01-12 11:41:16,099 INFO predarb.engine - Engine initialized with clients: polymarket, kalshi
+2026-01-12 11:41:16,099 INFO predarb.engine - Cross-venue semantic matcher enabled
+2026-01-12 11:41:16,834 INFO predarb.engine - Fetched 500 markets from polymarket
+2026-01-12 11:41:16,834 INFO predarb.kalshi_client - Fetching all open markets from Kalshi...
+2026-01-12 11:41:17,099 INFO predarb.kalshi_client - Page 1: Fetched 1000 markets (total: 1000)
+2026-01-12 11:41:17,099 INFO predarb.kalshi_client - Fetched 1000 raw markets from Kalshi
+2026-01-12 11:41:17,172 INFO predarb.kalshi_client - After filtering: 1000 Kalshi markets
+2026-01-12 11:41:17,176 INFO predarb.engine - Fetched 1000 markets from kalshi
+2026-01-12 11:41:17,176 INFO predarb.engine - Total markets across all exchanges: 1500
+2026-01-12 11:41:17,178 INFO predarb.cross_venue_matcher - Cross-venue matching: 1000 Kalshi × 460 Poly
+2026-01-12 11:41:17,178 INFO predarb.cross_venue_matcher - Loading semantic model: all-MiniLM-L6-v2
+2026-01-12 11:41:17,179 INFO sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-12 11:41:17,179 INFO sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2026-01-12 11:41:18,901 INFO predarb.cross_venue_matcher - Model loaded successfully
+2026-01-12 11:42:14,309 INFO predarb.cross_venue_matcher - Found 0 cross-venue pairs (min_sim=0.6)
+DEBUG: cross_venue_config = enabled=True model_name='all-MiniLM-L6-v2' min_similarity=0.6 max_hours_diff=24
+DEBUG: enabled attr = True
+DEBUG: Created matcher, enabled=True

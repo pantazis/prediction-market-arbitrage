@@ -53,8 +53,6 @@ class KalshiClient(MarketClient):
         private_key_pem: Optional[str] = None,
         api_host: Optional[str] = None,
         env: str = "prod",
-        min_liquidity_usd: float = 500.0,
-        min_days_to_expiry: int = 1,
     ):
         """
         Initialize Kalshi client.
@@ -65,8 +63,6 @@ class KalshiClient(MarketClient):
                             (defaults to KALSHI_PRIVATE_KEY_PEM env var)
             api_host: API host URL (defaults to KALSHI_API_HOST or production)
             env: "prod" or "demo" (defaults to KALSHI_ENV or "prod")
-            min_liquidity_usd: Minimum market liquidity filter
-            min_days_to_expiry: Minimum days until expiry filter
         
         Raises:
             ValueError: If credentials not provided and not in environment
@@ -91,24 +87,55 @@ class KalshiClient(MarketClient):
         # Load private key (handle both PEM string and file path)
         self.private_key = self._load_private_key(private_key_input)
         
-        # Filters
-        self.min_liquidity_usd = min_liquidity_usd
-        self.min_days_to_expiry = min_days_to_expiry
-        
         # Sports category prefixes to exclude (not in Polymarket)
         self.excluded_sports_prefixes = {
+            # Single-game sports
             "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
             "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA", "KXTGLMATCH",
-            "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"  # Coaching and esports
+            "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL",  # Coaching and esports
+            # Multivariate sports (parlays/combinations)
+            "KXMVESPORTSMULTIGAME", "KXMVENFLSINGLEGAME", "KXMVESPORTS", "KXMVENFL",
+            "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
         }
         
         # Session for connection pooling
         self.session = requests.Session()
         
         logger.info(
-            f"KalshiClient initialized: env={self.env}, host={self.api_host}, "
-            f"min_liquidity={min_liquidity_usd}, min_expiry_days={min_days_to_expiry}"
+            f"KalshiClient initialized: env={self.env}, host={self.api_host}"
         )
+    
+    def _get_series_by_categories(self, categories: List[str]) -> List[str]:
+        """
+        Fetch series tickers for given categories.
+        
+        Args:
+            categories: List of category names (e.g., ["Economics", "Politics"])
+        
+        Returns:
+            List of series tickers
+        """
+        series_tickers = []
+        
+        for category in categories:
+            try:
+                endpoint = "/trade-api/v2/series"
+                params = {"category": category, "limit": 200}
+                
+                response = self._make_request("GET", endpoint, params=params)
+                if response and "series" in response and response["series"]:
+                    for series in response["series"]:
+                        ticker = series.get("ticker")
+                        if ticker:
+                            series_tickers.append(ticker)
+                    logger.info(f"Category '{category}': {len(response['series'])} series found")
+                else:
+                    logger.warning(f"Category '{category}': No series found")
+            except Exception as e:
+                logger.warning(f"Category '{category}': Error - {e}")
+                        
+        logger.info(f"Total: {len(series_tickers)} series across {len(categories)} categories")
+        return series_tickers
     
     def _load_private_key(self, pem_input: str):
         """
@@ -245,27 +272,55 @@ class KalshiClient(MarketClient):
         """
         Fetch active markets from Kalshi.
         
+        Strategy: Fetch by categories (Politics, Economics, Crypto) to avoid sports markets.
+        
         Returns:
             List of normalized Market objects
         """
-        endpoint = "/trade-api/v2/markets"
-        params = {
-            "status": "open",
-            "limit": 200,
-            "mve_filter": "exclude",  # Exclude multivariate/combo markets
-        }
+        # Categories that align with Polymarket's offerings (non-sports)
+        target_categories = ["Politics", "Economics", "Crypto"]
         
-        response = self._make_request("GET", endpoint, params=params)
-        if not response or "markets" not in response:
-            logger.warning("Kalshi returned no markets")
+        logger.info(f"Fetching series for categories: {target_categories}")
+        series_tickers = self._get_series_by_categories(target_categories)
+        
+        if not series_tickers:
+            logger.warning("No series found for target categories")
             return []
         
-        raw_markets = response["markets"]
-        logger.info(f"Fetched {len(raw_markets)} markets from Kalshi")
+        all_markets = []
+        
+        # Fetch markets for each series (limit to first 100 series to get more markets)
+        logger.info(f"Fetching markets for first 100 series (out of {len(series_tickers)})...")
+        for i, series_ticker in enumerate(series_tickers[:100]):
+            if i > 0:
+                time.sleep(0.5)  # 500ms delay between requests to avoid rate limiting
+                
+            endpoint = "/trade-api/v2/markets"
+            params = {
+                "series_ticker": series_ticker,
+                "status": "open",
+                "limit": 200,
+            }
+            
+            response = self._make_request("GET", endpoint, params=params)
+            if response and "markets" in response:
+                all_markets.extend(response["markets"])
+                logger.info(f"Series {series_ticker}: {len(response['markets'])} markets")
+        
+        # Deduplicate by ticker
+        seen = set()
+        unique_markets = []
+        for m in all_markets:
+            ticker = m.get("ticker")
+            if ticker and ticker not in seen:
+                seen.add(ticker)
+                unique_markets.append(m)
+        
+        logger.info(f"Fetched {len(unique_markets)} unique markets from Kalshi")
         
         # Normalize markets
         normalized: List[Market] = []
-        for raw in raw_markets:
+        for raw in unique_markets:
             market = self._normalize_market(raw)
             if market and self._passes_filters(market):
                 normalized.append(market)
@@ -360,7 +415,7 @@ class KalshiClient(MarketClient):
                 liquidity=liquidity,
                 volume=volume,
                 tags=data.get("category", "").split(",") if data.get("category") else [],
-                description=data.get("subtitle"),
+                description=data.get("rules_primary", "") or data.get("subtitle", ""),
                 resolution_source="Kalshi Official",
             )
             
@@ -375,23 +430,21 @@ class KalshiClient(MarketClient):
     
     def _passes_filters(self, market: Market) -> bool:
         """
-        Apply client-side filters to reduce noise.
+        Apply sports exclusion filter.
+        No liquidity/expiry filters - smart semantic matching handles quality.
         
         Args:
             market: Normalized market
         
         Returns:
-            True if market passes filters
+            False if market is a sports/esports market, True otherwise
         """
-        # Liquidity filter
-        if market.liquidity < self.min_liquidity_usd:
-            return False
+        # Extract ticker from market ID (format: "kalshi:EVENT:TICKER")
+        ticker = market.id.split(":")[-1] if ":" in market.id else market.id
         
-        # Expiry filter
-        if market.expiry:
-            now = datetime.now(timezone.utc)
-            days_to_expiry = (market.expiry - now).total_seconds() / 86400
-            if days_to_expiry < self.min_days_to_expiry:
+        # Check if ticker starts with any excluded sports prefix
+        for prefix in self.excluded_sports_prefixes:
+            if ticker.startswith(prefix):
                 return False
         
         return True

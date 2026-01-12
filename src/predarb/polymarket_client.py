@@ -21,7 +21,23 @@ class PolymarketClient(MarketClient):
 
     def fetch_markets(self) -> List[Market]:
         url = f"{self.host}/markets"
-        params = {"closed": "false", "limit": 1000, "order": "updated_at:desc"}
+        # CRITICAL: Use active=true and closed=false to get only live tradable markets
+        # Sort by volume24hr to prioritize liquid markets for arbitrage
+        # NOTE: Unlike Kalshi, Polymarket doesn't need category filtering because:
+        # 1. It doesn't have sports markets (Kalshi's main filter reason)
+        # 2. Smart semantic matching will handle relevance
+        # 3. Polymarket tags don't align 1:1 with Kalshi categories
+        
+        # Use configured limit if available, otherwise default to 10000
+        limit = getattr(self.config, 'limit', 10000)
+        
+        params = {
+            "active": "true",
+            "closed": "false",
+            "limit": limit,
+            "order": "volume24hr",
+            "ascending": "false"
+        }
         try:
             resp = requests.get(url, params=params, timeout=10)
             resp.raise_for_status()
@@ -29,7 +45,7 @@ class PolymarketClient(MarketClient):
         except Exception as e:
             logger.error("Failed to fetch markets: %s", e)
             return []
-        # Gamma API returns direct array, not wrapped in {data: [...]}
+        # Gamma API returns dict with 'data' key
         raw_markets = payload if isinstance(payload, list) else payload.get("data", [])
         markets: List[Market] = []
         for m in raw_markets:

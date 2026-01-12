@@ -29,7 +29,7 @@ Failure to respect this file = INVALID OUTPUT.
 {
   "schema_version": "1.3",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-09T22:00:00Z",
+  "last_updated": "2026-01-12T12:10:00Z",
   "project": {
     "name": "prediction-market-arbitrage",
     "description": "Python arbitrage detection bot for multi-exchange prediction markets (Polymarket + Kalshi)",
@@ -415,6 +415,7 @@ Failure to respect this file = INVALID OUTPUT.
             "Load enabled market clients dynamically from config",
             "Fetch markets from all enabled exchanges (Polymarket, Kalshi)",
             "Merge markets into single list for detector pipeline",
+            "Run cross-venue semantic matcher (batched) before detectors",
             "Run detector pipeline on 100% of markets (exchange-agnostic)",
             "Risk manager validates each opportunity (edge, liquidity, allocation, positions)",
             "Execute only approved trades via broker",
@@ -516,13 +517,13 @@ Failure to respect this file = INVALID OUTPUT.
           "updated": "2026-01-12",
           "responsibilities": [
             "Authenticate using RSA-SHA256 request signing",
-            "Fetch active Kalshi markets via REST API",
+            "Fetch active Kalshi markets via REST API using category-based series (Politics, Economics, Crypto)",
             "Normalize Kalshi contracts into internal Market model",
             "Convert prices from cents (0-100) to probability (0.0-1.0)",
-            "Filter markets by liquidity and expiry",
             "Filter out sports categories not present in Polymarket",
             "Exclude multivariate/combo markets (mve_filter=exclude)",
-            "Tag all markets with exchange='kalshi'"
+            "Tag all markets with exchange='kalshi'",
+            "NO liquidity/expiry filters - delegated to smart semantic matching"
           ],
           "authentication": {
             "method": "RSA request signing",
@@ -535,7 +536,8 @@ Failure to respect this file = INVALID OUTPUT.
           "market_filtering": {
             "api_level": "mve_filter=exclude (excludes multivariate event markets)",
             "client_level": "excluded_sports_prefixes - filters NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching",
-            "rationale": "Align with Polymarket's focus on politics, economics, culture (no sports betting)"
+            "rationale": "Align with Polymarket's focus on politics, economics, culture (no sports betting)",
+            "quality_control": "Removed min_liquidity_usd and min_days_to_expiry - smart_matcher.py handles quality via semantic similarity + date proximity"
           },
           "excluded_sports_categories": [
             "KXNBA (NBA)", "KXNFL (NFL)", "KXNHL (NHL)", "KXPGATOUR (Golf)",
@@ -543,14 +545,16 @@ Failure to respect this file = INVALID OUTPUT.
             "KXNCAAWBGAME (NCAA Women's Basketball)", "KXNCAAMB (NCAA Men's Basketball)",
             "KXLALIGA (La Liga Soccer)", "KXLIGUE1 (Ligue 1 Soccer)", "KXBUNDESLIGA (Bundesliga Soccer)",
             "KXTGLMATCH (Tennis)", "KXCOACH (Coaching)", "KXNYG (NY Giants)", "KXNEXT (Next Coach)",
-            "KXDOTA2 (Dota 2 Esports)", "KXLOL (League of Legends)"
+            "KXDOTA2 (Dota 2 Esports)", "KXLOL (League of Legends)",
+            "KXMVESPORTSMULTIGAME (Multivariate Sports)", "KXMVENFLSINGLEGAME (NFL Single Game)",
+            "KXMVESPORTS", "KXMVENFL", "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
           ],
           "key_methods": {
             "_sign_request": "(method, path, body, timestamp_ms) -> (signature, timestamp) - Returns tuple ensuring timestamp sync",
             "_make_request": "Generates timestamp once, passes to _sign_request, uses same timestamp in header",
-            "fetch_markets": "Fetches with mve_filter=exclude, applies sports filtering",
-            "_normalize_market": "Converts Kalshi format to Market model",
-            "_passes_filters": "Applies liquidity and expiry filters"
+            "fetch_markets": "Category-based series fetch (Politics/Economics/Crypto) → first N series → markets; applies sports filtering only",
+            "_normalize_market": "Converts Kalshi format to Market model; uses rules_primary (if present) as description",
+            "_passes_filters": "Excludes sports/esports by ticker prefix; no liquidity/expiry filters"
           },
           "normalization": {
             "market_id": "kalshi:<event_ticker>:<market_ticker>",
@@ -565,17 +569,26 @@ Failure to respect this file = INVALID OUTPUT.
         "polymarket_client.py": {
           "class": "PolymarketClient",
           "extends": "MarketClient",
-          "updated": "2026-01-09",
+          "updated": "2026-01-12",
           "responsibilities": [
-            "Fetch active markets from Polymarket Gamma API",
+            "Fetch live tradable markets from Polymarket Gamma API",
             "Parse market data",
             "Extract entities and thresholds",
             "Tag all markets with exchange='polymarket'"
           ],
+          "api_endpoint": "https://gamma-api.polymarket.com",
+          "api_filters": {
+            "active": "true (only tradable markets)",
+            "closed": "false (exclude resolved markets)",
+            "order": "volume24hr (sort by liquidity)",
+            "limit": "1000 (max per request)"
+          },
+          "no_category_filtering": "Unlike Kalshi (which filters sports), Polymarket has no sports markets. Smart semantic matching handles relevance, so no tag filtering needed.",
           "changes": [
             "Now extends MarketClient interface",
             "Added get_metadata() method",
-            "Added exchange tagging to all markets"
+            "Added exchange tagging to all markets",
+            "Fixed API filters to return live markets (2026-01-12)"
           ]
         },
         "broker.py": {

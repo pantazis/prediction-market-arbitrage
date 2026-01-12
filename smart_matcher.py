@@ -62,9 +62,8 @@ def _norm_text(s: str) -> str:
 
 def polymarket_is_valid(m: Dict[str, Any]) -> bool:
     """
-    Keep active binary markets. 
-    CRITICAL CHANGE: We now ALLOW 'group' markets (e.g. Elections)
-    as long as they have valid Yes/No outcomes.
+    Keep active binary markets with valid Yes/No outcomes.
+    Smart filtering approach - let semantic matching handle quality.
     """
     if m.get("active") is False or m.get("closed") is True:
         return False
@@ -86,15 +85,10 @@ def polymarket_is_valid(m: Dict[str, Any]) -> bool:
     return True
 
 def kalshi_is_valid(m: Dict[str, Any]) -> bool:
-    """Filter for active binary markets, excluding complex derivatives."""
+    """Filter for active binary markets. Smart semantic matching handles quality control."""
     if str(m.get("status", "")).lower() != "active":
         return False
     if str(m.get("market_type", "")).lower() != "binary":
-        return False
-
-    # Exclude complex parlays/combos which are hard to arb
-    title = (m.get("title") or "").lower()
-    if any(x in title for x in [" combo", " parlay", "same game", "tri-fecta"]):
         return False
     
     return True

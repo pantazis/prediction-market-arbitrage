@@ -93,6 +93,7 @@ class Engine:
                 model_name=getattr(cross_venue_config, 'model_name', 'all-MiniLM-L6-v2'),
                 min_similarity=getattr(cross_venue_config, 'min_similarity', 0.60),
                 max_hours_diff=getattr(cross_venue_config, 'max_hours_diff', 24),
+                batch_size=getattr(cross_venue_config, 'batch_size', 50),
                 enabled=True
             )
             print(f"DEBUG: Created matcher, enabled={self.cross_venue_matcher.enabled}")
@@ -166,8 +167,6 @@ class Engine:
                         private_key_pem=config.kalshi.private_key_pem,
                         api_host=config.kalshi.api_host,
                         env=config.kalshi.env,
-                        min_liquidity_usd=config.kalshi.min_liquidity_usd,
-                        min_days_to_expiry=config.kalshi.min_days_to_expiry,
                     )
                     clients.append(kalshi)
                     logger.info("Kalshi client enabled")

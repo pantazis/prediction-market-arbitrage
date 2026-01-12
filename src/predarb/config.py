@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 class PolymarketConfig(BaseModel):
     enabled: bool = True  # Enable/disable Polymarket client
-    host: str = "https://clob.polymarket.com"
+    host: str = "https://gamma-api.polymarket.com"  # Gamma API for market metadata
     api_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_API_KEY"))
     secret: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_SECRET"))
     passphrase: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PASSPHRASE"))
@@ -26,8 +26,18 @@ class KalshiConfig(BaseModel):
     private_key_pem: Optional[str] = Field(default_factory=lambda: os.getenv("KALSHI_PRIVATE_KEY_PEM"))
     api_host: str = Field(default_factory=lambda: os.getenv("KALSHI_API_HOST", "https://api.elections.kalshi.com"))
     env: str = Field(default_factory=lambda: os.getenv("KALSHI_ENV", "prod"))
-    min_liquidity_usd: float = 500.0
-    min_days_to_expiry: int = 1
+    min_liquidity_usd: float = 0.0  # Disabled - smart matcher handles quality
+    min_days_to_expiry: int = 0  # Disabled - smart matcher handles quality
+
+    def model_post_init(self, __context):
+        """Load PEM from file if private_key_pem looks like a filename."""
+        if self.private_key_pem and not self.private_key_pem.startswith("-----BEGIN"):
+            # Assume it's a file path
+            pem_path = Path(self.private_key_pem)
+            if pem_path.exists():
+                self.private_key_pem = pem_path.read_text()
+            elif (Path.cwd() / pem_path).exists():
+                self.private_key_pem = (Path.cwd() / pem_path).read_text()
 
 
 class RiskConfig(BaseModel):
@@ -155,6 +165,7 @@ class CrossVenueMatcherConfig(BaseModel):
     model_name: str = "all-MiniLM-L6-v2"
     min_similarity: float = 0.60
     max_hours_diff: int = 24
+    batch_size: int = 50  # Process markets in batches to avoid memory issues
 
 
 class AppConfig(BaseModel):

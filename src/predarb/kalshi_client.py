@@ -75,7 +75,7 @@ class KalshiClient(MarketClient):
         self.api_key_id = api_key_id or os.getenv("KALSHI_API_KEY_ID")
         private_key_input = private_key_pem or os.getenv("KALSHI_PRIVATE_KEY_PEM")
         self.api_host = (api_host or os.getenv("KALSHI_API_HOST") or 
-                        "https://trading-api.kalshi.com").rstrip("/")
+                        "https://api.elections.kalshi.com").rstrip("/")
         self.env = env or os.getenv("KALSHI_ENV", "prod")
         
         if not self.api_key_id:
@@ -139,7 +139,7 @@ class KalshiClient(MarketClient):
         except Exception as e:
             raise ValueError(f"Failed to parse RSA private key: {e}")
     
-    def _sign_request(self, method: str, path: str, body: str = "") -> str:
+    def _sign_request(self, method: str, path: str, body: str = "", timestamp_ms: str = None) -> str:
         """
         Generate RSA signature for Kalshi API request.
         
@@ -154,11 +154,13 @@ class KalshiClient(MarketClient):
             method: HTTP method (GET, POST, etc.)
             path: Request path (e.g., "/trade-api/v2/markets")
             body: Request body (empty for GET requests)
+            timestamp_ms: Timestamp in milliseconds (if None, generates new one)
         
         Returns:
-            Base64-encoded signature
+            Tuple of (Base64-encoded signature, timestamp used)
         """
-        timestamp_ms = str(int(time.time() * 1000))
+        if timestamp_ms is None:
+            timestamp_ms = str(int(time.time() * 1000))
         
         # Build signing message
         message_parts = [
@@ -179,7 +181,7 @@ class KalshiClient(MarketClient):
         # Base64 encode
         signature_b64 = base64.b64encode(signature).decode("utf-8")
         
-        return signature_b64
+        return signature_b64, timestamp_ms
     
     def _make_request(
         self,
@@ -210,14 +212,17 @@ class KalshiClient(MarketClient):
         path_with_query = endpoint + query_string
         body_str = json.dumps(json_body) if json_body else ""
         
-        # Generate signature
-        signature = self._sign_request(method, path_with_query, body_str)
+        # Generate timestamp first (must be same for signature and header)
+        timestamp_ms = str(int(time.time() * 1000))
+        
+        # Generate signature with the timestamp
+        signature, timestamp_ms = self._sign_request(method, path_with_query, body_str, timestamp_ms)
         
         # Build headers
         headers = {
             "KALSHI-ACCESS-KEY": self.api_key_id,
             "KALSHI-ACCESS-SIGNATURE": signature,
-            "KALSHI-ACCESS-TIMESTAMP": str(int(time.time() * 1000)),
+            "KALSHI-ACCESS-TIMESTAMP": timestamp_ms,
             "Content-Type": "application/json",
         }
         

@@ -24,7 +24,7 @@ class KalshiConfig(BaseModel):
     enabled: bool = False  # Enable/disable Kalshi client
     api_key_id: Optional[str] = Field(default_factory=lambda: os.getenv("KALSHI_API_KEY_ID"))
     private_key_pem: Optional[str] = Field(default_factory=lambda: os.getenv("KALSHI_PRIVATE_KEY_PEM"))
-    api_host: str = Field(default_factory=lambda: os.getenv("KALSHI_API_HOST", "https://trading-api.kalshi.com"))
+    api_host: str = Field(default_factory=lambda: os.getenv("KALSHI_API_HOST", "https://api.elections.kalshi.com"))
     env: str = Field(default_factory=lambda: os.getenv("KALSHI_ENV", "prod"))
     min_liquidity_usd: float = 500.0
     min_days_to_expiry: int = 1
@@ -148,6 +148,15 @@ class LLMVerificationConfig(BaseModel):
         return v
 
 
+class CrossVenueMatcherConfig(BaseModel):
+    """Configuration for cross-venue semantic matching."""
+
+    enabled: bool = False
+    model_name: str = "all-MiniLM-L6-v2"
+    min_similarity: float = 0.60
+    max_hours_diff: int = 24
+
+
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
     kalshi: KalshiConfig = Field(default_factory=KalshiConfig)
@@ -158,6 +167,7 @@ class AppConfig(BaseModel):
     detectors: DetectorConfig = Field(default_factory=DetectorConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     llm_verification: LLMVerificationConfig = Field(default_factory=LLMVerificationConfig)
+    cross_venue_matcher: CrossVenueMatcherConfig = Field(default_factory=CrossVenueMatcherConfig)
 
 
 def load_config(path: str | Path) -> AppConfig:

@@ -528,7 +528,9 @@ Failure to respect this file = INVALID OUTPUT.
             "method": "RSA request signing",
             "algorithm": "PKCS1v15 with SHA256",
             "headers": ["KALSHI-ACCESS-KEY", "KALSHI-ACCESS-SIGNATURE", "KALSHI-ACCESS-TIMESTAMP"],
-            "credentials": ["KALSHI_API_KEY_ID (env)", "KALSHI_PRIVATE_KEY_PEM (env)"]
+            "credentials": ["KALSHI_API_KEY_ID (env)", "KALSHI_PRIVATE_KEY_PEM (env)"],
+            "api_endpoint": "https://api.elections.kalshi.com",
+            "bug_fix_2026_01_12": "Synchronized timestamp between _sign_request() and header to fix 401 errors"
           },
           "market_filtering": {
             "api_level": "mve_filter=exclude (excludes multivariate event markets)",
@@ -543,6 +545,13 @@ Failure to respect this file = INVALID OUTPUT.
             "KXTGLMATCH (Tennis)", "KXCOACH (Coaching)", "KXNYG (NY Giants)", "KXNEXT (Next Coach)",
             "KXDOTA2 (Dota 2 Esports)", "KXLOL (League of Legends)"
           ],
+          "key_methods": {
+            "_sign_request": "(method, path, body, timestamp_ms) -> (signature, timestamp) - Returns tuple ensuring timestamp sync",
+            "_make_request": "Generates timestamp once, passes to _sign_request, uses same timestamp in header",
+            "fetch_markets": "Fetches with mve_filter=exclude, applies sports filtering",
+            "_normalize_market": "Converts Kalshi format to Market model",
+            "_passes_filters": "Applies liquidity and expiry filters"
+          },
           "normalization": {
             "market_id": "kalshi:<event_ticker>:<market_ticker>",
             "outcomes": "Always YES/NO",

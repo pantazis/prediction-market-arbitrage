@@ -2,7 +2,7 @@ polymarket:
   enabled: true
   host: "https://gamma-api.polymarket.com"
 kalshi:
-  enabled: false  # Set to true to enable Kalshi markets
+  enabled: true  # Set to true to enable Kalshi markets
   # Credentials loaded from environment variables:
   # KALSHI_API_KEY_ID, KALSHI_PRIVATE_KEY_PEM, KALSHI_API_HOST, KALSHI_ENV
   env: prod  # "prod" or "demo"
@@ -43,6 +43,13 @@ filter:
   require_resolution_source: true
   allow_missing_end_time: false
   min_rank_score: 20               # ignore ultra-low-quality markets
+
+cross_venue_matcher:
+  enabled: true                    # Enable semantic matching between Kalshi and Polymarket
+  model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
+  min_similarity: 0.60             # 0.50-0.80 range (higher = stricter matching)
+  max_hours_diff: 24               # Maximum hours between market expiry dates
+
 detectors:
   parity_threshold: 0.99
   duplicate_price_diff_threshold: 0.05

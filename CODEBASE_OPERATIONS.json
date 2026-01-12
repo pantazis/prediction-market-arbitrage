@@ -1,10 +1,291 @@
 {
   "codebase_operations": {
-    "version": "2.8",
-    "generated": "2026-01-09",
+    "version": "2.9",
+    "generated": "2026-01-12",
     "project": "prediction-market-arbitrage",
     "description": "Complete operational reference for running, testing, simulating, and controlling the arbitrage bot",
     "section": "ALL_OPERATIONS",
+    "market_data_downloader": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-12",
+      "description": "Standalone script to download market data from Kalshi and Polymarket APIs",
+      "purpose": "Download filtered market data for analysis, testing, or offline use",
+      "file": "scripts/download_markets.py",
+      "features": [
+        "Dual-exchange support (Kalshi + Polymarket)",
+        "HTTP retry logic with exponential backoff (1s, 2s, 4s)",
+        "Environment variable loading from configurable .env file",
+        "Cursor pagination (Kalshi) and offset pagination (Polymarket)",
+        "Rate limiting protection with --max-markets cap",
+        "Kalshi: mve_filter=exclude (single-event markets only)",
+        "Kalshi: Sports category exclusion (NBA, NFL, NHL, tennis, soccer, NCAA, esports)",
+        "Polymarket: closed=false (active markets only)",
+        "Dual format output: JSON (pretty) + JSONL (streaming)",
+        "Timestamped output directories: market_dumps/YYYYMMDD_HHMMSS_UTC/"
+      ],
+      "filtering": {
+        "kalshi_api_level": {
+          "mve_filter": "exclude",
+          "description": "Excludes multivariate/combo markets at API level",
+          "effect": "Returns only single-event binary markets"
+        },
+        "kalshi_client_level": {
+          "sports_prefixes": [
+            "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
+            "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA",
+            "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"
+          ],
+          "description": "Filters out sports betting categories after fetching",
+          "effect": "Removes NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching markets"
+        },
+        "kalshi_authentication": {
+          "method": "RSA-SHA256 request signing",
+          "fixed": "2026-01-12",
+          "bug_description": "Timestamp mismatch between signature and header caused 401 Unauthorized",
+          "fix": "_sign_request() now returns tuple (signature, timestamp) ensuring same timestamp used for both",
+          "api_endpoint_updated": "https://api.elections.kalshi.com (was trading-api.kalshi.com)"
+        },
+        "polymarket": {
+          "closed": "false",
+          "description": "Returns only active markets",
+          "effect": "Excludes resolved/closed markets"
+        }
+      },
+      "cli_options": {
+        "kalshi": "--kalshi (download from Kalshi)",
+        "poly": "--poly (download from Polymarket)",
+        "max_markets": "--max-markets N (cap at N markets per exchange)",
+        "env_file": "--env-file PATH (custom .env file, default .env)",
+        "kalshi_category": "--kalshi-category CATEGORY (filter by category)",
+        "poly_category": "--poly-category CATEGORY (filter by category)"
+      },
+      "usage_examples": {
+        "both_exchanges": "python scripts/download_markets.py --kalshi --poly --max-markets 100",
+        "kalshi_only": "python scripts/download_markets.py --kalshi --max-markets 50",
+        "polymarket_only": "python scripts/download_markets.py --poly --max-markets 500",
+        "with_env": "python scripts/download_markets.py --kalshi --poly --env-file .env.prod --max-markets 200"
+      },
+      "output": {
+        "directory": "market_dumps/YYYYMMDD_HHMMSS_UTC/",
+        "files": [
+          "kalshi_markets.json (pretty-printed)",
+          "kalshi_markets.jsonl (line-delimited)",
+          "polymarket_markets.json (pretty-printed)",
+          "polymarket_markets.jsonl (line-delimited)"
+        ]
+      },
+      "integration": {
+        "description": "Same filtering logic applied to main app market clients",
+        "files": [
+          "src/predarb/kalshi_client.py (mve_filter + sports exclusion)",
+          "src/predarb/polymarket_client.py (closed=false already present)"
+        ]
+      }
+    },
+    "smart_semantic_matcher": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-12",
+      "description": "Advanced semantic market matching engine using SBERT embeddings for cross-exchange arbitrage candidate generation",
+      "purpose": "Replace regex/keyword filtering with AI-powered semantic similarity matching between Polymarket and Kalshi markets",
+      "file": "smart_matcher.py",
+      "mandatory_pre_read": [
+        "CODEBASE_OPERATIONS.json",
+        "codebase_schema.js"
+      ],
+      "features": [
+        "Vector embeddings using Sentence-BERT (all-MiniLM-L6-v2 model)",
+        "Semantic similarity scoring (0.0-1.0) via cosine distance",
+        "Strict date/time proximity validation (safety layer)",
+        "Binary market filtering (Yes/No outcomes only)",
+        "Group market support (e.g., Elections, Cryptocurrency)",
+        "Robust date parsing with timezone handling",
+        "Text normalization (URLs, financial terms, special chars)",
+        "Top-K candidate ranking per market",
+        "Complex derivative exclusion (parlays, combos, same-game bets)"
+      ],
+      "filtering": {
+        "polymarket_validation": {
+          "active_status": "active=True, closed=False",
+          "binary_outcomes": "Must have ['Yes', 'No'] outcomes exactly",
+          "required_fields": "endDate, clobTokenIds must be present",
+          "group_markets": "NOW ALLOWED (e.g., Election subcategories)",
+          "effect": "Keeps high-quality binary markets including grouped events"
+        },
+        "kalshi_validation": {
+          "status_check": "status='active'",
+          "market_type": "market_type='binary'",
+          "derivative_exclusion": "Rejects combo, parlay, same game, tri-fecta in title",
+          "effect": "Returns clean single-event binary markets"
+        },
+        "semantic_matching": {
+          "model": "sentence-transformers/all-MiniLM-L6-v2",
+          "min_similarity": "0.60 (configurable, higher = stricter)",
+          "max_hours_diff": "24 hours (configurable date proximity)",
+          "top_k": "5 best matches per Kalshi market",
+          "scoring": "Cosine similarity on normalized embeddings"
+        },
+        "safety_checks": {
+          "date_proximity": "Hard rejection if expiry differs by > max_hours_diff",
+          "missing_dates": "Skip pairs with null/missing expiration times",
+          "basis_risk": "Time diff reported in output for manual review"
+        }
+      },
+      "text_representation": {
+        "polymarket": {
+          "fields": "groupItemTitle + question + description",
+          "example": "US Presidential Election 2024 + Trump to win? + Market resolves...",
+          "normalization": "Lowercase, URL removal, financial term standardization"
+        },
+        "kalshi": {
+          "fields": "title + subtitle + rules_primary",
+          "example": "Donald Trump 2024 Election + Resolves YES if... + Official results",
+          "normalization": "Lowercase, URL removal, financial term standardization"
+        }
+      },
+      "output_format": {
+        "file": "smart_pairs.json",
+        "structure": {
+          "similarity_score": "Float (0.0-1.0) - Semantic match strength",
+          "time_diff_hours": "Float - Hours between expiry dates",
+          "kalshi": {
+            "ticker": "Kalshi market ticker",
+            "title": "Human-readable title",
+            "expiry": "ISO datetime string",
+            "yes_price": "Best bid price (optional)",
+            "no_price": "Best offer price (optional)"
+          },
+          "polymarket": {
+            "id": "Polymarket market ID",
+            "question": "Market question text",
+            "expiry": "ISO datetime string",
+            "tokens": "CLOB token IDs"
+          }
+        }
+      },
+      "usage": {
+        "cli": "python smart_matcher.py",
+        "inputs_required": [
+          "kalshi_markets.json (in current directory)",
+          "polymarket_markets.json (in current directory)"
+        ],
+        "output": "smart_pairs.json (sorted by similarity descending)",
+        "dependencies": [
+          "sentence-transformers>=2.2.0",
+          "numpy>=1.24.0",
+          "python-dateutil>=2.9.0"
+        ]
+      },
+      "testing": {
+        "test_file": "test_smart_matcher.py",
+        "command": "python test_smart_matcher.py",
+        "test_coverage": [
+          "Sample market data generation",
+          "Binary outcome validation",
+          "Date proximity filtering",
+          "Semantic similarity scoring",
+          "Expected match verification (Trump + Bitcoin examples)",
+          "Output file generation"
+        ]
+      },
+      "advantages_over_regex": {
+        "semantic_understanding": "Captures meaning, not just keywords",
+        "typo_tolerance": "Robust to spelling variations",
+        "paraphrase_detection": "Matches different phrasings of same event",
+        "context_aware": "Uses full description, not just title",
+        "scalable": "No manual rule maintenance required",
+        "multilingual_ready": "Models support 50+ languages (future)"
+      },
+      "integration_with_engine": {
+        "current_status": "INTEGRATED",
+        "integration_point": "src/predarb/cross_venue_matcher.py",
+        "lifecycle_stage": "After market fetch, before detectors",
+        "config_section": "cross_venue_matcher (in config.yml)",
+        "compatibility": "Works with Market model, separates Kalshi/Polymarket",
+        "workflow": "fetch_markets() → cross_venue_matcher.find_pairs() → detectors.detect()"
+      }
+    },
+    "cross_venue_matcher_engine_integration": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-12",
+      "description": "Integrated semantic cross-venue matching into main engine lifecycle",
+      "purpose": "Automatically find and log cross-venue arbitrage opportunities between Kalshi and Polymarket",
+      "file": "src/predarb/cross_venue_matcher.py",
+      "integration_point": "src/predarb/engine.py",
+      "lifecycle_position": {
+        "order": 3,
+        "stage": "After market fetch, before detector scan",
+        "steps": [
+          "1. Engine.run_once() starts",
+          "2. Fetch markets from all clients (Kalshi, Polymarket)",
+          "3. Separate markets by exchange",
+          "4. **CrossVenueMatcher.find_pairs()** - NEW STEP",
+          "5. Log semantic pairs found",
+          "6. Run detectors on all markets",
+          "7. Execute approved opportunities"
+        ]
+      },
+      "features": [
+        "Automatic Kalshi/Polymarket separation",
+        "Binary market filtering (Yes/No outcomes only)",
+        "Sentence-BERT semantic matching",
+        "Date proximity validation (24h default)",
+        "Top-K pair ranking by similarity",
+        "Graceful degradation if model unavailable",
+        "Lazy model loading (80MB one-time)",
+        "Configurable thresholds via config.yml"
+      ],
+      "configuration": {
+        "config_file": "config.yml",
+        "section": "cross_venue_matcher",
+        "parameters": {
+          "enabled": "true/false (default: false for safety)",
+          "model_name": "all-MiniLM-L6-v2 (80MB, fast)",
+          "min_similarity": "0.60 (range 0.50-0.80)",
+          "max_hours_diff": "24 (hours between expiry dates)"
+        },
+        "example": {
+          "enabled": true,
+          "model_name": "all-MiniLM-L6-v2",
+          "min_similarity": 0.6,
+          "max_hours_diff": 24
+        }
+      },
+      "usage": {
+        "automatic": "Runs every iteration if enabled in config.yml",
+        "manual_disable": "Set cross_venue_matcher.enabled: false",
+        "logging": "INFO level logs pair count, DEBUG logs top 3 matches",
+        "performance": "Adds ~2-5 seconds per iteration (depends on market count)"
+      },
+      "output": {
+        "type": "Logging only (no file output)",
+        "log_format": "Cross-venue matcher found {count} semantic pairs",
+        "debug_details": "Logs top 3 pairs with similarity scores",
+        "integration": "Pairs used by detectors for opportunity detection"
+      },
+      "advantages": {
+        "automation": "No manual market pairing required",
+        "scalability": "Handles 100s of markets per exchange",
+        "accuracy": "Semantic understanding vs keyword matching",
+        "safety": "Date proximity prevents basis risk",
+        "performance": "Model cached, embeddings computed once"
+      },
+      "error_handling": {
+        "model_unavailable": "Logs warning, disables matcher",
+        "encoding_failure": "Logs error, returns empty list",
+        "date_parse_error": "Skips pair, continues with others"
+      },
+      "dependencies": {
+        "required": [
+          "sentence-transformers>=2.2.0",
+          "numpy>=1.24.0"
+        ],
+        "optional": "None",
+        "fallback": "Matcher disabled if dependencies missing"
+      }
+    },
     "live_paper_trading": {
       "status": "PRODUCTION_READY",
       "version": "1.0",
@@ -545,14 +826,21 @@
         "required_env_vars": [
           "KALSHI_API_KEY_ID (UUID format)",
           "KALSHI_PRIVATE_KEY_PEM (RSA private key in PEM format)",
-          "KALSHI_API_HOST (optional, defaults to https://trading-api.kalshi.com)",
+          "KALSHI_API_HOST (optional, defaults to https://api.elections.kalshi.com)",
           "KALSHI_ENV (optional, prod or demo, defaults to prod)"
         ],
         "enable_disable": "Set kalshi.enabled: true/false in config.yml",
         "filters": {
           "min_liquidity_usd": "Minimum market liquidity filter (default 500.0)",
-          "min_days_to_expiry": "Minimum days until expiry (default 1)"
-        }
+          "min_days_to_expiry": "Minimum days until expiry (default 1)",
+          "mve_filter": "API-level filter: exclude (single-event markets only, no multivariate/combo bets)",
+          "sports_exclusion": "Client-level filter: Excludes all sports betting categories (NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching)"
+        },
+        "excluded_sports_prefixes": [
+          "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
+          "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA",
+          "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"
+        ]
       },
       "market_normalization": {
         "market_id_format": "kalshi:<event_ticker>:<market_ticker>",
@@ -1544,7 +1832,7 @@
             "permission": "execute_action",
             "args": "6-digit confirmation code (received from dangerous command)",
             "effect": "Verify and execute dangerous command",
-            "response": "✅ Confirmed. Action executing..." or "❌ Invalid code",
+            "response": "Success: Confirmed. Action executing... | Error: Invalid code",
             "rate_limit": "20/min"
           },
           {
@@ -2053,6 +2341,7 @@
       "export_legacy_csv": "python -c 'from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()'",
       "read_report_summary": "python -c 'from src.predarb.unified_reporter import read_unified_report; print(read_unified_report())'",
       "check_api": "python check_connection.py",
+      "download_markets": "python scripts/download_markets.py --kalshi --poly --max-markets 100 (standalone market downloader)",
       "telegram_commands": "/start /pause /stop /status /daily /mode /freeze /unfreeze /forceclose /help",
       "rate_limits": "VIEW: 10/min, CONTROL: 5/min, DANGEROUS: 2/min",
       "confirmation": "Dangerous commands need 2-step: command → code → /confirm code",

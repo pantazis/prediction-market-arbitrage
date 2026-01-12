@@ -25,6 +25,7 @@ from predarb.detectors.composite import CompositeDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .unified_reporter import UnifiedReporter
+from predarb.cross_venue_matcher import CrossVenueMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,26 @@ class Engine:
         self.target_order_size = float(filter_kwargs.pop("target_order_size_usd", 0.0))
         self.filter_settings = FilterSettings(**filter_kwargs)
 
+        # Initialize cross-venue semantic matcher
+        cross_venue_config = getattr(config, 'cross_venue_matcher', None)
+        print(f"DEBUG: cross_venue_config = {cross_venue_config}")
+        print(f"DEBUG: enabled attr = {getattr(cross_venue_config, 'enabled', False) if cross_venue_config else 'N/A'}")
+        logger.debug(f"Cross-venue config: {cross_venue_config}")
+        logger.debug(f"Cross-venue enabled attr: {getattr(cross_venue_config, 'enabled', False) if cross_venue_config else 'N/A'}")
+        if cross_venue_config and getattr(cross_venue_config, 'enabled', False):
+            self.cross_venue_matcher = CrossVenueMatcher(
+                model_name=getattr(cross_venue_config, 'model_name', 'all-MiniLM-L6-v2'),
+                min_similarity=getattr(cross_venue_config, 'min_similarity', 0.60),
+                max_hours_diff=getattr(cross_venue_config, 'max_hours_diff', 24),
+                enabled=True
+            )
+            print(f"DEBUG: Created matcher, enabled={self.cross_venue_matcher.enabled}")
+            logger.info("Cross-venue semantic matcher enabled")
+        else:
+            self.cross_venue_matcher = CrossVenueMatcher(enabled=False)
+            print(f"DEBUG: Created disabled matcher, enabled={self.cross_venue_matcher.enabled}")
+            logger.info("Cross-venue semantic matcher disabled")
+        
         # Build detector list based on config flags
         self.detectors: Sequence = []
         if config.detectors.enable_parity:
@@ -164,16 +185,40 @@ class Engine:
 
         # Fetch markets from all enabled clients and merge
         all_markets: List[Market] = []
+        kalshi_markets: List[Market] = []
+        poly_markets: List[Market] = []
+        
         for client in self.clients:
             try:
                 exchange = client.get_exchange_name()
                 markets = client.fetch_markets()
                 logger.info(f"Fetched {len(markets)} markets from {exchange}")
                 all_markets.extend(markets)
+                
+                # Separate by exchange for cross-venue matching
+                if exchange.lower() == 'kalshi':
+                    kalshi_markets.extend(markets)
+                elif exchange.lower() == 'polymarket':
+                    poly_markets.extend(markets)
             except Exception as e:
                 logger.error(f"Failed to fetch markets from {client.get_exchange_name()}: {e}")
         
         logger.info(f"Total markets across all exchanges: {len(all_markets)}")
+        
+        # Apply cross-venue semantic matching if enabled
+        if self.cross_venue_matcher.enabled and kalshi_markets and poly_markets:
+            try:
+                pairs = self.cross_venue_matcher.find_pairs(kalshi_markets, poly_markets)
+                if pairs:
+                    logger.info(f"Cross-venue matcher found {len(pairs)} semantic pairs")
+                    # Log top matches
+                    for k, p, score in pairs[:3]:
+                        logger.debug(
+                            f"Pair: {k.question[:50]} <-> {p.question[:50]} "
+                            f"(similarity={score:.2f})"
+                        )
+            except Exception as e:
+                logger.error(f"Cross-venue matching failed: {e}")
         
         # Scan ALL markets for opportunities (no pre-filtering)
         # Risk manager will validate if each opportunity is viable

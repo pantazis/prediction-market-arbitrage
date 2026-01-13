@@ -1510,5 +1510,285 @@
       }
     },
     "timestamp": 1768231414.164013
+  },
+  "457bd05820fa5cd0fde09ce181d64ac6": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.9,
+      "reason": "Both markets refer to a US government shutdown due to a lapse in appropriations, with the same effective date (January 31, 2026). While the exact time of resolution differs (10:00 AM ET vs. 11:59 PM ET), the core event being tracked is identical. Market B explicitly uses the OPM Operating Status page as its resolution source, which aligns with Market A's description of checking the OPM website for a shutdown notice. The 'another' in Market B simply reinforces that it's tracking a *new* shutdown event, not a continuation of a prior one, which is implicit in Market A.",
+      "resolution_source": "U.S. Office of Personnel Management (OPM) website/Operating Status page",
+      "resolution_date": "2026-01-31",
+      "key_fields": {
+        "resolution_source": "U.S. Office of Personnel Management (OPM) website/Operating Status page",
+        "resolution_date": "2026-01-31"
+      }
+    },
+    "timestamp": 1768294930.9003124
+  },
+  "169c858bebabd268ea082458d99d4f97": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves based on an announcement of a presidential run. Market B resolves based on the outcome of the presidential election itself. These are distinct events, although a run for president is a prerequisite for winning the election.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768296973.0083077
+  },
+  "4f6b391abb390c088666f6bf574690c6": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns Donald Trump announcing a run for President, while Market B concerns Donald Trump Jr. winning the election. These are distinct events involving different individuals and outcomes.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768296973.7244093
+  },
+  "8dae666018f79ac46e218191907eea76": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A includes 'any Trump family member' as a potential nominee, while Market B specifically asks about 'Donald Trump' winning the nomination. Therefore, Market A could resolve to 'Yes' if a different Trump family member (e.g., Don Jr., Ivanka) were nominated, even if Donald Trump himself was not. Market B would only resolve to 'Yes' if Donald Trump personally secured the nomination.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768297078.0945642
+  },
+  "c16a60f30294db19654118d65cae3b6b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "While both markets refer to Marco Rubio holding the position of head of state in Venezuela at the end of 2026, Market A specifies resolution at 10:00 AM ET, whereas Market B specifies resolution at 12 PM ET. Furthermore, Market B provides a more detailed and extensive definition of 'officially holds' and outlines a hierarchical resolution process including the UN as a fallback, which is not present in Market A. The explicit mention of Kalshi Official as the resolution source for Market A is also a differentiator.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768297998.0903444
+  },
+  "ef7b67b39607d13b3fe740b87f2b0545": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A resolves at 10:00 AM ET, while Market B resolves at 12:00 PM ET on the specified date. While both markets aim to determine the same individual, the slight difference in resolution time could lead to different outcomes if there's a change in head of state within those two hours. Additionally, Market B's resolution criteria are significantly more detailed and explicitly outline how to handle ambiguities, which are not present in Market A's description.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768297999.361561
+  },
+  "90433b4a61156f8e904679f8f06641fd": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A specifies resolution via Kalshi Official, which is not detailed. Market B provides a detailed resolution methodology including specific UN sources and criteria for 'officially holds,' and a slightly different resolution time (12 PM ET vs. 10:00 AM ET). The lack of clarity and different potential resolution sources for Market A makes it unlikely to resolve on the exact same event with the same criteria as Market B.",
+      "resolution_source": null,
+      "resolution_date": "Dec 31, 2026",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "Dec 31, 2026"
+      }
+    },
+    "timestamp": 1768298000.3103893
+  },
+  "dc0e57b9b4d4d48067b9253dee8fe2ad": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A's resolution source is explicitly stated as 'Kalshi Official', while Market B's resolution source is not specified and relies on a more complex set of criteria including the UN and credible reporting. Furthermore, Market A specifies a resolution time of 10:00 AM ET, whereas Market B specifies 12 PM ET. The definition of 'officially holds' is also more detailed and nuanced in Market B.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298001.3344107
+  },
+  "5032805f99ca051c7315fd7bd368aad4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.8,
+      "reason": "Market A uses Kalshi Official as the resolution source, which is not specified for Market B. While both markets aim to resolve based on who officially holds the position of head of state, Market B's detailed definition and alternative resolution sources (UN, consensus of credible reporting) differ from Market A's implied reliance on Kalshi's process. Additionally, the resolution times (10:00 AM ET vs. 12 PM ET) are different, though this difference is minor and unlikely to cause a divergence if the overall event is the same.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298002.3704698
+  },
+  "bcea362bf5c6420e4cf615cb30094279": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A relies on Kalshi's official resolution, while Market B has a detailed custom resolution process. The time of resolution (10:00 AM ET vs. 12 PM ET) is different, and Market B's definition of 'officially holds' is much more granular and includes fallback mechanisms (UN, consensus reporting) not mentioned for Market A. The term 'leader' in Market B is explicitly defined as 'head of state' in its resolution criteria, aligning it with Market A's core concept, but the differing resolution sources and specific timings make them distinct.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298003.4043188
+  },
+  "e7fc1e0b508bf72e8ac284a595f82e43": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets differ on the specific individual who must hold the position. Market A specifies Donald Trump, while Market B specifies Pete Hegseth. Therefore, they cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298004.0086672
+  },
+  "06a296a54dbff9f87da7377ff690e6c4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A specifically asks about Diosdado Cabello Rond\u00f3n being the head of state, while Market B asks about Mar\u00eda Corina Machado being the leader (which is interpreted as head of state) but also includes a broader resolution criterion for any individual. The core difference is the focus on specific individuals. Market B's resolution criteria are much more detailed and inclusive in defining 'officially holds' and handling ambiguities, whereas Market A is simpler. The resolution times (10:00 AM ET vs. 12 PM ET) are also slightly different, although this might not be a critical divergence if the status is unchanged.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298005.0881026
+  },
+  "a4a34f3146c49ff02ec2848ed722a259": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A asks about Diosdado Cabello Rond\u00f3n specifically, while Market B asks about Pete Hegseth. These are two different individuals. Even though both markets resolve on the same date and refer to the head of state of Venezuela, the subject of who will hold the position is entirely different.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298006.1720626
+  },
+  "555af1269f79ae7e32d184aa467ab02a": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A asks about Diosdado Cabello Rond\u00f3n being head of state, while Market B asks about Donald Trump being head of state. These are distinct individuals, and therefore distinct events, even though both markets refer to the head of state of Venezuela on the same date.",
+      "resolution_source": null,
+      "resolution_date": "2026-12-31",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-12-31"
+      }
+    },
+    "timestamp": 1768298006.9199977
+  },
+  "509f689b88e20c904d30469d73c06678": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.9,
+      "reason": "Both markets describe the same core event: Hunter Biden winning and accepting the Democratic presidential nomination for the 2028 election. While Market B has a slightly more detailed resolution clause regarding replacements, the fundamental condition for a 'Yes' resolution is identical. Market A specifies 'Kalshi Official' as a resolution source, which is a reputable prediction market platform, and while Market B doesn't specify a platform source, it does state 'a consensus of official Democratic Party sources,' which aligns with what would be considered official for such an event.",
+      "resolution_source": "Consensus of official Democratic Party sources (inferred)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Consensus of official Democratic Party sources (inferred)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768298829.3587945
+  },
+  "4159c852bc5de8301475784c2540cde3": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking whether Cory Booker will win and accept the 2028 Democratic presidential nomination. The phrasing is nearly identical, and the resolution criteria, despite minor differences in the explicit mention of 'official Democratic Party sources' for Market B, align on the core event.",
+      "resolution_source": "Official Democratic Party sources (consensus)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Official Democratic Party sources (consensus)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768298830.144283
+  },
+  "3009e03c763478af304c84c0df8c69e6": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about the same real-world event: Jared Polis winning and accepting the Democratic Presidential nomination in 2028. The wording is very similar, and the core criteria for a 'Yes' resolution are identical. While Market A specifies Kalshi Official as a resolution source and Market B states a consensus of official Democratic Party sources, both aim to track the same objective political outcome.",
+      "resolution_source": "Consensus of official Democratic Party sources",
+      "resolution_date": "2028-11-05",
+      "key_fields": {
+        "resolution_source": "Consensus of official Democratic Party sources",
+        "resolution_date": "2028-11-05"
+      }
+    },
+    "timestamp": 1768298831.090892
+  },
+  "139cb699ebfbf1999670d99aec958ea6": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about the same specific real-world event: Tim Walz winning and accepting the Democratic presidential nomination for the 2028 election. While the resolution sources are described slightly differently (Kalshi Official vs. a consensus of official Democratic Party sources), in practice, these would likely converge on the same ultimate outcome for this type of political event. The description in Market B explicitly states that any replacement before election day does not change the resolution, which aligns with the core event of winning the nomination.",
+      "resolution_source": "Consensus of official Democratic Party sources / Kalshi Official",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Consensus of official Democratic Party sources / Kalshi Official",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768298832.3997302
+  },
+  "0e961afc5dbea63545ba2f9d6618e5a7": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.9,
+      "reason": "Both markets are asking about LeBron James winning and accepting the Democratic presidential nomination in 2028. While Market A specifies Kalshi as the resolution source and Market B mentions a 'consensus of official Democratic Party sources' with a note about pre-election replacements, the core event being bet on is identical. The 'pre-election replacements' clause in Market B further reinforces that the nomination itself, not a subsequent event, is the determinant. The discrepancy in specific resolution sources is minor compared to the shared event definition.",
+      "resolution_source": "Consensus of official Democratic Party sources (implied for Market A due to the nature of presidential nominations)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Consensus of official Democratic Party sources (implied for Market A due to the nature of presidential nominations)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768298833.4995005
+  },
+  "01b8cafea546543c3217e28fe8675526": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about Barack Obama winning and accepting the Democratic Presidential nomination for the 2028 election. The core event is identical. While Market A specifies 'Kalshi Official' and Market B specifies 'consensus of official Democratic Party sources', in practice, official Democratic Party sources would likely be the basis for any official Kalshi resolution on such a matter. The additional clause in Market B about replacements before election day also aligns with the primary nomination event.",
+      "resolution_source": "Official Democratic Party sources (as implied by both)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Official Democratic Party sources (as implied by both)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768298834.607366
   }
 }

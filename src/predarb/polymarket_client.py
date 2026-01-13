@@ -81,9 +81,18 @@ class PolymarketClient(MarketClient):
                         liquidity=float(data.get("liquidityNum", 0.0) or 0.0) / len(outcome_labels) if outcome_labels else 0.0,
                     )
                 )
-            
+
             if not outcomes:
                 return None
+
+            best_bid: Dict[str, float] = {}
+            best_ask: Dict[str, float] = {}
+            for outcome in outcomes:
+                label = str(outcome.label).strip().lower()
+                if label in ("yes", "no"):
+                    mid = float(outcome.price)
+                    best_bid[label] = mid
+                    best_ask[label] = mid
             
             # Parse end date - Gamma API uses endDate or endDateIso
             expiry = None
@@ -112,6 +121,8 @@ class PolymarketClient(MarketClient):
                 threshold=threshold,
                 asset=asset,
                 resolution_source=data.get("resolutionSource"),
+                best_bid=best_bid,
+                best_ask=best_ask,
             )
             # Tag exchange
             market.exchange = "polymarket"  # type: ignore
@@ -134,4 +145,3 @@ class PolymarketClient(MarketClient):
             "base_url": self.host,
             "supports_orderbook": False,  # Gamma API doesn't provide full orderbook
         }
-

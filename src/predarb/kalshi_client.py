@@ -370,6 +370,9 @@ class KalshiClient(MarketClient):
             yes_ask = float(data.get("yes_ask", 0)) / 100.0
             no_bid = float(data.get("no_bid", 0)) / 100.0
             no_ask = float(data.get("no_ask", 0)) / 100.0
+
+            def _nz(price: float) -> Optional[float]:
+                return price if price > 0 else None
             
             # Mid prices
             yes_price = (yes_bid + yes_ask) / 2.0 if (yes_bid + yes_ask) > 0 else 0.5
@@ -417,6 +420,8 @@ class KalshiClient(MarketClient):
                 tags=data.get("category", "").split(",") if data.get("category") else [],
                 description=data.get("rules_primary", "") or data.get("subtitle", ""),
                 resolution_source="Kalshi Official",
+                best_bid={"yes": _nz(yes_bid), "no": _nz(no_bid)},
+                best_ask={"yes": _nz(yes_ask), "no": _nz(no_ask)},
             )
             
             # Tag exchange

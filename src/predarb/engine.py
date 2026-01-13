@@ -4,6 +4,7 @@ import csv
 import hashlib
 import logging
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
@@ -395,6 +396,24 @@ class Engine:
                 if self.notifier:
                     self.notifier.notify_error(str(e), detector.__class__.__name__)
         
+        if len(all_detected_opportunities) > 1:
+            def _edge_per_day(opp: Opportunity) -> float:
+                expiries = []
+                for mid in opp.market_ids:
+                    market = market_lookup.get(mid)
+                    if market and market.expiry:
+                        expiries.append(market.expiry)
+                if not expiries:
+                    return opp.net_edge
+                max_expiry = max(expiries)
+                days = (max_expiry - datetime.utcnow()).total_seconds() / 86_400
+                if days <= 0:
+                    return opp.net_edge
+                return opp.net_edge / days
+
+            best_opp = max(all_detected_opportunities, key=_edge_per_day)
+            all_detected_opportunities = [best_opp]
+
         executed: List[Opportunity] = []
         for opp in all_detected_opportunities:
             if not self.risk.approve(market_lookup, opp):

@@ -38,7 +38,7 @@ filter:
 cross_venue_matcher:
   enabled: true                    # Enable semantic matching between Kalshi and Polymarket
   model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
-  min_similarity: 0.20             # 0.50-0.80 range (higher = stricter matching)
+  min_similarity: 0.60             # 0.50-0.80 range (higher = stricter matching)
   max_hours_diff: 24               # Maximum hours between market expiry dates
 
 detectors:

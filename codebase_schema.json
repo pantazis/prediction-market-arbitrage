@@ -765,7 +765,7 @@
           "description": "Testing harness modules for simulation",
           "modules": [
             "__init__.py (exports)",
-            "fake_client.py (FakePolymarketClient - in-memory, deterministic)",
+            "fake_client.py (FakePolymarketClient - in-memory, deterministic, exchange-tagging)",
             "synthetic_data.py (generate_synthetic_markets, evolve_markets_minute_by_minute)"
           ],
           "purpose": "Generate deterministic fake market data for testing without HTTP"

@@ -2158,11 +2158,11 @@
         "entry": "run() or run_once()",
         "orchestrates": [
           "PolymarketClient.get_active_markets()",
-          "FilterMarkets.filter_markets()",
           "Detector pipeline (6 detectors)",
           "RiskManager.check_limits()",
           "PaperBroker.execute(opportunity)",
-          "Notifier.send_message()"
+          "Notifier.send_message()",
+          "LLMVerifier.evaluate_arbitrage_cases() for cross-venue verified pairs (telegram output)"
         ]
       },
       "detectors": {
@@ -2185,7 +2185,7 @@
           "PolymarketConfig - API settings",
           "BrokerConfig - trading params",
           "RiskConfig - risk limits",
-          "FilterConfig - market filtering",
+          "FilterConfig - minimal eligibility filtering",
           "DetectorConfig - detector thresholds",
           "TelegramConfig - notifications",
           "EngineConfig - engine loop"

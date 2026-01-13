@@ -86,22 +86,7 @@ class EngineConfig(BaseModel):
 
 
 class FilterConfig(BaseModel):
-    # Looser defaults so we still scan when live liquidity/volume data is sparse
-    max_spread_pct: float = 0.60
-    min_volume_24h: float = 0.0
-    min_liquidity: float = 0.0
-    min_days_to_expiry: int = 0
-    min_liquidity_multiple: float = 0.0
     require_resolution_source: bool = False
-    allow_missing_end_time: bool = True
-    min_rank_score: float = 0.0
-    # Target bet size used for liquidity sizing (risk-based filter)
-    target_order_size_usd: float = 500.0
-    # scoring weights follow predarb.filtering.FilterSettings defaults
-    spread_score_weight: float = 0.40
-    volume_score_weight: float = 0.20
-    liquidity_score_weight: float = 0.30
-    frequency_score_weight: float = 0.10
 
 class TelegramConfig(BaseModel):
     enabled: bool = Field(default_factory=lambda: os.getenv("TELEGRAM_ENABLED", "false").lower() == "true")

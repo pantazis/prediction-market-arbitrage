@@ -80,8 +80,6 @@ class Engine:
 
         # Build filter settings from config (looser defaults to avoid empty scans)
         filter_kwargs = config.filter.model_dump()
-        self.min_rank_score = float(filter_kwargs.pop("min_rank_score", 0.0))
-        self.target_order_size = float(filter_kwargs.pop("target_order_size_usd", 0.0))
         self.filter_settings = FilterSettings(**filter_kwargs)
 
         # Initialize cross-venue semantic matcher
@@ -135,6 +133,7 @@ class Engine:
         self._startup_notified = False
         self._last_cross_venue_match_hash: Optional[str] = None
         self._last_cross_venue_verify_hash: Optional[str] = None
+        self._last_cross_venue_arb_hash: Optional[str] = None
 
         llm_config = getattr(config, "llm_verification", None)
         if llm_config and getattr(llm_config, "enabled", False):
@@ -259,6 +258,9 @@ class Engine:
 
                     verification_results = self._verify_cross_venue_pairs(pairs)
                     if verification_results:
+                        arbitrage_results = []
+                        cost_bps = float(self.config.broker.fee_bps + self.config.broker.slippage_bps)
+                        depth_fraction = float(self.config.broker.depth_fraction)
                         for k_market, p_market, score, result in verification_results:
                             verdict = "PASS" if result.same_event else "FAIL"
                             logger.info(
@@ -270,6 +272,15 @@ class Engine:
                                 p_market.question,
                                 result.reason,
                             )
+                            if result.same_event and self.llm_verifier:
+                                cases = self.llm_verifier.evaluate_arbitrage_cases(
+                                    k_market,
+                                    p_market,
+                                    cost_bps=cost_bps,
+                                    depth_fraction=depth_fraction,
+                                )
+                                if cases:
+                                    arbitrage_results.append((k_market, p_market, score, cases))
                         if self.notifier and hasattr(self.notifier, "notify_cross_venue_verification"):
                             signature = "|".join(
                                 f"{k.id}:{p.id}:{score:.4f}:{int(result.same_event)}:{result.reason}"
@@ -284,6 +295,19 @@ class Engine:
                                     )
                                 except Exception as e:
                                     logger.warning("Notifier verify alert failed: %s", e)
+                        if arbitrage_results and self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
+                            signature = "|".join(
+                                f"{k.id}:{p.id}:{score:.4f}:{case.case_name}:{case.edge_net:.6f}"
+                                for k, p, score, cases in arbitrage_results
+                                for case in cases
+                            )
+                            arbitrage_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+                            if arbitrage_hash != self._last_cross_venue_arb_hash:
+                                self._last_cross_venue_arb_hash = arbitrage_hash
+                                try:
+                                    self.notifier.notify_cross_venue_arbitrage(arbitrage_results)
+                                except Exception as e:
+                                    logger.warning("Notifier arbitrage alert failed: %s", e)
             except Exception as e:
                 logger.error(f"Cross-venue matching failed: {e}")
         

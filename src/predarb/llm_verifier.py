@@ -46,6 +46,20 @@ class VerificationResult(BaseModel):
     key_fields: Dict[str, Any] = Field(default_factory=dict)
 
 
+class ArbitrageCaseResult(BaseModel):
+    """Structured arbitrage validation result for a matched market pair."""
+
+    case_name: str
+    kalshi_action: str
+    polymarket_action: str
+    prices_used: Dict[str, Any] = Field(default_factory=dict)
+    edge_gross: float
+    edge_net: float
+    max_size: float
+    guaranteed: bool
+    reason: str
+
+
 class VerifiedGroup(BaseModel):
     """Result of verifying a group of markets."""
 
@@ -423,6 +437,79 @@ Respond with ONLY valid JSON in this exact format:
         self._cache: Dict[str, tuple[VerificationResult, float]] = {}
         self._load_cache()
 
+    @staticmethod
+    def _normalize_label(label: str) -> str:
+        return str(label or "").strip().lower()
+
+    def _extract_prices(self, market: Market) -> Dict[str, Optional[float]]:
+        """Extract best bid/ask (or fallback to mid) for YES/NO outcomes."""
+        best_bid = getattr(market, "best_bid", {}) or {}
+        best_ask = getattr(market, "best_ask", {}) or {}
+        prices: Dict[str, Optional[float]] = {
+            "yes_bid": None,
+            "yes_ask": None,
+            "no_bid": None,
+            "no_ask": None,
+            "yes_mid": None,
+            "no_mid": None,
+            "yes_liquidity": None,
+            "no_liquidity": None,
+        }
+
+        for outcome in market.outcomes or []:
+            label = self._normalize_label(outcome.label)
+            if label not in ("yes", "no"):
+                continue
+            bid = best_bid.get(label)
+            ask = best_ask.get(label)
+            mid = float(outcome.price) if outcome.price is not None else None
+            prices[f"{label}_bid"] = bid if bid is not None else mid
+            prices[f"{label}_ask"] = ask if ask is not None else mid
+            prices[f"{label}_mid"] = mid
+            prices[f"{label}_liquidity"] = float(outcome.liquidity or 0.0)
+
+        if prices["yes_liquidity"] in (None, 0.0) or prices["no_liquidity"] in (None, 0.0):
+            per_outcome = float(getattr(market, "liquidity", 0.0) or 0.0)
+            if per_outcome:
+                per_outcome = per_outcome / max(len(market.outcomes), 1)
+            if not prices["yes_liquidity"]:
+                prices["yes_liquidity"] = per_outcome
+            if not prices["no_liquidity"]:
+                prices["no_liquidity"] = per_outcome
+
+        return prices
+
+    @staticmethod
+    def _max_size_for_leg(price: Optional[float], liquidity: Optional[float], depth_fraction: float) -> Optional[float]:
+        if price is None or price <= 0:
+            return None
+        if liquidity is None or liquidity <= 0:
+            return None
+        return (liquidity * depth_fraction) / price
+
+    @staticmethod
+    def _strictness_score(text: Optional[str]) -> int:
+        if not text:
+            return 0
+        lowered = text.lower()
+        tokens = [
+            "official",
+            "certified",
+            "final",
+            "must",
+            "only",
+            "excluding",
+            "no later than",
+            "as reported by",
+            "according to",
+            "government",
+            "federal",
+            "sec",
+            "court",
+            "kalshi official",
+        ]
+        return sum(1 for token in tokens if token in lowered)
+
     def _create_provider(self) -> LLMProvider:
         """Create LLM provider based on configuration."""
         if self.config.provider == "openai":
@@ -559,6 +646,343 @@ Respond with ONLY valid JSON in this exact format:
         self._cache[cache_key] = (result, time.time())
         self._save_cache()
         return result
+
+    def evaluate_arbitrage_cases(
+        self,
+        kalshi_market: Market,
+        poly_market: Market,
+        cost_bps: float,
+        depth_fraction: float,
+    ) -> List[ArbitrageCaseResult]:
+        """
+        Evaluate locked/quasi-locked arbitrage cases for a matched market pair.
+
+        Uses best bid/ask (or mid fallback) and applies per-leg costs.
+        """
+        k_prices = self._extract_prices(kalshi_market)
+        p_prices = self._extract_prices(poly_market)
+        fee_rate = max(cost_bps, 0.0) / 10_000.0
+
+        results: List[ArbitrageCaseResult] = []
+
+        def add_case(
+            case_name: str,
+            kalshi_action: str,
+            polymarket_action: str,
+            prices_used: Dict[str, Any],
+            edge_gross: float,
+            edge_net: float,
+            max_size: Optional[float],
+            guaranteed: bool,
+            reason: str,
+        ) -> None:
+            if edge_net <= 0 or edge_gross <= 0:
+                return
+            if max_size is None or max_size <= 0:
+                return
+            results.append(
+                ArbitrageCaseResult(
+                    case_name=case_name,
+                    kalshi_action=kalshi_action,
+                    polymarket_action=polymarket_action,
+                    prices_used=prices_used,
+                    edge_gross=edge_gross,
+                    edge_net=edge_net,
+                    max_size=max_size,
+                    guaranteed=guaranteed,
+                    reason=reason,
+                )
+            )
+
+        # Case 1: YES overpriced on Kalshi
+        k_yes_bid = k_prices.get("yes_bid")
+        p_yes_ask = p_prices.get("yes_ask")
+        if k_yes_bid is not None and p_yes_ask is not None:
+            gross_edge = k_yes_bid - p_yes_ask
+            net_edge = k_yes_bid * (1 - fee_rate) - p_yes_ask * (1 + fee_rate)
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_yes_bid, k_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_yes_ask, p_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "YES overpriced on Kalshi",
+                "SHORT YES",
+                "BUY YES",
+                {
+                    "kalshi_yes_bid": k_yes_bid,
+                    "polymarket_yes_ask": p_yes_ask,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                True,
+                "Kalshi YES bid exceeds Polymarket YES ask after costs.",
+            )
+
+        # Case 2: NO overpriced on Kalshi
+        k_no_bid = k_prices.get("no_bid")
+        p_no_ask = p_prices.get("no_ask")
+        if k_no_bid is not None and p_no_ask is not None:
+            gross_edge = k_no_bid - p_no_ask
+            net_edge = k_no_bid * (1 - fee_rate) - p_no_ask * (1 + fee_rate)
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_no_bid, k_prices.get("no_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_no_ask, p_prices.get("no_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "NO overpriced on Kalshi",
+                "SHORT NO",
+                "BUY NO",
+                {
+                    "kalshi_no_bid": k_no_bid,
+                    "polymarket_no_ask": p_no_ask,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                True,
+                "Kalshi NO bid exceeds Polymarket NO ask after costs.",
+            )
+
+        # Case 3: Cross complement (YES + NO < 1)
+        k_yes_ask = k_prices.get("yes_ask")
+        p_no_ask = p_prices.get("no_ask")
+        if k_yes_ask is not None and p_no_ask is not None:
+            gross_cost = k_yes_ask + p_no_ask
+            gross_edge = 1.0 - gross_cost
+            net_cost = k_yes_ask * (1 + fee_rate) + p_no_ask * (1 + fee_rate)
+            net_edge = 1.0 - net_cost
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_yes_ask, k_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_no_ask, p_prices.get("no_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "Cross complement (YES + NO < 1)",
+                "BUY YES",
+                "BUY NO",
+                {
+                    "kalshi_yes_ask": k_yes_ask,
+                    "polymarket_no_ask": p_no_ask,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                True,
+                "YES on Kalshi plus NO on Polymarket costs less than 1 after fees.",
+            )
+
+        # Case 4: Synthetic YES (equivalent complement)
+        k_no_ask = k_prices.get("no_ask")
+        p_yes_ask = p_prices.get("yes_ask")
+        if k_no_ask is not None and p_yes_ask is not None:
+            gross_cost = k_no_ask + p_yes_ask
+            gross_edge = 1.0 - gross_cost
+            net_cost = k_no_ask * (1 + fee_rate) + p_yes_ask * (1 + fee_rate)
+            net_edge = 1.0 - net_cost
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_no_ask, k_prices.get("no_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_yes_ask, p_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "Synthetic YES (equivalent complement)",
+                "BUY NO",
+                "BUY YES",
+                {
+                    "kalshi_no_ask": k_no_ask,
+                    "polymarket_yes_ask": p_yes_ask,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                True,
+                "NO on Kalshi plus YES on Polymarket costs less than 1 after fees.",
+            )
+
+        # Case 5: Synthetic NO
+        if k_yes_ask is not None and p_no_ask is not None:
+            gross_cost = k_yes_ask + p_no_ask
+            gross_edge = 1.0 - gross_cost
+            net_cost = k_yes_ask * (1 + fee_rate) + p_no_ask * (1 + fee_rate)
+            net_edge = 1.0 - net_cost
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_yes_ask, k_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_no_ask, p_prices.get("no_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "Synthetic NO",
+                "BUY YES",
+                "BUY NO",
+                {
+                    "kalshi_yes_ask": k_yes_ask,
+                    "polymarket_no_ask": p_no_ask,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                True,
+                "YES on Kalshi plus NO on Polymarket costs less than 1 after fees.",
+            )
+
+        # Case 6: Time-ladder (same event, different deadlines)
+        k_end = getattr(kalshi_market, "end_date", None)
+        p_end = getattr(poly_market, "end_date", None)
+        k_yes_mid = k_prices.get("yes_mid")
+        p_yes_mid = p_prices.get("yes_mid")
+        if (
+            k_end
+            and p_end
+            and k_end < p_end
+            and k_yes_mid is not None
+            and p_yes_mid is not None
+            and k_yes_mid > p_yes_mid
+            and k_yes_bid is not None
+            and p_yes_ask is not None
+        ):
+            gross_edge = k_yes_bid - p_yes_ask
+            net_edge = k_yes_bid * (1 - fee_rate) - p_yes_ask * (1 + fee_rate)
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_yes_bid, k_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_yes_ask, p_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            resolution_match = (
+                (kalshi_market.resolution_source or "").strip().lower()
+                == (poly_market.resolution_source or "").strip().lower()
+            )
+            description_match = (
+                (kalshi_market.description or "").strip().lower()
+                == (poly_market.description or "").strip().lower()
+            )
+            if resolution_match or description_match:
+                add_case(
+                    "Time-ladder (same event, different deadlines)",
+                    "SHORT YES (earlier deadline)",
+                    "BUY YES (later deadline)",
+                    {
+                        "kalshi_yes_bid": k_yes_bid,
+                        "polymarket_yes_ask": p_yes_ask,
+                        "kalshi_end": k_end.isoformat(),
+                        "polymarket_end": p_end.isoformat(),
+                        "cost_bps": cost_bps,
+                    },
+                    gross_edge,
+                    net_edge,
+                    max_size,
+                    True,
+                    "Earlier deadline priced above later deadline with matching resolution rules.",
+                )
+
+        # Case 7: Resolution mismatch (risky)
+        k_strictness = self._strictness_score(kalshi_market.description) + self._strictness_score(
+            kalshi_market.resolution_source
+        )
+        p_strictness = self._strictness_score(poly_market.description) + self._strictness_score(
+            poly_market.resolution_source
+        )
+        if (
+            k_strictness > p_strictness
+            and k_yes_bid is not None
+            and p_yes_ask is not None
+        ):
+            gross_edge = k_yes_bid - p_yes_ask
+            net_edge = k_yes_bid * (1 - fee_rate) - p_yes_ask * (1 + fee_rate)
+            max_size = min(
+                filter(
+                    None,
+                    [
+                        self._max_size_for_leg(
+                            k_yes_bid, k_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                        self._max_size_for_leg(
+                            p_yes_ask, p_prices.get("yes_liquidity"), depth_fraction
+                        ),
+                    ],
+                ),
+                default=None,
+            )
+            add_case(
+                "Resolution mismatch",
+                "SHORT YES (stricter rules)",
+                "BUY YES (looser rules)",
+                {
+                    "kalshi_yes_bid": k_yes_bid,
+                    "polymarket_yes_ask": p_yes_ask,
+                    "kalshi_strictness": k_strictness,
+                    "polymarket_strictness": p_strictness,
+                    "cost_bps": cost_bps,
+                },
+                gross_edge,
+                net_edge,
+                max_size,
+                False,
+                "Kalshi resolution rules appear stricter than Polymarket (risky).",
+            )
+
+        return results
 
     def _call_with_timeout(self, prompt: str) -> dict:
         """Call provider with timeout protection."""

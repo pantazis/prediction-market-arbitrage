@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Optional
 
@@ -154,6 +155,32 @@ class TelegramNotifier:
                 f"K: {k_title} | P: {p_title} | Reason: {reason}"
             )
 
+        max_len = 3500
+        chunk: list[str] = []
+        chunk_len = 0
+        for line in lines:
+            if chunk and chunk_len + len(line) + 1 > max_len:
+                self._post("\n".join(chunk))
+                chunk = []
+                chunk_len = 0
+            chunk.append(line)
+            chunk_len += len(line) + 1
+        if chunk:
+            self._post("\n".join(chunk))
+
+    def notify_cross_venue_arbitrage(self, results):
+        objects = []
+        for _, _, _, cases in results:
+            for case in cases:
+                if hasattr(case, "model_dump"):
+                    objects.append(case.model_dump())
+                else:
+                    objects.append(dict(case))
+
+        if not objects:
+            return
+
+        lines = [json.dumps(obj, ensure_ascii=True, sort_keys=True) for obj in objects]
         max_len = 3500
         chunk: list[str] = []
         chunk_len = 0

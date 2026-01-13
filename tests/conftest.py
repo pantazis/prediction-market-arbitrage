@@ -534,10 +534,6 @@ def strict_risk_config() -> RiskConfig:
 def default_filter_config() -> FilterConfig:
     """Default market filtering configuration."""
     return FilterConfig(
-        max_spread_pct=0.03,  # 3%
-        min_volume_24h=10000.0,
-        min_liquidity=25000.0,
-        min_days_to_expiry=7,
         require_resolution_source=True,
     )
 
@@ -546,10 +542,6 @@ def default_filter_config() -> FilterConfig:
 def loose_filter_config() -> FilterConfig:
     """Lenient filtering (allows more markets)."""
     return FilterConfig(
-        max_spread_pct=0.10,  # 10%
-        min_volume_24h=1000.0,
-        min_liquidity=5000.0,
-        min_days_to_expiry=1,
         require_resolution_source=False,
     )
 

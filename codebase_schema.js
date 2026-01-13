@@ -749,7 +749,8 @@ Failure to respect this file = INVALID OUTPUT.
           "responsibilities": [
             "Send Telegram alerts",
             "Log opportunities and trades",
-            "Send cross-venue match summaries"
+            "Send cross-venue match summaries",
+            "Send cross-venue arbitrage validation results"
           ],
           "note": "Legacy module; use src/predarb/notifiers/ for new code"
         },
@@ -937,9 +938,9 @@ Failure to respect this file = INVALID OUTPUT.
             "filter_markets()",
             "rank_markets()"
           ],
-          "purpose": "Pre-filter and score markets by liquidity, volume, spread",
+          "purpose": "Minimal eligibility filtering (outcomes/resolution only) with placeholder ranking",
           "status": "Legacy - no longer used in main engine loop (2026-01-07)",
-          "note": "Removed from engine.run_once() to avoid missing opportunities in 'low-quality' markets. Risk manager now handles viability checks."
+          "note": "Removed from engine.run_once() to avoid missing opportunities in 'low-quality' markets. Risk manager now handles viability checks. Ranking returns deterministic zero scores."
         },
         "matchers.py": {
           "functions": [
@@ -1059,6 +1060,7 @@ Failure to respect this file = INVALID OUTPUT.
             "LLMVerifierConfig (pydantic)",
             "LLMVerifier",
             "VerificationResult (pydantic)",
+            "ArbitrageCaseResult (pydantic)",
             "VerifiedGroup (pydantic)",
             "LLMProvider (abstract)",
             "OpenAIChatProvider",
@@ -1067,7 +1069,8 @@ Failure to respect this file = INVALID OUTPUT.
           "purpose": "Optional LLM-based verification of semantic market clusters",
           "key_functions": [
             "verify_pair(market_a, market_b) -> VerificationResult",
-            "verify_group(markets) -> VerifiedGroup"
+            "verify_group(markets) -> VerifiedGroup",
+            "evaluate_arbitrage_cases(kalshi_market, poly_market, cost_bps, depth_fraction) -> List[ArbitrageCaseResult]"
           ],
           "features": [
             "Cheap LLM verification (GPT-3.5, Gemini 1.5-flash)",
@@ -1076,7 +1079,8 @@ Failure to respect this file = INVALID OUTPUT.
             "Timeout safety (fail_open or fail_closed)",
             "Strict JSON response parsing",
             "Network-free MockLLMProvider for testing",
-            "Union-find to build verified subgroups"
+            "Union-find to build verified subgroups",
+            "Deterministic cross-venue arbitrage validation after verification"
           ]
         },
         "models.py": {
@@ -1418,6 +1422,7 @@ Failure to respect this file = INVALID OUTPUT.
         "test_detectors.py",
         "test_filtering.py",
         "test_filtering_polymarket.py",
+        "test_llm_arbitrage_validation.py - NEW (2026-01-13): Arbitrage validation cases after LLM verify",
         "test_models_and_extractors.py",
         "test_polymarket_client.py",
         "test_notifier.py",
@@ -3165,7 +3170,7 @@ Failure to respect this file = INVALID OUTPUT.
     "extension_points": [
       "Add new detector by creating new class inheriting pattern",
       "Add new config section via new pydantic BaseModel class",
-      "Customize filtering thresholds in FilterConfig",
+      "Customize minimal eligibility in FilterConfig (resolution only)",
       "Extend notifier with additional channels (Slack, Discord, etc.)",
       "Create new FakeClient subclass for different synthetic scenarios"
     ]
@@ -3180,7 +3185,7 @@ Failure to respect this file = INVALID OUTPUT.
   "next_steps_for_developers": {
     "understand_flow": "Read engine.py run() method end-to-end",
     "add_detector": "Create new detector in src/predarb/detectors/, register in Engine.__init__()",
-    "customize_filtering": "Modify FilterConfig in config.py and FilterSettings in filtering.py",
+    "customize_filtering": "Filtering is minimal; new rules TBD (FilterConfig only controls resolution requirement)",
     "enable_telegram": "Set TELEGRAM_ENABLED=true, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID in .env",
     "live_trading": "Modify PaperBroker to use real py-clob-client instead of simulation",
     "performance_optimization": "Profile detectors.py and matchers.py; parallelize if needed",

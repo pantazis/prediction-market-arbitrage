@@ -151,6 +151,16 @@ class CrossVenueMatcherConfig(BaseModel):
     min_similarity: float = 0.60
     max_hours_diff: int = 24
     batch_size: int = 50  # Process markets in batches to avoid memory issues
+    tagger_enabled: bool = True
+    require_tag_overlap: bool = False
+    min_shared_tags: int = 1
+    cluster_by_tags: bool = False
+    cluster_tag_prefixes: list[str] = Field(default_factory=lambda: ["topic", "time"])
+    keyword_index_enabled: bool = False
+    min_keyword_overlap: int = 1
+    max_keyword_candidates: int = 200
+    use_faiss: bool = False
+    faiss_top_k: int = 5
 
 
 class AppConfig(BaseModel):

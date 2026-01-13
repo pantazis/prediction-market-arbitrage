@@ -9,6 +9,7 @@ import requests
 from predarb.config import PolymarketConfig
 from predarb.extractors import extract_entity, extract_expiry, extract_threshold
 from predarb.models import Market, Outcome
+from predarb.tagging import ensure_market_tags
 from predarb.market_client_base import MarketClient
 
 logger = logging.getLogger(__name__)
@@ -137,9 +138,15 @@ class PolymarketClient(MarketClient):
                 updated_at=updated_at,
                 best_bid=best_bid,
                 best_ask=best_ask,
+                slug=data.get("slug"),
+                group_item_title=data.get("groupItemTitle"),
+                group_title=data.get("groupTitle"),
+                series_title=data.get("seriesTitle"),
+                series_slug=data.get("seriesSlug"),
             )
             # Tag exchange
             market.exchange = "polymarket"  # type: ignore
+            ensure_market_tags(market)
             return market
         except Exception as e:
             logger.warning("Failed to parse market: %s", e)

@@ -32,6 +32,7 @@ from cryptography.hazmat.backends import default_backend
 
 from predarb.market_client_base import MarketClient
 from predarb.models import Market, Outcome
+from predarb.tagging import ensure_market_tags
 
 logger = logging.getLogger(__name__)
 
@@ -467,10 +468,14 @@ class KalshiClient(MarketClient):
                 resolution_source="Kalshi Official",
                 best_bid=best_bid,
                 best_ask=best_ask,
+                ticker=ticker,
+                event_ticker=event_ticker,
+                subtitle=data.get("subtitle"),
             )
             
             # Tag exchange
             market.exchange = "kalshi"  # type: ignore
+            ensure_market_tags(market)
             
             return market
             

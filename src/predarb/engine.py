@@ -97,6 +97,16 @@ class Engine:
                 min_similarity=getattr(cross_venue_config, 'min_similarity', 0.60),
                 max_hours_diff=getattr(cross_venue_config, 'max_hours_diff', 24),
                 batch_size=getattr(cross_venue_config, 'batch_size', 50),
+                tagger_enabled=getattr(cross_venue_config, 'tagger_enabled', True),
+                require_tag_overlap=getattr(cross_venue_config, 'require_tag_overlap', False),
+                min_shared_tags=getattr(cross_venue_config, 'min_shared_tags', 1),
+                cluster_by_tags=getattr(cross_venue_config, 'cluster_by_tags', False),
+                cluster_tag_prefixes=getattr(cross_venue_config, 'cluster_tag_prefixes', None),
+                keyword_index_enabled=getattr(cross_venue_config, 'keyword_index_enabled', False),
+                min_keyword_overlap=getattr(cross_venue_config, 'min_keyword_overlap', 1),
+                max_keyword_candidates=getattr(cross_venue_config, 'max_keyword_candidates', 200),
+                use_faiss=getattr(cross_venue_config, 'use_faiss', False),
+                faiss_top_k=getattr(cross_venue_config, 'faiss_top_k', 5),
                 enabled=True
             )
             print(f"DEBUG: Created matcher, enabled={self.cross_venue_matcher.enabled}")

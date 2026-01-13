@@ -1,31 +1,3 @@
-/*
-===============================================================================
-AI CODEBASE SCHEMA — READ FIRST (DO NOT MODIFY STRUCTURE)
-===============================================================================
-
-Purpose:
-This file is a MACHINE-READABLE canonical schema of the entire project.
-It exists to prevent repeated explanations of the codebase to AI systems.
-
-Rules:
-- This file is NOT for humans.
-- This file MUST be read before any code generation or analysis.
-- The structure, keys, and meanings are authoritative.
-- NEVER guess project structure if this file is present.
-- ALWAYS update this file when the codebase changes.
-- NEVER introduce new architecture that contradicts this schema.
-
-AI Instructions:
-- Treat this file as ground truth.
-- Use it as long-term memory for the repository.
-- When adding features, update the schema FIRST or TOGETHER with code.
-- When refactoring, reflect changes here immediately.
-- When unsure, trust this file over assumptions.
-
-Failure to respect this file = INVALID OUTPUT.
-
-===============================================================================
-*/
 {
   "schema_version": "1.3",
   "generated_date": "2026-01-06",
@@ -502,13 +474,13 @@ Failure to respect this file = INVALID OUTPUT.
             "Provide filter efficiency metrics (% of opportunities approved)"
           ],
           "key_methods": [
-            "report(iteration, all_markets, detected_opportunities, approved_opportunities) → bool",
-            "_compute_hash(items) → str (SHA256 of sorted, unique items)",
-            "_get_market_ids(markets) → List[str]",
-            "_get_opportunity_ids(opportunities) → List[str]",
+            "report(iteration, all_markets, detected_opportunities, approved_opportunities) \u2192 bool",
+            "_compute_hash(items) \u2192 str (SHA256 of sorted, unique items)",
+            "_get_market_ids(markets) \u2192 List[str]",
+            "_get_opportunity_ids(opportunities) \u2192 List[str]",
             "_append_csv_row(...) (with detailed debug info)",
             "_save_state(...) (persists hash and counts)",
-            "_load_state() → Dict"
+            "_load_state() \u2192 Dict"
           ],
           "csv_format": {
             "purpose": "Track markets found, opportunities detected, opportunities approved",
@@ -517,13 +489,13 @@ Failure to respect this file = INVALID OUTPUT.
               "READABLE_TIME (human-readable HH:MM:SS.mmm)",
               "ITERATION (number)",
               "MARKETS (total count)",
-              "MARKETS_Δ (change from previous report)",
+              "MARKETS_\u0394 (change from previous report)",
               "DETECTED (opportunities found by detectors)",
-              "DETECTED_Δ (change from previous)",
+              "DETECTED_\u0394 (change from previous)",
               "APPROVED (passed risk manager)",
-              "APPROVED_Δ (change from previous)",
+              "APPROVED_\u0394 (change from previous)",
               "APPROVAL% (APPROVED/DETECTED ratio for efficiency)",
-              "STATUS (✓ NEW if changed, → SAME if identical)",
+              "STATUS (\u2713 NEW if changed, \u2192 SAME if identical)",
               "MARKET_HASH (first 16 chars of market SHA256 for debugging)",
               "OPP_HASH (first 16 chars of opportunity SHA256)"
             ],
@@ -560,7 +532,10 @@ Failure to respect this file = INVALID OUTPUT.
             "fetch_markets() -> List[Market]",
             "get_metadata() -> Dict[str, Any]"
           ],
-          "implementations": ["PolymarketClient", "KalshiClient"]
+          "implementations": [
+            "PolymarketClient",
+            "KalshiClient"
+          ]
         },
         "kalshi_client.py": {
           "class": "KalshiClient",
@@ -580,8 +555,15 @@ Failure to respect this file = INVALID OUTPUT.
           "authentication": {
             "method": "RSA request signing",
             "algorithm": "PKCS1v15 with SHA256",
-            "headers": ["KALSHI-ACCESS-KEY", "KALSHI-ACCESS-SIGNATURE", "KALSHI-ACCESS-TIMESTAMP"],
-            "credentials": ["KALSHI_API_KEY_ID (env)", "KALSHI_PRIVATE_KEY_PEM (env)"],
+            "headers": [
+              "KALSHI-ACCESS-KEY",
+              "KALSHI-ACCESS-SIGNATURE",
+              "KALSHI-ACCESS-TIMESTAMP"
+            ],
+            "credentials": [
+              "KALSHI_API_KEY_ID (env)",
+              "KALSHI_PRIVATE_KEY_PEM (env)"
+            ],
             "api_endpoint": "https://api.elections.kalshi.com",
             "bug_fix_2026_01_12": "Synchronized timestamp between _sign_request() and header to fix 401 errors"
           },
@@ -592,19 +574,36 @@ Failure to respect this file = INVALID OUTPUT.
             "quality_control": "Removed min_liquidity_usd and min_days_to_expiry - smart_matcher.py handles quality via semantic similarity + date proximity"
           },
           "excluded_sports_categories": [
-            "KXNBA (NBA)", "KXNFL (NFL)", "KXNHL (NHL)", "KXPGATOUR (Golf)",
-            "KXATPMATCH (ATP Tennis)", "KXWTAMATCH (WTA Tennis)",
-            "KXNCAAWBGAME (NCAA Women's Basketball)", "KXNCAAMB (NCAA Men's Basketball)",
-            "KXLALIGA (La Liga Soccer)", "KXLIGUE1 (Ligue 1 Soccer)", "KXBUNDESLIGA (Bundesliga Soccer)",
-            "KXTGLMATCH (Tennis)", "KXCOACH (Coaching)", "KXNYG (NY Giants)", "KXNEXT (Next Coach)",
-            "KXDOTA2 (Dota 2 Esports)", "KXLOL (League of Legends)",
-            "KXMVESPORTSMULTIGAME (Multivariate Sports)", "KXMVENFLSINGLEGAME (NFL Single Game)",
-            "KXMVESPORTS", "KXMVENFL", "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
+            "KXNBA (NBA)",
+            "KXNFL (NFL)",
+            "KXNHL (NHL)",
+            "KXPGATOUR (Golf)",
+            "KXATPMATCH (ATP Tennis)",
+            "KXWTAMATCH (WTA Tennis)",
+            "KXNCAAWBGAME (NCAA Women's Basketball)",
+            "KXNCAAMB (NCAA Men's Basketball)",
+            "KXLALIGA (La Liga Soccer)",
+            "KXLIGUE1 (Ligue 1 Soccer)",
+            "KXBUNDESLIGA (Bundesliga Soccer)",
+            "KXTGLMATCH (Tennis)",
+            "KXCOACH (Coaching)",
+            "KXNYG (NY Giants)",
+            "KXNEXT (Next Coach)",
+            "KXDOTA2 (Dota 2 Esports)",
+            "KXLOL (League of Legends)",
+            "KXMVESPORTSMULTIGAME (Multivariate Sports)",
+            "KXMVENFLSINGLEGAME (NFL Single Game)",
+            "KXMVESPORTS",
+            "KXMVENFL",
+            "KXMVENBA",
+            "KXMVEMLB",
+            "KXMVENHL",
+            "KXMVESOCCER"
           ],
           "key_methods": {
             "_sign_request": "(method, path, body, timestamp_ms) -> (signature, timestamp) - Returns tuple ensuring timestamp sync",
             "_make_request": "Generates timestamp once, passes to _sign_request, uses same timestamp in header",
-            "fetch_markets": "Category-based series fetch (Politics/Economics/Crypto) → first N series → markets; applies sports filtering only",
+            "fetch_markets": "Category-based series fetch (Politics/Economics/Crypto) \u2192 first N series \u2192 markets; applies sports filtering only",
             "_normalize_market": "Converts Kalshi format to Market model; uses rules_primary (if present) as description",
             "_passes_filters": "Excludes sports/esports by ticker prefix; no liquidity/expiry filters"
           },
@@ -677,7 +676,7 @@ Failure to respect this file = INVALID OUTPUT.
               "location": "lines ~40-50"
             },
             "filter_2_no_sell_first": {
-              "rule": "IF action.side == SELL AND inventory <= 0 → REJECT",
+              "rule": "IF action.side == SELL AND inventory <= 0 \u2192 REJECT",
               "reason": "Cannot SELL without existing position (no short selling)",
               "location": "lines ~52-75"
             },
@@ -705,7 +704,7 @@ Failure to respect this file = INVALID OUTPUT.
               "location": "lines ~117-127"
             },
             "filter_7_buy_side_liquidity": {
-              "rule": "Orderbook BUY depth >= min_liquidity_multiple_strict × trade_size",
+              "rule": "Orderbook BUY depth >= min_liquidity_multiple_strict \u00d7 trade_size",
               "parameter": "min_liquidity_multiple_strict: 3.0 (3x depth required)",
               "reason": "No partial fills allowed",
               "location": "lines ~129-155"
@@ -729,9 +728,9 @@ Failure to respect this file = INVALID OUTPUT.
             }
           },
           "approval_checks": [
-            "DUPLICATE type → REJECT (Filter 1)",
-            "SELL without inventory → REJECT (Filter 2)",
-            "Same-outcome BUY+SELL → REJECT (Filter 3)",
+            "DUPLICATE type \u2192 REJECT (Filter 1)",
+            "SELL without inventory \u2192 REJECT (Filter 2)",
+            "Same-outcome BUY+SELL \u2192 REJECT (Filter 3)",
             "net_edge >= min_net_edge_threshold (Filter 5)",
             "gross_edge >= min_gross_edge (Filter 5)",
             "BUY price >= min_buy_price (Filter 6)",
@@ -894,7 +893,7 @@ Failure to respect this file = INVALID OUTPUT.
         },
         "detectors": {
           "description": "Arbitrage opportunity detectors",
-          "pattern": "Each detector implements detect(markets) → List[Opportunity]",
+          "pattern": "Each detector implements detect(markets) \u2192 List[Opportunity]",
           "detectors": [
             {
               "module": "parity.py",
@@ -1008,7 +1007,10 @@ Failure to respect this file = INVALID OUTPUT.
             "stage_4_llm_verification": {
               "purpose": "Optional high-precision verification using cheap LLMs",
               "method": "LLM verifies if markets refer to same event",
-              "models": ["GPT-3.5-turbo", "Gemini 1.5-flash"],
+              "models": [
+                "GPT-3.5-turbo",
+                "Gemini 1.5-flash"
+              ],
               "features": [
                 "Persistent caching (168h TTL)",
                 "Order-invariant cache keys",
@@ -1154,15 +1156,15 @@ Failure to respect this file = INVALID OUTPUT.
     },
     "arbitrage_bot": {
       "description": "Telegram-controlled arbitrage bot (Freqtrade-style bidirectional architecture)",
-      "architecture_style": "Freqtrade-inspired: OUTBOUND (bot→user) + INBOUND (user→bot) decoupled",
+      "architecture_style": "Freqtrade-inspired: OUTBOUND (bot\u2192user) + INBOUND (user\u2192bot) decoupled",
       "components_overview": [
         "OUTBOUND: Notifier async messages (trade_entered, trade_exited, errors, daily_summary, status_reply, risk_warnings)",
         "INBOUND: Command listener polling loop with validation, routing, authorization",
         "BOT_LOOP: Executes actions from ControlQueue asynchronously (non-blocking handler responses)",
-        "COMMAND_HANDLER: Routes /commands to handlers (parse → validate → queue → respond immediately)"
+        "COMMAND_HANDLER: Routes /commands to handlers (parse \u2192 validate \u2192 queue \u2192 respond immediately)"
       ],
       "outbound_flow": {
-        "description": "Bot → Telegram (notifications and event reporting)",
+        "description": "Bot \u2192 Telegram (notifications and event reporting)",
         "message_types": [
           "trade_entered: New position opened with entry details",
           "trade_exited: Position closed with P&L results",
@@ -1204,7 +1206,7 @@ Failure to respect this file = INVALID OUTPUT.
         ]
       },
       "inbound_flow": {
-        "description": "User → Telegram (command polling and execution)",
+        "description": "User \u2192 Telegram (command polling and execution)",
         "workflow_steps": [
           "1. Telegram listener polls telegram_api.get_updates() (polling or webhook)",
           "2. Extract /command and user_id from message",
@@ -1265,7 +1267,7 @@ Failure to respect this file = INVALID OUTPUT.
           "class": "TelegramControlledArbitrageBot",
           "responsibility": "Orchestrate Telegram interface with bot loop",
           "methods": [
-            "process_message(text, user_id, chat_id) → response: parse and route single message",
+            "process_message(text, user_id, chat_id) \u2192 response: parse and route single message",
             "start(): start bot loop and listener",
             "stop(): stop bot loop",
             "_on_bot_start/stop/pause/resume(data): callbacks for bot state changes"
@@ -1286,7 +1288,7 @@ Failure to respect this file = INVALID OUTPUT.
             },
             {
               "file": "control_queue.py",
-              "description": "Thread-safe queue for /commands → actions",
+              "description": "Thread-safe queue for /commands \u2192 actions",
               "classes": [
                 "ControlQueue: async queue for queueing ControlAction/RiskAction/ConfirmAction"
               ],
@@ -1383,53 +1385,53 @@ Failure to respect this file = INVALID OUTPUT.
       },
       "architecture_diagram": {
         "command_flow": [
-          "┌─────────────────────────────────────────────────────────────┐",
-          "│  USER sends /status in Telegram                             │",
-          "└────────────────┬────────────────────────────────────────────┘",
-          "                 │",
-          "         ┌───────▼────────┐",
-          "         │ Listener polls   │",
-          "         │ telegram_api     │",
-          "         └───────┬────────┘",
-          "                 │",
-          "         ┌───────▼─────────────────┐",
-          "         │ CommandParser.parse()   │",
-          "         │ → ParsedCommand         │",
-          "         └───────┬─────────────────┘",
-          "                 │",
-          "         ┌───────▼──────────────────┐",
-          "         │ RateLimiter.is_allowed() │",
-          "         │ ├─ NO → send reason      │",
-          "         │ └─ YES ↓                 │",
-          "         └───────┬──────────────────┘",
-          "                 │",
-          "         ┌───────▼────────────────────────┐",
-          "         │ CommandRouter.route()          │",
-          "         │ → TelegramHandlers.handle_*()  │",
-          "         └───────┬────────────────────────┘",
-          "                 │",
-          "         ┌───────▼──────────────────────┐",
-          "         │ Handler:                     │",
-          "         │ 1. Validate args             │",
-          "         │ 2. AuthGate.check_perm()     │",
-          "         │    ├─ NO → deny_message      │",
-          "         │    └─ YES ↓                  │",
-          "         │ 3. ControlQueue.enqueue()    │",
-          "         │ 4. return response_message   │",
-          "         └───────┬──────────────────────┘",
-          "                 │",
-          "         ┌───────▼────────────────────┐",
-          "         │ send_message() to Telegram  │",
-          "         │ (IMMEDIATE response)        │",
-          "         └───────┬────────────────────┘",
-          "                 │",
-          "                 │ [ASYNC, deferred]",
-          "                 │",
-          "         ┌───────▼──────────────────┐",
-          "         │ bot_loop processes       │",
-          "         │ action from ControlQueue │",
-          "         │ (trade, position change) │",
-          "         └──────────────────────────┘"
+          "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "\u2502  USER sends /status in Telegram                             \u2502",
+          "\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 Listener polls   \u2502",
+          "         \u2502 telegram_api     \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 CommandParser.parse()   \u2502",
+          "         \u2502 \u2192 ParsedCommand         \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 RateLimiter.is_allowed() \u2502",
+          "         \u2502 \u251c\u2500 NO \u2192 send reason      \u2502",
+          "         \u2502 \u2514\u2500 YES \u2193                 \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 CommandRouter.route()          \u2502",
+          "         \u2502 \u2192 TelegramHandlers.handle_*()  \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 Handler:                     \u2502",
+          "         \u2502 1. Validate args             \u2502",
+          "         \u2502 2. AuthGate.check_perm()     \u2502",
+          "         \u2502    \u251c\u2500 NO \u2192 deny_message      \u2502",
+          "         \u2502    \u2514\u2500 YES \u2193                  \u2502",
+          "         \u2502 3. ControlQueue.enqueue()    \u2502",
+          "         \u2502 4. return response_message   \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 send_message() to Telegram  \u2502",
+          "         \u2502 (IMMEDIATE response)        \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518",
+          "                 \u2502",
+          "                 \u2502 [ASYNC, deferred]",
+          "                 \u2502",
+          "         \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+          "         \u2502 bot_loop processes       \u2502",
+          "         \u2502 action from ControlQueue \u2502",
+          "         \u2502 (trade, position change) \u2502",
+          "         \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
         ]
       }
     },
@@ -1455,7 +1457,12 @@ Failure to respect this file = INVALID OUTPUT.
       ],
       "fake_clients": {
         "fake_kalshi_client.py": "NEW (2026-01-09): Deterministic Kalshi client for tests (NO network calls)",
-        "fixtures": ["default (2 markets)", "high_volume (50 markets)", "parity_arb", "empty"]
+        "fixtures": [
+          "default (2 markets)",
+          "high_volume (50 markets)",
+          "parity_arb",
+          "empty"
+        ]
       },
       "fixtures": {
         "markets.json": "Mock Polymarket market data for selftest"
@@ -1979,7 +1986,7 @@ Failure to respect this file = INVALID OUTPUT.
         "flow": "predarb_cli",
         "steps": [
           "cli.main() parses arguments",
-          "load_config(yaml_path) → AppConfig",
+          "load_config(yaml_path) \u2192 AppConfig",
           "PolymarketClient(config.polymarket) instantiate",
           "Engine(config, client) instantiate",
           "engine.run() or engine.run_once() execute"
@@ -1988,9 +1995,9 @@ Failure to respect this file = INVALID OUTPUT.
       {
         "flow": "engine_run_loop",
         "steps": [
-          "client.get_active_markets() → List[Market]",
-          "filter_markets(markets, settings) → filtered",
-          "rank_markets(filtered) → sorted by score",
+          "client.get_active_markets() \u2192 List[Market]",
+          "filter_markets(markets, settings) \u2192 filtered",
+          "rank_markets(filtered) \u2192 sorted by score",
           "for detector in [Parity, Ladder, Duplicate, ...]: detector.detect(ranked)",
           "combine all detector results",
           "for opportunity in opportunities: broker.execute(opportunity)",
@@ -2003,7 +2010,7 @@ Failure to respect this file = INVALID OUTPUT.
       {
         "flow": "detector_pattern",
         "steps": [
-          "detector.detect(markets: List[Market]) → List[Opportunity]",
+          "detector.detect(markets: List[Market]) \u2192 List[Opportunity]",
           "each detector scans markets independently",
           "returns 0+ opportunities per detector"
         ]
@@ -2011,7 +2018,7 @@ Failure to respect this file = INVALID OUTPUT.
       {
         "flow": "broker_execute",
         "steps": [
-          "broker.execute(opportunity: Opportunity) → List[Trade]",
+          "broker.execute(opportunity: Opportunity) \u2192 List[Trade]",
           "for action in opportunity.actions: execute_trade(action)",
           "model fees, slippage, liquidity",
           "update position tracking",
@@ -2165,11 +2172,11 @@ Failure to respect this file = INVALID OUTPUT.
       "detection_logic": {
         "description": "Identifies mispricing in hierarchical event relationships",
         "patterns": [
-          "championship → final → semifinal → quarterfinal",
-          "president → primary → caucus",
-          "championship → division → conference",
-          "national → regional → local",
-          "year → quarter → month → week"
+          "championship \u2192 final \u2192 semifinal \u2192 quarterfinal",
+          "president \u2192 primary \u2192 caucus",
+          "championship \u2192 division \u2192 conference",
+          "national \u2192 regional \u2192 local",
+          "year \u2192 quarter \u2192 month \u2192 week"
         ],
         "keyword_hierarchy": "Ranks events by scope: championship > final > semifinal > quarterfinal, etc.",
         "violation_detection": "If P(broader_event) > P(narrower_event) + tolerance, flag arbitrage",
@@ -2179,7 +2186,7 @@ Failure to respect this file = INVALID OUTPUT.
         "type": "COMPOSITE",
         "leg_1": "SELL composite event (higher price)",
         "leg_2": "BUY component event (lower price)",
-        "profit_condition": "Composite event requires component, so P(composite) ≤ P(component) must hold",
+        "profit_condition": "Composite event requires component, so P(composite) \u2264 P(component) must hold",
         "edge": "P(composite) - P(component) - fees"
       }
     }
@@ -2222,8 +2229,8 @@ Failure to respect this file = INVALID OUTPUT.
       ],
       "invariants_covered": {
         "A_market_data": [
-          "A1a: Price bounds (0 ≤ price ≤ 1)",
-          "A1b: Bid-ask spread (bid ≤ ask)",
+          "A1a: Price bounds (0 \u2264 price \u2264 1)",
+          "A1b: Bid-ask spread (bid \u2264 ask)",
           "A2: Missing data safety (NaN, None rejection)",
           "A3: Time monotonicity"
         ],
@@ -2274,8 +2281,8 @@ Failure to respect this file = INVALID OUTPUT.
   "telegram_integration": {
     "description": "How Telegram fits into overall bot architecture (Freqtrade-style)",
     "bidirectional_architecture": {
-      "outbound_path": "Engine.run_once() → detects opportunity/executes trade → notifier.send_message(event) → Telegram API → User",
-      "inbound_path": "Telegram /command → listener polling loop → CommandRouter → TelegramHandlers → ControlQueue → bot_loop processes action async",
+      "outbound_path": "Engine.run_once() \u2192 detects opportunity/executes trade \u2192 notifier.send_message(event) \u2192 Telegram API \u2192 User",
+      "inbound_path": "Telegram /command \u2192 listener polling loop \u2192 CommandRouter \u2192 TelegramHandlers \u2192 ControlQueue \u2192 bot_loop processes action async",
       "key_principle": "DECOUPLED: Handlers return immediately, bot_loop processes actions asynchronously",
       "design_pattern": "Producer-Consumer: handlers produce ControlActions, bot_loop consumes and executes"
     },
@@ -2397,63 +2404,63 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_trade_entered_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_trade_entered_notification",
-            "what_it_tests": "App → User: When trade is executed, bot sends trade_entered message",
+            "what_it_tests": "App \u2192 User: When trade is executed, bot sends trade_entered message",
             "setup": "Engine with TelegramNotifierReal, mock market data, mock Polymarket API",
-            "action": "Engine.run_once() → detect parity arbitrage → execute trade",
+            "action": "Engine.run_once() \u2192 detect parity arbitrage \u2192 execute trade",
             "assertion": "TelegramNotifierReal.send_message() called with trade details (market, outcomes, sizes, prices, edge)",
             "proof": "Message queue contains formatted trade notification with all expected fields"
           },
           {
             "test_name": "test_trade_exited_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_trade_exited_notification",
-            "what_it_tests": "App → User: When position closed, bot sends trade_exited with P&L",
+            "what_it_tests": "App \u2192 User: When position closed, bot sends trade_exited with P&L",
             "setup": "Broker with open position, close trade executed",
-            "action": "PaperBroker.close_position() → notifier.send_message(trade_exited)",
+            "action": "PaperBroker.close_position() \u2192 notifier.send_message(trade_exited)",
             "assertion": "Message contains exit price, P&L, return %, timestamp",
             "proof": "P&L calculation verified: realized_pnl = (exit_price - entry_price) * quantity - fees"
           },
           {
             "test_name": "test_error_alert_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_error_alert_notification",
-            "what_it_tests": "App → User: When API error or risk violation occurs, bot sends error_alert",
+            "what_it_tests": "App \u2192 User: When API error or risk violation occurs, bot sends error_alert",
             "setup": "Engine with mock API throwing exception, risk limit exceeded",
-            "action": "Engine.run_once() → API error → exception handler",
+            "action": "Engine.run_once() \u2192 API error \u2192 exception handler",
             "assertion": "Error message sent with error type, timestamp, action taken",
             "proof": "Error message in queue matches error regex, includes stack trace snippet"
           },
           {
             "test_name": "test_daily_summary_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_daily_summary_notification",
-            "what_it_tests": "App → User: /daily command sends summary of P&L",
+            "what_it_tests": "App \u2192 User: /daily command sends summary of P&L",
             "setup": "Multiple trades executed in session, summary requested",
-            "action": "Handler(handle_daily) → aggregate stats → send_message(daily_summary)",
+            "action": "Handler(handle_daily) \u2192 aggregate stats \u2192 send_message(daily_summary)",
             "assertion": "Message includes total_pnl, realized_pnl, unrealized_pnl, position_count, equity_change",
             "proof": "daily_summary = sum(realized_pnl) + unrealized_pnl; equity_change = final_equity - initial_equity"
           },
           {
             "test_name": "test_status_reply_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_status_reply_notification",
-            "what_it_tests": "App → User: /status command returns bot state snapshot",
+            "what_it_tests": "App \u2192 User: /status command returns bot state snapshot",
             "setup": "Bot running in PAPER mode, multiple open positions",
-            "action": "Handler(handle_status) → BotSnapshot.current() → format_message()",
+            "action": "Handler(handle_status) \u2192 BotSnapshot.current() \u2192 format_message()",
             "assertion": "Message contains bot_state (RUNNING/PAUSED/STOPPED), mode (PAPER/LIVE), balance, positions, P&L",
             "proof": "All fields non-None, numbers formatted as strings, markdown escaped"
           },
           {
             "test_name": "test_mode_changed_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_mode_changed_notification",
-            "what_it_tests": "App → User: When operating mode changes, bot notifies",
+            "what_it_tests": "App \u2192 User: When operating mode changes, bot notifies",
             "setup": "Bot in SCAN_ONLY mode, /mode paper command",
-            "action": "Handler queues ControlAction.change_mode → bot_loop executes → notifier.send_message()",
+            "action": "Handler queues ControlAction.change_mode \u2192 bot_loop executes \u2192 notifier.send_message()",
             "assertion": "Message shows old_mode=SCAN_ONLY, new_mode=PAPER, timestamp",
             "proof": "Mode change reflected in bot state and all subsequent operations"
           },
           {
             "test_name": "test_risk_warning_notification",
             "test_path": "tests/test_telegram_notifier.py::TestTelegramNotifierReal::test_risk_warning_notification",
-            "what_it_tests": "App → User: When risk limit exceeded, bot sends critical alert",
+            "what_it_tests": "App \u2192 User: When risk limit exceeded, bot sends critical alert",
             "setup": "Max drawdown 50%, portfolio loses 51%",
-            "action": "Engine.run_once() → RiskManager.check_limits() → exceeds kill switch",
+            "action": "Engine.run_once() \u2192 RiskManager.check_limits() \u2192 exceeds kill switch",
             "assertion": "CRITICAL message sent with kill switch details, current loss %, threshold",
             "proof": "Bot halts all trading immediately after kill switch triggered"
           },
@@ -2463,8 +2470,8 @@ Failure to respect this file = INVALID OUTPUT.
             "what_it_tests": "Messages use safe formatting (no precision loss, markdown escaped)",
             "setup": "Trade with market name containing special characters: 'Trump vs *Biden*'",
             "action": "SafeMessageFormatter.format_message(market)",
-            "assertion": "Special chars escaped, numbers stored as strings, message ≤4096 chars",
-            "proof": "test_data = 'Trump vs *Biden*' → escaped = 'Trump vs \\*Biden\\*'; number_format = '$1234.567890' (string)"
+            "assertion": "Special chars escaped, numbers stored as strings, message \u22644096 chars",
+            "proof": "test_data = 'Trump vs *Biden*' \u2192 escaped = 'Trump vs \\*Biden\\*'; number_format = '$1234.567890' (string)"
           },
           {
             "test_name": "test_notifier_rate_limiting",
@@ -2483,7 +2490,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_parse_start_command",
             "test_path": "tests/test_telegram_interface.py::TestCommandParser::test_parse_start_command",
-            "what_it_tests": "User → App: Parser extracts /start command",
+            "what_it_tests": "User \u2192 App: Parser extracts /start command",
             "setup": "Message text = '/start'",
             "action": "CommandParser.parse(text)",
             "assertion": "Returns ParsedCommand(command='start', args=[], raw_text='/start')",
@@ -2492,7 +2499,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_parse_command_with_args",
             "test_path": "tests/test_telegram_interface.py::TestCommandParser::test_parse_command_with_args",
-            "what_it_tests": "User → App: Parser extracts command and arguments",
+            "what_it_tests": "User \u2192 App: Parser extracts command and arguments",
             "setup": "Message text = '/mode paper'",
             "action": "CommandParser.parse(text)",
             "assertion": "Returns ParsedCommand(command='mode', args=['paper'])",
@@ -2501,7 +2508,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_parse_quoted_arguments",
             "test_path": "tests/test_telegram_interface.py::TestCommandParser::test_parse_quoted_arguments",
-            "what_it_tests": "User → App: Parser respects quoted strings",
+            "what_it_tests": "User \u2192 App: Parser respects quoted strings",
             "setup": "Message text = '/why \"market reason is complex\"'",
             "action": "CommandParser.parse(text)",
             "assertion": "Returns args = ['market reason is complex'] (not split by space)",
@@ -2510,7 +2517,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_rate_limit_check_allowed",
             "test_path": "tests/test_telegram_interface.py::TestRateLimiter::test_rate_limit_check_allowed",
-            "what_it_tests": "User → App: Command rate limit check passes when under limit",
+            "what_it_tests": "User \u2192 App: Command rate limit check passes when under limit",
             "setup": "RateLimiter with /status limit 10/min, first request",
             "action": "rate_limiter.is_allowed('status', user_id=123)",
             "assertion": "Returns (True, None) - command allowed",
@@ -2519,7 +2526,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_rate_limit_check_denied",
             "test_path": "tests/test_telegram_interface.py::TestRateLimiter::test_rate_limit_check_denied",
-            "what_it_tests": "User → App: Command rate limit check blocks when over limit",
+            "what_it_tests": "User \u2192 App: Command rate limit check blocks when over limit",
             "setup": "RateLimiter with /forceclose limit 2/min, 3rd request in 60s",
             "action": "rate_limiter.is_allowed('forceclose', user_id=123) three times",
             "assertion": "First 2 return True, 3rd returns (False, reason)",
@@ -2528,7 +2535,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_authorization_gate_read_status",
             "test_path": "tests/test_telegram_interface.py::TestAuthorizationGate::test_authorization_gate_read_status",
-            "what_it_tests": "User → App: /status command checks read_status permission",
+            "what_it_tests": "User \u2192 App: /status command checks read_status permission",
             "setup": "User with 'read_status' role",
             "action": "auth_gate.check_permission(user_id=123, required='read_status')",
             "assertion": "Returns True - permission granted",
@@ -2537,7 +2544,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_authorization_gate_execute_action_denied",
             "test_path": "tests/test_telegram_interface.py::TestAuthorizationGate::test_authorization_gate_execute_action_denied",
-            "what_it_tests": "User → App: Dangerous command denied without execute_action permission",
+            "what_it_tests": "User \u2192 App: Dangerous command denied without execute_action permission",
             "setup": "User with only 'read_status' role, tries /forceclose",
             "action": "auth_gate.check_permission(user_id=456, required='execute_action')",
             "assertion": "Raises PermissionDenied exception",
@@ -2546,34 +2553,34 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_confirmation_flow",
             "test_path": "tests/test_telegram_interface.py::TestConfirmationManager::test_confirmation_flow",
-            "what_it_tests": "User → App: Dangerous command requires confirmation (2-step)",
+            "what_it_tests": "User \u2192 App: Dangerous command requires confirmation (2-step)",
             "setup": "User requests /forceclose all",
-            "action": "Handler(handle_forceclose) → confirmation_manager.require_confirmation(user_id) → wait for /confirm CODE",
+            "action": "Handler(handle_forceclose) \u2192 confirmation_manager.require_confirmation(user_id) \u2192 wait for /confirm CODE",
             "assertion": "Handler returns message 'Reply with /confirm XXXXX'; second message with correct code executes action",
             "proof": "Action NOT in queue after first message; action IS in queue after confirmation"
           },
           {
             "test_name": "test_handler_start_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_start_command",
-            "what_it_tests": "User → App: /start command starts bot",
+            "what_it_tests": "User \u2192 App: /start command starts bot",
             "setup": "Bot in STOPPED state",
             "action": "Handler(handle_start) with user_id=123, authorize=True",
             "assertion": "ControlAction.start_bot(user_id) queued to ControlQueue; returns response message",
-            "proof": "action in control_queue; action.type == 'start_bot'; response contains '✅ Bot starting...'"
+            "proof": "action in control_queue; action.type == 'start_bot'; response contains '\u2705 Bot starting...'"
           },
           {
             "test_name": "test_handler_pause_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_pause_command",
-            "what_it_tests": "User → App: /pause command pauses bot",
+            "what_it_tests": "User \u2192 App: /pause command pauses bot",
             "setup": "Bot in RUNNING state",
             "action": "Handler(handle_pause)",
-            "assertion": "ControlAction.pause_bot(user_id) queued; returns '⏸️ Bot paused'",
+            "assertion": "ControlAction.pause_bot(user_id) queued; returns '\u23f8\ufe0f Bot paused'",
             "proof": "action.type == 'pause_bot' in control_queue"
           },
           {
             "test_name": "test_handler_mode_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_mode_command",
-            "what_it_tests": "User → App: /mode paper|live|scan-only changes operating mode",
+            "what_it_tests": "User \u2192 App: /mode paper|live|scan-only changes operating mode",
             "setup": "User sends '/mode live' with execute_action permission",
             "action": "Handler(handle_mode) validates arg, authorizes, queues action",
             "assertion": "ControlAction.change_mode(user_id, 'LIVE') queued; requires confirmation",
@@ -2582,43 +2589,43 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_handler_status_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_status_command",
-            "what_it_tests": "User → App: /status returns bot state snapshot",
+            "what_it_tests": "User \u2192 App: /status returns bot state snapshot",
             "setup": "Bot running with open positions and P&L",
-            "action": "Handler(handle_status) → BotSnapshot.current() → format_message()",
+            "action": "Handler(handle_status) \u2192 BotSnapshot.current() \u2192 format_message()",
             "assertion": "Returns message with bot_state, mode, balance, positions, P&L",
             "proof": "Response contains 'RUNNING', 'PAPER', '$XXXXX', position count, realized/unrealized P&L"
           },
           {
             "test_name": "test_handler_daily_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_daily_command",
-            "what_it_tests": "User → App: /daily returns daily P&L summary",
+            "what_it_tests": "User \u2192 App: /daily returns daily P&L summary",
             "setup": "Multiple trades executed today",
-            "action": "Handler(handle_daily) → aggregate trades → format summary",
+            "action": "Handler(handle_daily) \u2192 aggregate trades \u2192 format summary",
             "assertion": "Returns P&L breakdown: realized, unrealized, total, return %",
             "proof": "P&L values match: realized = sum(closed_pnl); unrealized = sum(position_marks - entry_price)"
           },
           {
             "test_name": "test_handler_freeze_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_freeze_command",
-            "what_it_tests": "User → App: /freeze venue|event|all freezes trading",
+            "what_it_tests": "User \u2192 App: /freeze venue|event|all freezes trading",
             "setup": "User sends '/freeze all' with execute_action permission",
-            "action": "Handler(handle_freeze) → RiskAction.freeze(user_id, 'all')",
+            "action": "Handler(handle_freeze) \u2192 RiskAction.freeze(user_id, 'all')",
             "assertion": "Queued to control_queue; bot_loop stops entering new trades",
             "proof": "action.type == 'freeze'; subsequent run_once() skips opportunity detection"
           },
           {
             "test_name": "test_handler_unfreeze_command",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_handler_unfreeze_command",
-            "what_it_tests": "User → App: /unfreeze venue|event|all unfreezes trading",
+            "what_it_tests": "User \u2192 App: /unfreeze venue|event|all unfreezes trading",
             "setup": "Trading frozen, user sends '/unfreeze all'",
-            "action": "Handler(handle_unfreeze) → RiskAction.unfreeze(user_id, 'all')",
+            "action": "Handler(handle_unfreeze) \u2192 RiskAction.unfreeze(user_id, 'all')",
             "assertion": "Queued; bot_loop resumes entering trades",
             "proof": "Next run_once() detects and executes opportunities again"
           },
           {
             "test_name": "test_invalid_command",
             "test_path": "tests/test_telegram_interface.py::TestCommandParser::test_invalid_command",
-            "what_it_tests": "User → App: Invalid command returns help message",
+            "what_it_tests": "User \u2192 App: Invalid command returns help message",
             "setup": "Message text = '/unknown_cmd'",
             "action": "CommandParser.parse(text)",
             "assertion": "Returns None or raises InvalidCommandError",
@@ -2627,7 +2634,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_invalid_argument",
             "test_path": "tests/test_telegram_interface.py::TestTelegramHandlers::test_invalid_argument",
-            "what_it_tests": "User → App: Invalid argument returns error message",
+            "what_it_tests": "User \u2192 App: Invalid argument returns error message",
             "setup": "User sends '/mode invalid_mode'",
             "action": "Handler validates argument",
             "assertion": "Returns error message 'Invalid mode. Use: scan-only, paper, live'",
@@ -2650,7 +2657,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_full_bot_lifecycle",
             "test_path": "tests/test_simulation_harness.py::TestSimulationIntegration::test_full_bot_lifecycle",
-            "what_it_tests": "Full bot lifecycle: start → run → detect opp → execute → send message → receive command → process",
+            "what_it_tests": "Full bot lifecycle: start \u2192 run \u2192 detect opp \u2192 execute \u2192 send message \u2192 receive command \u2192 process",
             "setup": "Simulation with FakePolymarketClient, TelegramNotifierMock",
             "flow": [
               "1. User sends /start",
@@ -2675,7 +2682,7 @@ Failure to respect this file = INVALID OUTPUT.
           {
             "test_name": "test_risk_limit_triggered",
             "test_path": "tests/test_simulation_harness.py::TestSimulationIntegration::test_risk_limit_triggered",
-            "what_it_tests": "Risk limit triggers kill switch → bot halts → sends CRITICAL alert",
+            "what_it_tests": "Risk limit triggers kill switch \u2192 bot halts \u2192 sends CRITICAL alert",
             "setup": "Simulation with losing trades, max_drawdown=50%",
             "flow": [
               "1. Multiple bad trades executed",
@@ -2758,17 +2765,17 @@ Failure to respect this file = INVALID OUTPUT.
       "proof_summary": {
         "test_run_date": "2026-01-06",
         "total_tests_run": "101 tests collected",
-        "passed": "67 tests ✅ (66.3%)",
-        "failed": "8 tests ❌ (7.9%)",
-        "skipped": "26 tests ⏭️ (25.7% - async without pytest-asyncio)",
+        "passed": "67 tests \u2705 (66.3%)",
+        "failed": "8 tests \u274c (7.9%)",
+        "skipped": "26 tests \u23ed\ufe0f (25.7% - async without pytest-asyncio)",
         "execution_time": "26.21 seconds",
-        "outbound_status": "Mixed - Modern impl ✅, Legacy impl ❌ patching issues",
-        "inbound_status": "Working ✅ - Command parsing, auth, rate limiting 27/30 = 90%",
-        "integration_status": "Perfect ✅ - Mock notifier + simulation 34/34 = 100%",
+        "outbound_status": "Mixed - Modern impl \u2705, Legacy impl \u274c patching issues",
+        "inbound_status": "Working \u2705 - Command parsing, auth, rate limiting 27/30 = 90%",
+        "integration_status": "Perfect \u2705 - Mock notifier + simulation 34/34 = 100%",
         "async_status": "Pending - 26 tests skipped (need pytest-asyncio)"
       },
       "actual_test_results_after_fixes": {
-        "summary": "✅ ALL FIXES APPLIED AND VERIFIED",
+        "summary": "\u2705 ALL FIXES APPLIED AND VERIFIED",
         "timestamp": "2026-01-06 after fixes applied",
         "environment": "Python 3.13.2 in .venv-1",
         "total_collected": "101 tests",
@@ -2779,14 +2786,22 @@ Failure to respect this file = INVALID OUTPUT.
             "file": "arbitrage_bot/telegram/security.py line 109",
             "issue": "Expiry check used > instead of >= - confirmation valid when expiry == utcnow()",
             "fix": "Changed: if datetime.utcnow() >= pending['expiry']:  # was >",
-            "verification": "✅ Verified working: expiry fix test passes with >= operator",
+            "verification": "\u2705 Verified working: expiry fix test passes with >= operator",
             "impact": "1 test now passes"
           },
           "fix_2_legacy_tests_skip": {
             "file": "tests/test_telegram_notifier.py line 8",
             "issue": "7 tests failing due to legacy module mock patch issues",
             "fix": "@pytest.mark.skip(reason='Legacy src/telegram_notifier.py module - use modern src/predarb/notifiers instead')",
-            "tests_affected": ["test_notify_trade", "test_notify_opportunity", "test_notify_balance", "test_notify_error", "test_notify_startup", "test_api_error_handling", "test_large_positions_truncation"],
+            "tests_affected": [
+              "test_notify_trade",
+              "test_notify_opportunity",
+              "test_notify_balance",
+              "test_notify_error",
+              "test_notify_startup",
+              "test_api_error_handling",
+              "test_large_positions_truncation"
+            ],
             "rationale": "Modern src/predarb/notifiers implementation is fully tested and working (15/15 passing). Legacy module is superseded.",
             "impact": "7 tests now skip cleanly with clear reason instead of failing"
           },
@@ -2794,7 +2809,7 @@ Failure to respect this file = INVALID OUTPUT.
             "package": "pytest-asyncio",
             "issue": "26 async tests skipped - pytest plugin not installed",
             "fix": "pip install pytest-asyncio -q",
-            "status": "✅ Installed successfully in .venv-1",
+            "status": "\u2705 Installed successfully in .venv-1",
             "impact": "26 async tests in TestControlQueue, TestBotLoop, TestNotifier, TestTelegramHandlers, TestIntegration can now run"
           }
         },
@@ -2811,7 +2826,7 @@ Failure to respect this file = INVALID OUTPUT.
       },
       "what_actually_works": {
         "user_to_app_proven": {
-          "status": "✅ VERIFIED 27/30 passing (90%)",
+          "status": "\u2705 VERIFIED 27/30 passing (90%)",
           "tests_passing": [
             "Command parsing: 9/9 - /start /pause /stop /mode /status /daily /freeze /unfreeze all parse correctly",
             "Authorization: 6/6 - Permissions enforced (read_status, execute_action)",
@@ -2822,13 +2837,13 @@ Failure to respect this file = INVALID OUTPUT.
           ]
         },
         "app_to_user_proven": {
-          "status": "✅ VERIFIED 26/33 passing (79%)",
-          "modern_impl": "✅ 15/15 passing - Mock notifier + simulation all work",
-          "legacy_impl": "❌ 0/7 passing - Legacy src module mocking issues",
+          "status": "\u2705 VERIFIED 26/33 passing (79%)",
+          "modern_impl": "\u2705 15/15 passing - Mock notifier + simulation all work",
+          "legacy_impl": "\u274c 0/7 passing - Legacy src module mocking issues",
           "recommendation": "Use modern src/predarb/notifiers implementation (tested and working)"
         },
         "integration_proven": {
-          "status": "✅ VERIFIED 34/34 passing (100%)",
+          "status": "\u2705 VERIFIED 34/34 passing (100%)",
           "what_works": [
             "Synthetic market generation: 8/8 passing",
             "Fake Polymarket client: 6/6 passing",
@@ -2843,31 +2858,31 @@ Failure to respect this file = INVALID OUTPUT.
         "fix": "pip install pytest-asyncio",
         "when_fixed": "26 more tests will pass"
       },
-      "outbound_verified": "15 unit tests prove app→user messaging works: trade notifications, error alerts, P&L summaries, status updates (modern impl ✅)",
-        "inbound_verified": "27 unit tests prove user→app command processing works: parsing, rate limiting, authorization, confirmation handlers (27/30 = 90%)",
-        "integration_verified": "5 integration tests prove full bidirectional flows work end-to-end: lifecycle, risk triggers, confirmations, mode changes, queue ordering",
-        "total_tests": "101 tests collected; 67 passing (66%), 26 pending async, 8 legacy patching issues",
-        "coverage": "100% of telegram handlers, routers, security, modern notifiers tested; legacy src module has import issues",
-        "message_safety": "All messages validated for format, length, escaping, precision ✅",
-        "non_blocking": "All handlers verified to complete in <100ms (no blocking I/O) ✅",
-        "recommendations": "1) Fix 1 expiry bug (ConfirmationManager), 2) pip install pytest-asyncio, 3) Skip legacy tests - modern works perfectly"
-      }
-    },
-    "deployment_checklist": [
-      "✅ Telegram bot created via @BotFather",
-      "✅ TELEGRAM_BOT_TOKEN obtained",
-      "✅ TELEGRAM_CHAT_ID set (use /tg_info to find yours)",
-      "✅ TELEGRAM_ENABLED=true in config.yml or .env",
-      "✅ Permissions configured (auth_gate with read_status, execute_action roles)",
-      "✅ Rate limits tuned for your usage pattern",
-      "✅ Confirmation manager enabled for dangerous commands",
-      "✅ Message formatting tested (numbers, markdown escape, length)"
-    ],
+      "outbound_verified": "15 unit tests prove app\u2192user messaging works: trade notifications, error alerts, P&L summaries, status updates (modern impl \u2705)",
+      "inbound_verified": "27 unit tests prove user\u2192app command processing works: parsing, rate limiting, authorization, confirmation handlers (27/30 = 90%)",
+      "integration_verified": "5 integration tests prove full bidirectional flows work end-to-end: lifecycle, risk triggers, confirmations, mode changes, queue ordering",
+      "total_tests": "101 tests collected; 67 passing (66%), 26 pending async, 8 legacy patching issues",
+      "coverage": "100% of telegram handlers, routers, security, modern notifiers tested; legacy src module has import issues",
+      "message_safety": "All messages validated for format, length, escaping, precision \u2705",
+      "non_blocking": "All handlers verified to complete in <100ms (no blocking I/O) \u2705",
+      "recommendations": "1) Fix 1 expiry bug (ConfirmationManager), 2) pip install pytest-asyncio, 3) Skip legacy tests - modern works perfectly"
+    }
+  },
+  "deployment_checklist": [
+    "\u2705 Telegram bot created via @BotFather",
+    "\u2705 TELEGRAM_BOT_TOKEN obtained",
+    "\u2705 TELEGRAM_CHAT_ID set (use /tg_info to find yours)",
+    "\u2705 TELEGRAM_ENABLED=true in config.yml or .env",
+    "\u2705 Permissions configured (auth_gate with read_status, execute_action roles)",
+    "\u2705 Rate limits tuned for your usage pattern",
+    "\u2705 Confirmation manager enabled for dangerous commands",
+    "\u2705 Message formatting tested (numbers, markdown escape, length)"
+  ],
   "ai_hints": {
-    "entry_point_for_new_ai": "Start analysis at: src/predarb/__main__.py → src/predarb/cli.py → src/predarb/engine.py",
+    "entry_point_for_new_ai": "Start analysis at: src/predarb/__main__.py \u2192 src/predarb/cli.py \u2192 src/predarb/engine.py",
     "critical_path": "Engine.run() is the main loop orchestrating all arbitrage detection and execution",
     "config_loading_mechanism": "AppConfig loads from config.yml (YAML) and overrides via .env (environment variables)",
-    "detector_plugin_pattern": "All detectors follow same interface: detect(markets: List[Market]) → List[Opportunity]",
+    "detector_plugin_pattern": "All detectors follow same interface: detect(markets: List[Market]) \u2192 List[Opportunity]",
     "execution_model": "Single-threaded, synchronous polling loop (no async/await)",
     "paper_trading": "PaperBroker simulates execution without real capital or blockchain interaction",
     "optional_features": [
@@ -2912,8 +2927,8 @@ Failure to respect this file = INVALID OUTPUT.
             "Clean execution"
           ],
           "exit_codes": {
-            "0": "All validations passed (✅)",
-            "1": "One or more validations failed (❌)"
+            "0": "All validations passed (\u2705)",
+            "1": "One or more validations failed (\u274c)"
           }
         }
       },
@@ -2994,14 +3009,24 @@ Failure to respect this file = INVALID OUTPUT.
         "venue_a_kalshi": {
           "name": "kalshi",
           "supports_shorting": true,
-          "allowed_actions": ["BUY", "SELL-TO-OPEN", "SELL-TO-CLOSE"],
+          "allowed_actions": [
+            "BUY",
+            "SELL-TO-OPEN",
+            "SELL-TO-CLOSE"
+          ],
           "description": "Full trading capabilities including short selling"
         },
         "venue_b_polymarket": {
           "name": "polymarket",
           "supports_shorting": false,
-          "allowed_actions": ["BUY", "SELL-TO-CLOSE"],
-          "forbidden_actions": ["SELL-TO-OPEN", "SHORT"],
+          "allowed_actions": [
+            "BUY",
+            "SELL-TO-CLOSE"
+          ],
+          "forbidden_actions": [
+            "SELL-TO-OPEN",
+            "SHORT"
+          ],
           "description": "BUY-only entry, SELL only with existing inventory"
         }
       },
@@ -3030,9 +3055,9 @@ Failure to respect this file = INVALID OUTPUT.
             "StrictABValidator - Main validator with venue-constraint enforcement"
           ],
           "key_methods": [
-            "validate_opportunity(opp, market_lookup) → ValidationResult",
-            "validate_batch(opportunities, market_lookup) → (valid, rejected)",
-            "generate_validation_report(opportunities, market_lookup) → Dict"
+            "validate_opportunity(opp, market_lookup) \u2192 ValidationResult",
+            "validate_batch(opportunities, market_lookup) \u2192 (valid, rejected)",
+            "generate_validation_report(opportunities, market_lookup) \u2192 Dict"
           ],
           "responsibilities": [
             "Enforce exactly 2 venues per opportunity",
@@ -3049,11 +3074,11 @@ Failure to respect this file = INVALID OUTPUT.
             "StrictABScenarios - Generator for comprehensive test scenarios"
           ],
           "methods": [
-            "generate_all_scenarios() → (poly_markets, kalshi_markets, metadata)",
-            "_scenario_cross_venue_parity() → Valid A+B test case",
-            "_scenario_single_venue_parity_poly() → Invalid single-venue case",
-            "_scenario_requires_polymarket_short() → Forbidden action case",
-            "get_strict_ab_scenario(seed) → Convenience function"
+            "generate_all_scenarios() \u2192 (poly_markets, kalshi_markets, metadata)",
+            "_scenario_cross_venue_parity() \u2192 Valid A+B test case",
+            "_scenario_single_venue_parity_poly() \u2192 Invalid single-venue case",
+            "_scenario_requires_polymarket_short() \u2192 Forbidden action case",
+            "get_strict_ab_scenario(seed) \u2192 Convenience function"
           ],
           "test_coverage": {
             "valid_scenarios": 4,
@@ -3154,11 +3179,11 @@ Failure to respect this file = INVALID OUTPUT.
       }
     },
     "telegram_architecture": {
-      "style": "Freqtrade bidirectional: OUTBOUND (bot→user) + INBOUND (user→bot) decoupled",
+      "style": "Freqtrade bidirectional: OUTBOUND (bot\u2192user) + INBOUND (user\u2192bot) decoupled",
       "outbound": "Engine notifies via TelegramNotifier (trade_entered, trade_exited, errors, daily_summary, status_replies)",
       "inbound": "Listener polls telegram_api, routes /commands to handlers via CommandRouter, handlers queue ControlActions (non-blocking)",
       "key_pattern": "Handlers return immediately with response, bot_loop processes action async from ControlQueue",
-      "pseudo_flow": "User /command → parse → rate_limit → authorize → queue action → return response → bot_loop executes",
+      "pseudo_flow": "User /command \u2192 parse \u2192 rate_limit \u2192 authorize \u2192 queue action \u2192 return response \u2192 bot_loop executes",
       "handler_invariants": [
         "NO blocking I/O (no API calls, no DB writes)",
         "NO state mutations (all via ControlQueue)",
@@ -3178,7 +3203,7 @@ Failure to respect this file = INVALID OUTPUT.
         "TelegramNotifierMock: in-memory storage for unit tests",
         "Engine: accepts optional notifier for dependency injection"
       ],
-      "workflow": "sim_run → Engine with FakePolymarketClient + TelegramNotifierReal → real Telegram messages"
+      "workflow": "sim_run \u2192 Engine with FakePolymarketClient + TelegramNotifierReal \u2192 real Telegram messages"
     },
     "notifier_injection": {
       "description": "Engine accepts optional notifier parameter for testing/simulation",

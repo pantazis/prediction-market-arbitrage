@@ -256,6 +256,25 @@ class TelegramNotifierReal(Notifier):
         if chunk:
             self._post("\n".join(chunk))
 
+    def notify_cross_venue_filters(self, results) -> None:
+        """Notify cross-venue filter PASS/FAIL results (compatibility method)."""
+        if not results:
+            return
+
+        lines = [json.dumps(entry, ensure_ascii=True, sort_keys=True) for entry in results]
+        max_len = 3500
+        chunk: List[str] = []
+        chunk_len = 0
+        for line in lines:
+            if chunk and chunk_len + len(line) + 1 > max_len:
+                self._post("\n".join(chunk))
+                chunk = []
+                chunk_len = 0
+            chunk.append(line)
+            chunk_len += len(line) + 1
+        if chunk:
+            self._post("\n".join(chunk))
+
 
 class TelegramNotifierMock(Notifier):
     """Mock notifier that stores messages in memory for testing.
@@ -465,6 +484,25 @@ class TelegramNotifierMock(Notifier):
             return
 
         lines = [json.dumps(obj, ensure_ascii=True, sort_keys=True) for obj in objects]
+        max_len = 3500
+        chunk: List[str] = []
+        chunk_len = 0
+        for line in lines:
+            if chunk and chunk_len + len(line) + 1 > max_len:
+                self._post("\n".join(chunk))
+                chunk = []
+                chunk_len = 0
+            chunk.append(line)
+            chunk_len += len(line) + 1
+        if chunk:
+            self._post("\n".join(chunk))
+
+    def notify_cross_venue_filters(self, results) -> None:
+        """Notify cross-venue filter PASS/FAIL results (compatibility method)."""
+        if not results:
+            return
+
+        lines = [json.dumps(entry, ensure_ascii=True, sort_keys=True) for entry in results]
         max_len = 3500
         chunk: List[str] = []
         chunk_len = 0

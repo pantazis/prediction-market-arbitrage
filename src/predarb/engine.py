@@ -28,6 +28,8 @@ from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .unified_reporter import UnifiedReporter
 from predarb.cross_venue_matcher import CrossVenueMatcher
 from predarb.llm_verifier import LLMVerifier, VerificationResult
+from predarb.ab_filters import FilterConfig as ABFilterConfig
+from predarb.ab_filters import evaluate_ab_filters, quote_from_market
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +136,7 @@ class Engine:
         self._last_cross_venue_match_hash: Optional[str] = None
         self._last_cross_venue_verify_hash: Optional[str] = None
         self._last_cross_venue_arb_hash: Optional[str] = None
+        self._last_cross_venue_filter_hash: Optional[str] = None
 
         llm_config = getattr(config, "llm_verification", None)
         if llm_config and getattr(llm_config, "enabled", False):
@@ -259,8 +262,10 @@ class Engine:
                     verification_results = self._verify_cross_venue_pairs(pairs)
                     if verification_results:
                         arbitrage_results = []
+                        filter_reports = []
                         cost_bps = float(self.config.broker.fee_bps + self.config.broker.slippage_bps)
                         depth_fraction = float(self.config.broker.depth_fraction)
+                        ab_filter_cfg = ABFilterConfig()
                         for k_market, p_market, score, result in verification_results:
                             verdict = "PASS" if result.same_event else "FAIL"
                             logger.info(
@@ -281,6 +286,61 @@ class Engine:
                                 )
                                 if cases:
                                     arbitrage_results.append((k_market, p_market, score, cases))
+                                    now_ts = time.time()
+                                    for case in cases:
+                                        action_a = str(case.kalshi_action or "").upper()
+                                        action_b = str(case.polymarket_action or "").upper()
+                                        outcome_a = "yes" if "YES" in action_a else "no" if "NO" in action_a else None
+                                        outcome_b = "yes" if "YES" in action_b else "no" if "NO" in action_b else None
+                                        side_a = "SELL" if ("SHORT" in action_a or "SELL" in action_a) else "BUY"
+                                        side_b = "SELL" if ("SHORT" in action_b or "SELL" in action_b) else "BUY"
+
+                                        trade_price_a = None
+                                        trade_price_b = None
+                                        if outcome_a:
+                                            key_a = f"kalshi_{outcome_a}_{'bid' if side_a == 'SELL' else 'ask'}"
+                                            trade_price_a = case.prices_used.get(key_a)
+                                        if outcome_b:
+                                            key_b = f"polymarket_{outcome_b}_{'bid' if side_b == 'SELL' else 'ask'}"
+                                            trade_price_b = case.prices_used.get(key_b)
+
+                                        quote_a = quote_from_market(k_market, outcome_a or "", depth_fraction)
+                                        quote_b = quote_from_market(p_market, outcome_b or "", depth_fraction)
+
+                                        report = evaluate_ab_filters(
+                                            now_ts=now_ts,
+                                            kalshi_leg=quote_a,
+                                            polymarket_leg=quote_b,
+                                            trade_price_a=trade_price_a,
+                                            trade_price_b=trade_price_b,
+                                            edge_gross=case.edge_gross,
+                                            config=ab_filter_cfg,
+                                        )
+                                        filter_reports.append(
+                                            {
+                                                "kalshi_title": k_market.question,
+                                                "polymarket_title": p_market.question,
+                                                "case": case.model_dump(),
+                                                "filter_report": {
+                                                    "passed": report.passed,
+                                                    "fail_filter": report.fail_filter,
+                                                    "fail_reason": report.fail_reason,
+                                                    "edge_gross": report.edge_gross,
+                                                    "edge_net": report.edge_net,
+                                                    "executable_size_usd": report.executable_size_usd,
+                                                    "items": [
+                                                        {
+                                                            "code": item.code,
+                                                            "passed": item.passed,
+                                                            "value": item.value,
+                                                            "threshold": item.threshold,
+                                                            "detail": item.detail,
+                                                        }
+                                                        for item in report.items
+                                                    ],
+                                                },
+                                            }
+                                        )
                         if self.notifier and hasattr(self.notifier, "notify_cross_venue_verification"):
                             signature = "|".join(
                                 f"{k.id}:{p.id}:{score:.4f}:{int(result.same_event)}:{result.reason}"
@@ -308,6 +368,18 @@ class Engine:
                                     self.notifier.notify_cross_venue_arbitrage(arbitrage_results)
                                 except Exception as e:
                                     logger.warning("Notifier arbitrage alert failed: %s", e)
+                        if filter_reports and self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
+                            signature = "|".join(
+                                f"{entry['case']['case_name']}:{entry['filter_report']['passed']}"
+                                for entry in filter_reports
+                            )
+                            filter_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+                            if filter_hash != self._last_cross_venue_filter_hash:
+                                self._last_cross_venue_filter_hash = filter_hash
+                                try:
+                                    self.notifier.notify_cross_venue_filters(filter_reports)
+                                except Exception as e:
+                                    logger.warning("Notifier filter alert failed: %s", e)
             except Exception as e:
                 logger.error(f"Cross-venue matching failed: {e}")
         

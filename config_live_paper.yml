@@ -52,15 +52,7 @@ engine:
 
 # ==================== MARKET FILTERING ==================== #
 filter:
-  max_spread_pct: 0.15                 # Maximum 15% spread
-  min_volume_24h: 0                    # No volume requirement (Polymarket doesn't provide)
-  min_liquidity: 1000.0                # Minimum 1000 USD liquidity
-  min_days_to_expiry: 2                # At least 2 days to expiry
-  min_liquidity_multiple: 5.0          # Need 5x depth for trade size
   require_resolution_source: true      # Require resolution source
-  allow_missing_end_time: false        # Require end time
-  min_rank_score: 30.0                 # Quality threshold
-  target_order_size_usd: 50.0          # Target 50 USD per trade (10% of 500)
 
 # ==================== DETECTORS (LIVE TRADING) ==================== #
 detectors:

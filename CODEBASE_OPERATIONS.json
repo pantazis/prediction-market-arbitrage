@@ -2162,7 +2162,8 @@
           "RiskManager.check_limits()",
           "PaperBroker.execute(opportunity)",
           "Notifier.send_message()",
-          "LLMVerifier.evaluate_arbitrage_cases() for cross-venue verified pairs (telegram output)"
+          "LLMVerifier.evaluate_arbitrage_cases() for cross-venue verified pairs (telegram output)",
+          "AB filters (evaluate_ab_filters) for pass/fail execution safety reports"
         ]
       },
       "detectors": {
@@ -2199,6 +2200,15 @@
           "Opportunity - dataclass for detected arb",
           "Trade - dataclass for executed trade",
           "TradeAction - dataclass for single trade component"
+        ]
+      },
+      "ab_filters": {
+        "location": "src/predarb/ab_filters.py",
+        "purpose": "Post-LLM A+B execution-safety filters with PASS/FAIL reports",
+        "key_types": [
+          "Quote",
+          "FilterConfig",
+          "FilterReport"
         ]
       },
       "broker": {

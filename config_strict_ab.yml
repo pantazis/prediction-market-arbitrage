@@ -30,15 +30,7 @@ engine:
   iterations: 1
   report_path: "reports/strict_ab_validation.csv"
 filter:
-  max_spread_pct: 0.08
-  min_volume_24h: 0
-  min_liquidity: 5000
-  min_days_to_expiry: 2
-  min_liquidity_multiple: 5
-  target_order_size_usd: 1000
   require_resolution_source: false  # Relaxed for testing
-  allow_missing_end_time: false
-  min_rank_score: 0  # Accept all markets in test mode
 detectors:
   parity_threshold: 0.97  # More strict: buy YES+NO only if sum < 0.97
   duplicate_price_diff_threshold: 0.10  # 10% minimum price difference

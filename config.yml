@@ -33,16 +33,7 @@ engine:
   iterations: 10
   report_path: "reports/paper_trades.csv"
 filter:
-  # RELAXED SETTINGS: Calibrated for testing with mixed Polymarket + injected data
-  max_spread_pct: 0.1              # 10% spread ceiling
-  min_volume_24h: 0                # FIXED: was 1000 - Polymarket doesn't provide volume data!
-  min_liquidity: 1000              # RELAXED: was 10000 - Lower threshold for testing
-  min_days_to_expiry: 0            # RELAXED: was 3 - No time filter for testing
-  min_liquidity_multiple: 20       # Need 20x your bet in depth
-  target_order_size_usd: 500       # size we want to place comfortably
   require_resolution_source: true
-  allow_missing_end_time: false
-  min_rank_score: 20               # ignore ultra-low-quality markets
 
 cross_venue_matcher:
   enabled: true                    # Enable semantic matching between Kalshi and Polymarket

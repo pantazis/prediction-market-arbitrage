@@ -286,6 +286,8 @@ class Engine:
                                     depth_fraction=depth_fraction,
                                 )
                                 if cases:
+                                    best_case = max(cases, key=lambda c: float(c.edge_net))
+                                    cases = [best_case]
                                     arbitrage_results.append((k_market, p_market, score, cases))
                                     now_ts = time.time()
                                     for case in cases:
@@ -356,12 +358,15 @@ class Engine:
                                     )
                                 except Exception as e:
                                     logger.warning("Notifier verify alert failed: %s", e)
-                        if arbitrage_results and self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
-                            signature = "|".join(
-                                f"{k.id}:{p.id}:{score:.4f}:{case.case_name}:{case.edge_net:.6f}"
-                                for k, p, score, cases in arbitrage_results
-                                for case in cases
-                            )
+                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
+                            if arbitrage_results:
+                                signature = "|".join(
+                                    f"{k.id}:{p.id}:{score:.4f}:{case.case_name}:{case.edge_net:.6f}"
+                                    for k, p, score, cases in arbitrage_results
+                                    for case in cases
+                                )
+                            else:
+                                signature = "no_arbitrage"
                             arbitrage_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
                             if arbitrage_hash != self._last_cross_venue_arb_hash:
                                 self._last_cross_venue_arb_hash = arbitrage_hash
@@ -369,11 +374,14 @@ class Engine:
                                     self.notifier.notify_cross_venue_arbitrage(arbitrage_results)
                                 except Exception as e:
                                     logger.warning("Notifier arbitrage alert failed: %s", e)
-                        if filter_reports and self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
-                            signature = "|".join(
-                                f"{entry['case']['case_name']}:{entry['filter_report']['passed']}"
-                                for entry in filter_reports
-                            )
+                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
+                            if filter_reports:
+                                signature = "|".join(
+                                    f"{entry['case']['case_name']}:{entry['filter_report']['passed']}"
+                                    for entry in filter_reports
+                                )
+                            else:
+                                signature = "no_filters"
                             filter_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
                             if filter_hash != self._last_cross_venue_filter_hash:
                                 self._last_cross_venue_filter_hash = filter_hash
@@ -381,6 +389,16 @@ class Engine:
                                     self.notifier.notify_cross_venue_filters(filter_reports)
                                 except Exception as e:
                                     logger.warning("Notifier filter alert failed: %s", e)
+                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_risk"):
+                            try:
+                                self.notifier.notify_cross_venue_risk(filter_reports)
+                            except Exception as e:
+                                logger.warning("Notifier risk alert failed: %s", e)
+                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_trade"):
+                            try:
+                                self.notifier.notify_cross_venue_trade(filter_reports)
+                            except Exception as e:
+                                logger.warning("Notifier trade alert failed: %s", e)
             except Exception as e:
                 logger.error(f"Cross-venue matching failed: {e}")
         
@@ -422,16 +440,6 @@ class Engine:
             trades = self.broker.execute(market_lookup, opp)
             end_ns = time.perf_counter_ns()
             executed.append(opp)
-            if self.notifier:
-                # Enrich opportunity with market titles for better notifications
-                market_titles = []
-                for mid in opp.market_ids:
-                    market = market_lookup.get(mid)
-                    if market:
-                        market_titles.append(market.question)
-                if market_titles:
-                    opp.metadata["market_titles"] = market_titles
-                self.notifier.notify_opportunity(opp)
             # Build execution trace
             prices_before: Dict[str, float] = {}
             intended_actions: List[Dict[str, object]] = []
@@ -490,6 +498,39 @@ class Engine:
                     low_liq = False
                 if low_liq:
                     failure_flags.append("residual_exposure")
+
+            opp.metadata["risk_approval"] = {"approved": True, "reason": "passed"}
+            opp.metadata["execution"] = {
+                "status": status,
+                "total_intended": total_intended,
+                "total_filled": total_filled,
+                "realized_pnl": realized_pnl,
+                "latency_ms": latency_ms,
+            }
+            opp.metadata["trades"] = [
+                {
+                    "market_id": t.market_id,
+                    "outcome_id": t.outcome_id,
+                    "side": t.side,
+                    "amount": t.amount,
+                    "price": t.price,
+                    "fees": t.fees,
+                    "slippage": t.slippage,
+                    "realized_pnl": t.realized_pnl,
+                }
+                for t in trades
+            ]
+
+            if self.notifier:
+                # Enrich opportunity with market titles for better notifications
+                market_titles = []
+                for mid in opp.market_ids:
+                    market = market_lookup.get(mid)
+                    if market:
+                        market_titles.append(market.question)
+                if market_titles:
+                    opp.metadata["market_titles"] = market_titles
+                self.notifier.notify_opportunity(opp)
 
             self.reporter.log_opportunity_execution(
                 opportunity=opp,

@@ -103,6 +103,18 @@ class PolymarketClient(MarketClient):
                     expiry = datetime.fromisoformat(end_date_field.replace("Z", "+00:00"))
                 except Exception:
                     expiry = None
+
+            updated_at = None
+            for key in ("updatedAt", "updated_at", "lastUpdated", "last_updated", "lastTraded", "last_traded"):
+                value = data.get(key)
+                if value:
+                    try:
+                        updated_at = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                        break
+                    except Exception:
+                        updated_at = None
+            if updated_at is None:
+                updated_at = datetime.utcnow()
             
             question = data.get("question") or data.get("title") or "Unknown"
             comparator, threshold = extract_threshold(question)
@@ -122,6 +134,7 @@ class PolymarketClient(MarketClient):
                 threshold=threshold,
                 asset=asset,
                 resolution_source=data.get("resolutionSource"),
+                updated_at=updated_at,
                 best_bid=best_bid,
                 best_ask=best_ask,
             )

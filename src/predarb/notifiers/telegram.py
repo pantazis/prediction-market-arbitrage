@@ -137,8 +137,18 @@ class TelegramNotifierReal(Notifier):
             actions_str.append(f"{side_emoji} {action.side} {outcome} @ {action.limit_price:.3f}")
         trades_str = " vs ".join(actions_str) if len(actions_str) <= 3 else f"{len(actions_str)} trades"
         
+        execution = opp.metadata.get("execution", {})
+        trades = opp.metadata.get("trades", [])
+        risk = opp.metadata.get("risk_approval", {})
+        risk_note = "yes" if risk.get("approved") else "no"
+        exec_status = execution.get("status", "unknown")
+        filled = execution.get("total_filled")
+        intended = execution.get("total_intended")
+        pnl = execution.get("realized_pnl")
+
         lines = [
             f"🔎 Opportunity {opp.type} {status}",
+            f"✅ 5. Risk approval | {risk_note}",
         ]
         if title_str:
             lines.append(f"Market: {title_str}")
@@ -148,6 +158,19 @@ class TelegramNotifierReal(Notifier):
             f"Edge: {edge_str} (Est. gain: {gain_str})",
             f"Details: {opp.description}",
         ])
+        if intended is not None and filled is not None:
+            lines.append(f"🧾 6. Paper trade | {exec_status} | filled {filled:.4f}/{intended:.4f}")
+        if pnl is not None:
+            lines.append(f"🧾 6. PnL | {pnl:.4f}")
+        if trades:
+            trade_lines = []
+            for t in trades[:3]:
+                trade_lines.append(
+                    f"{t.get('side','')} {t.get('outcome_id','')} @ {t.get('price',0):.4f} x {t.get('amount',0):.4f}"
+                )
+            if len(trades) > 3:
+                trade_lines.append(f"... +{len(trades)-3} more")
+            lines.append("🧾 6. Trade details | " + "; ".join(trade_lines))
         self._post("\n".join(lines))
 
     def notify_trade_summary(self, count: int) -> None:
@@ -171,7 +194,7 @@ class TelegramNotifierReal(Notifier):
             raw = str(text) if text is not None else ""
             return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
 
-        lines = [f"🔗 Cross-venue matches ({len(pairs)})"]
+        lines = [f"🔗 1. Cross-venue matcher ({len(pairs)})"]
         for idx, (k_market, p_market, score) in enumerate(pairs, 1):
             k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
             p_title = _shorten(getattr(p_market, "question", None) or getattr(p_market, "id", ""))
@@ -205,7 +228,7 @@ class TelegramNotifierReal(Notifier):
             raw = str(text) if text is not None else ""
             return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
 
-        lines = [f"✅ LLM cross-venue verification ({len(results)})"]
+        lines = [f"✅ 2. LLM verification ({len(results)})"]
         for idx, (k_market, p_market, score, verdict) in enumerate(results, 1):
             status = "PASS" if verdict.same_event else "FAIL"
             k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
@@ -239,10 +262,15 @@ class TelegramNotifierReal(Notifier):
                 else:
                     objects.append(dict(case))
 
+        lines = [f"🧮 3. Arbitrage case generation ({len(objects)})"]
         if not objects:
+            self._post("\n".join(lines))
             return
-
-        lines = [json.dumps(obj, ensure_ascii=True, sort_keys=True) for obj in objects]
+        for idx, obj in enumerate(objects, 1):
+            lines.append(
+                f"{idx}. {obj.get('case_name','')} | edge_net={obj.get('edge_net',0):.4f} "
+                f"| K: {obj.get('kalshi_action','')} | P: {obj.get('polymarket_action','')}"
+            )
         max_len = 3500
         chunk: List[str] = []
         chunk_len = 0
@@ -258,10 +286,18 @@ class TelegramNotifierReal(Notifier):
 
     def notify_cross_venue_filters(self, results) -> None:
         """Notify cross-venue filter PASS/FAIL results (compatibility method)."""
+        lines = [f"🧪 4. Filter checks ({len(results)})"]
         if not results:
+            self._post("\n".join(lines))
             return
-
-        lines = [json.dumps(entry, ensure_ascii=True, sort_keys=True) for entry in results]
+        for idx, entry in enumerate(results, 1):
+            case = entry.get("case", {})
+            report = entry.get("filter_report", {})
+            status = "PASS" if report.get("passed") else "FAIL"
+            reason = report.get("fail_reason") or report.get("fail_filter") or ""
+            lines.append(
+                f"{idx}. {case.get('case_name','')} | {status} | {reason}"
+            )
         max_len = 3500
         chunk: List[str] = []
         chunk_len = 0
@@ -274,6 +310,36 @@ class TelegramNotifierReal(Notifier):
             chunk_len += len(line) + 1
         if chunk:
             self._post("\n".join(chunk))
+
+    def notify_cross_venue_risk(self, results) -> None:
+        """Notify cross-venue risk approval (compatibility method)."""
+        lines = [f"✅ 5. Risk approval ({len(results)})"]
+        for idx, entry in enumerate(results, 1):
+            case = entry.get("case", {})
+            report = entry.get("filter_report", {})
+            if report.get("passed"):
+                status = "FAIL"
+                reason = "cross-venue execution disabled"
+            else:
+                status = "FAIL"
+                reason = report.get("fail_reason") or report.get("fail_filter") or "filtered"
+            lines.append(f"{idx}. {case.get('case_name','')} | {status} | {reason}")
+        self._post("\n".join(lines))
+
+    def notify_cross_venue_trade(self, results) -> None:
+        """Notify cross-venue paper trade (compatibility method)."""
+        lines = [f"🧾 6. Paper trade ({len(results)})"]
+        for idx, entry in enumerate(results, 1):
+            case = entry.get("case", {})
+            report = entry.get("filter_report", {})
+            if report.get("passed"):
+                status = "FAIL"
+                reason = "cross-venue execution disabled"
+            else:
+                status = "FAIL"
+                reason = report.get("fail_reason") or report.get("fail_filter") or "filtered"
+            lines.append(f"{idx}. {case.get('case_name','')} | {status} | {reason}")
+        self._post("\n".join(lines))
 
 
 class TelegramNotifierMock(Notifier):
@@ -378,8 +444,18 @@ class TelegramNotifierMock(Notifier):
             actions_str.append(f"{side_emoji} {action.side} {outcome} @ {action.limit_price:.3f}")
         trades_str = " vs ".join(actions_str) if len(actions_str) <= 3 else f"{len(actions_str)} trades"
         
+        execution = opp.metadata.get("execution", {})
+        trades = opp.metadata.get("trades", [])
+        risk = opp.metadata.get("risk_approval", {})
+        risk_note = "yes" if risk.get("approved") else "no"
+        exec_status = execution.get("status", "unknown")
+        filled = execution.get("total_filled")
+        intended = execution.get("total_intended")
+        pnl = execution.get("realized_pnl")
+
         lines = [
             f"🔎 Opportunity {opp.type} {status}",
+            f"✅ 5. Risk approval | {risk_note}",
         ]
         if title_str:
             lines.append(f"Market: {title_str}")
@@ -389,6 +465,19 @@ class TelegramNotifierMock(Notifier):
             f"Edge: {edge_str} (Est. gain: {gain_str})",
             f"Details: {opp.description}",
         ])
+        if intended is not None and filled is not None:
+            lines.append(f"🧾 6. Paper trade | {exec_status} | filled {filled:.4f}/{intended:.4f}")
+        if pnl is not None:
+            lines.append(f"🧾 6. PnL | {pnl:.4f}")
+        if trades:
+            trade_lines = []
+            for t in trades[:3]:
+                trade_lines.append(
+                    f"{t.get('side','')} {t.get('outcome_id','')} @ {t.get('price',0):.4f} x {t.get('amount',0):.4f}"
+                )
+            if len(trades) > 3:
+                trade_lines.append(f"... +{len(trades)-3} more")
+            lines.append("🧾 6. Trade details | " + "; ".join(trade_lines))
         self._post("\n".join(lines))
 
     def notify_trade_summary(self, count: int) -> None:
@@ -412,7 +501,7 @@ class TelegramNotifierMock(Notifier):
             raw = str(text) if text is not None else ""
             return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
 
-        lines = [f"🔗 Cross-venue matches ({len(pairs)})"]
+        lines = [f"🔗 1. Cross-venue matcher ({len(pairs)})"]
         for idx, (k_market, p_market, score) in enumerate(pairs, 1):
             k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
             p_title = _shorten(getattr(p_market, "question", None) or getattr(p_market, "id", ""))
@@ -446,7 +535,7 @@ class TelegramNotifierMock(Notifier):
             raw = str(text) if text is not None else ""
             return raw if len(raw) <= limit else raw[: max(0, limit - 3)] + "..."
 
-        lines = [f"✅ LLM cross-venue verification ({len(results)})"]
+        lines = [f"✅ 2. LLM verification ({len(results)})"]
         for idx, (k_market, p_market, score, verdict) in enumerate(results, 1):
             status = "PASS" if verdict.same_event else "FAIL"
             k_title = _shorten(getattr(k_market, "question", None) or getattr(k_market, "id", ""))
@@ -483,7 +572,12 @@ class TelegramNotifierMock(Notifier):
         if not objects:
             return
 
-        lines = [json.dumps(obj, ensure_ascii=True, sort_keys=True) for obj in objects]
+        lines = [f"🧮 3. Arbitrage case generation ({len(objects)})"]
+        for idx, obj in enumerate(objects, 1):
+            lines.append(
+                f"{idx}. {obj.get('case_name','')} | edge_net={obj.get('edge_net',0):.4f} "
+                f"| K: {obj.get('kalshi_action','')} | P: {obj.get('polymarket_action','')}"
+            )
         max_len = 3500
         chunk: List[str] = []
         chunk_len = 0
@@ -502,7 +596,15 @@ class TelegramNotifierMock(Notifier):
         if not results:
             return
 
-        lines = [json.dumps(entry, ensure_ascii=True, sort_keys=True) for entry in results]
+        lines = [f"🧪 4. Filter checks ({len(results)})"]
+        for idx, entry in enumerate(results, 1):
+            case = entry.get("case", {})
+            report = entry.get("filter_report", {})
+            status = "PASS" if report.get("passed") else "FAIL"
+            reason = report.get("fail_reason") or report.get("fail_filter") or ""
+            lines.append(
+                f"{idx}. {case.get('case_name','')} | {status} | {reason}"
+            )
         max_len = 3500
         chunk: List[str] = []
         chunk_len = 0

@@ -441,6 +441,17 @@ class KalshiClient(MarketClient):
                 ),
             ]
             
+            best_bid = {}
+            best_ask = {}
+            if _nz(yes_bid) is not None:
+                best_bid["yes"] = _nz(yes_bid)
+            if _nz(no_bid) is not None:
+                best_bid["no"] = _nz(no_bid)
+            if _nz(yes_ask) is not None:
+                best_ask["yes"] = _nz(yes_ask)
+            if _nz(no_ask) is not None:
+                best_ask["no"] = _nz(no_ask)
+
             # Build market
             market = Market(
                 id=f"kalshi:{event_ticker}:{ticker}",
@@ -454,8 +465,8 @@ class KalshiClient(MarketClient):
                 tags=data.get("category", "").split(",") if data.get("category") else [],
                 description=data.get("rules_primary", "") or data.get("subtitle", ""),
                 resolution_source="Kalshi Official",
-                best_bid={"yes": _nz(yes_bid), "no": _nz(no_bid)},
-                best_ask={"yes": _nz(yes_ask), "no": _nz(no_ask)},
+                best_bid=best_bid,
+                best_ask=best_ask,
             )
             
             # Tag exchange

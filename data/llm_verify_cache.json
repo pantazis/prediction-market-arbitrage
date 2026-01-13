@@ -1790,5 +1790,19 @@
       }
     },
     "timestamp": 1768298834.607366
+  },
+  "3d1d9d3e3c0902f752737caf77933021": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about the same core event: John Fetterman winning and accepting the Democratic Presidential nomination in 2028. While the explicit resolution sources differ ('Kalshi Official' vs. 'consensus of official Democratic Party sources'), in practice, these would likely lead to the same outcome as they both aim to verify the same factual event as determined by authoritative sources related to the Democratic Party's nomination process.",
+      "resolution_source": "consensus of official Democratic Party sources",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "consensus of official Democratic Party sources",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768314015.71142
   }
 }

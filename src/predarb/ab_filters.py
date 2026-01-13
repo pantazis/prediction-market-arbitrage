@@ -32,7 +32,7 @@ class FilterConfig:
     # execution safety
     min_leg_usd: float = 100.0
     min_depth_usd: float = 100.0
-    max_staleness_sec: float = 120.0
+    max_staleness_sec: float = 600.0
     min_price: float = 0.03
     max_price: float = 0.97
 

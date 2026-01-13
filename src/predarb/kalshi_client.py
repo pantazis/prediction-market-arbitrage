@@ -383,6 +383,21 @@ class KalshiClient(MarketClient):
             volume = float(data.get("volume", 0))
             liquidity = open_interest * yes_price if open_interest > 0 else volume * 0.1
             
+            def _parse_ts(value: Optional[object]) -> Optional[datetime]:
+                if value is None:
+                    return None
+                if isinstance(value, (int, float)):
+                    ts = float(value)
+                    if ts > 1e12:
+                        ts = ts / 1000.0
+                    return datetime.fromtimestamp(ts, tz=timezone.utc)
+                if isinstance(value, str):
+                    try:
+                        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+                    except Exception:
+                        return None
+                return None
+
             # Parse expiry
             close_time_str = data.get("close_time")
             expiry = None
@@ -391,6 +406,24 @@ class KalshiClient(MarketClient):
                     expiry = datetime.fromisoformat(close_time_str.replace("Z", "+00:00"))
                 except Exception:
                     pass
+
+            # Best-effort last update timestamp for staleness checks
+            updated_at = None
+            for key in (
+                "last_updated_time",
+                "last_update_time",
+                "last_trade_time",
+                "updated_at",
+                "last_updated",
+                "last_update_ts",
+                "last_trade_ts",
+                "timestamp",
+            ):
+                updated_at = _parse_ts(data.get(key))
+                if updated_at:
+                    break
+            if updated_at is None:
+                updated_at = datetime.now(timezone.utc)
             
             # Build outcomes
             outcomes = [
@@ -415,6 +448,7 @@ class KalshiClient(MarketClient):
                 outcomes=outcomes,
                 end_date=expiry,
                 expiry=expiry,
+                updated_at=updated_at,
                 liquidity=liquidity,
                 volume=volume,
                 tags=data.get("category", "").split(",") if data.get("category") else [],

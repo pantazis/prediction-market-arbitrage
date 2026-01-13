@@ -87,12 +87,13 @@ class PolymarketClient(MarketClient):
 
             best_bid: Dict[str, float] = {}
             best_ask: Dict[str, float] = {}
+            half_spread = 0.001
             for outcome in outcomes:
                 label = str(outcome.label).strip().lower()
                 if label in ("yes", "no"):
                     mid = float(outcome.price)
-                    best_bid[label] = mid
-                    best_ask[label] = mid
+                    best_bid[label] = max(0.0, mid - half_spread)
+                    best_ask[label] = min(1.0, mid + half_spread)
             
             # Parse end date - Gamma API uses endDate or endDateIso
             expiry = None

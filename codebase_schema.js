@@ -29,7 +29,7 @@ Failure to respect this file = INVALID OUTPUT.
 {
   "schema_version": "1.3",
   "generated_date": "2026-01-06",
-  "last_updated": "2026-01-12T12:10:00Z",
+  "last_updated": "2026-01-12T13:10:00Z",
   "project": {
     "name": "prediction-market-arbitrage",
     "description": "Python arbitrage detection bot for multi-exchange prediction markets (Polymarket + Kalshi)",
@@ -241,6 +241,55 @@ Failure to respect this file = INVALID OUTPUT.
         "python scripts/download_markets.py --kalshi --poly",
         "ENV_FILE=.env python scripts/download_markets.py --kalshi --poly --kalshi-orderbooks 50 --poly-orderbooks 50",
         "python scripts/download_markets.py --kalshi --kalshi-series KXPRES --kalshi-orderbooks 20"
+      ]
+    },
+    {
+      "name": "codebase_schema_exporter",
+      "path": "scripts/export_codebase_schema.py",
+      "type": "cli",
+      "added": "2026-01-12",
+      "description": "Export the canonical codebase schema (codebase_schema.js) to a JSON file",
+      "purpose": "Generate codebase_schema.json snapshots for tooling or sharing",
+      "requirements": [
+        "python (stdlib only)"
+      ],
+      "cli_arguments": [
+        "--source PATH - Schema source file (default: codebase_schema.js)",
+        "--out PATH - Output JSON path (default: codebase_schema.json)",
+        "--minify - Write minified JSON (optional)",
+        "--timestamped - Append UTC timestamp to output filename"
+      ],
+      "outputs": [
+        "codebase_schema.json (default, pretty-printed)",
+        "codebase_schema_YYYYMMDD_HHMMSS_UTC.json (when --timestamped)"
+      ],
+      "usage": [
+        "python scripts/export_codebase_schema.py",
+        "python scripts/export_codebase_schema.py --out reports/codebase_schema.json",
+        "python scripts/export_codebase_schema.py --timestamped"
+      ]
+    },
+    {
+      "name": "minimal_schema_generator",
+      "path": "scripts/generate_minimal_schema.py",
+      "type": "cli",
+      "added": "2026-01-12",
+      "description": "Generate a minimal code schema map from repository files",
+      "purpose": "Create a JSON snapshot of imports, classes, functions, and variables",
+      "requirements": [
+        "python (stdlib only)"
+      ],
+      "cli_arguments": [
+        "--root PATH - Repository root to scan (default: .)",
+        "--out PATH - Output JSON path (default: codebase_minimal_schema.json)",
+        "--include-env - Include .env as API key file entry"
+      ],
+      "outputs": [
+        "codebase_minimal_schema.json (default)"
+      ],
+      "usage": [
+        "python scripts/generate_minimal_schema.py --include-env",
+        "python scripts/generate_minimal_schema.py --root . --out codebase_minimal_schema.json --include-env"
       ]
     },
     {
@@ -1546,7 +1595,7 @@ Failure to respect this file = INVALID OUTPUT.
       },
       "llm_verification": {
         "enabled": "Enable LLM verification (default: false)",
-        "provider": "LLM provider: 'mock'|'openai'|'gemini' (default: 'mock')",
+        "provider": "LLM provider: 'mock'|'openai'|'gemini'|'ollama' (default: 'mock')",
         "model": "Model name (default: 'gpt-3.5-turbo')",
         "timeout_s": "Timeout per call in seconds (default: 3.0)",
         "max_pairs_per_group": "Max pairs to verify per semantic group (default: 5)",
@@ -1656,7 +1705,7 @@ Failure to respect this file = INVALID OUTPUT.
       "purpose": "Configuration for LLM-based verification",
       "fields": [
         "enabled: bool (default: False)",
-        "provider: str ('mock'|'openai'|'gemini', default: 'mock')",
+        "provider: str ('mock'|'openai'|'gemini'|'ollama', default: 'mock')",
         "model: str (model name, default: 'gpt-3.5-turbo')",
         "timeout_s: float (request timeout, default: 3.0)",
         "max_pairs_per_group: int (limit verifications, default: 5)",

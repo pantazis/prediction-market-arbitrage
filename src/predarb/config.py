@@ -130,7 +130,7 @@ class LLMVerificationConfig(BaseModel):
     """Configuration for LLM-based market verification."""
 
     enabled: bool = False
-    provider: str = "mock"  # "openai", "gemini", "mock"
+    provider: str = "mock"  # "openai", "gemini", "ollama", "mock"
     model: str = "gpt-3.5-turbo"
     timeout_s: float = 3.0
     max_pairs_per_group: int = 5

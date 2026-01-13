@@ -95,6 +95,63 @@
         ]
       }
     },
+    "codebase_schema_exporter": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-12",
+      "description": "Export the canonical codebase schema (codebase_schema.js) to JSON",
+      "purpose": "Create codebase_schema.json snapshots for tooling or sharing",
+      "file": "scripts/export_codebase_schema.py",
+      "inputs": [
+        "codebase_schema.js (canonical schema source)"
+      ],
+      "outputs": [
+        "codebase_schema.json (default, pretty-printed)",
+        "codebase_schema_YYYYMMDD_HHMMSS_UTC.json (when --timestamped)"
+      ],
+      "cli_options": {
+        "source": "--source PATH (default: codebase_schema.js)",
+        "out": "--out PATH (default: codebase_schema.json)",
+        "minify": "--minify (write minified JSON)",
+        "timestamped": "--timestamped (append UTC timestamp to output filename)"
+      },
+      "usage_examples": {
+        "default": "python scripts/export_codebase_schema.py",
+        "custom_out": "python scripts/export_codebase_schema.py --out reports/codebase_schema.json",
+        "timestamped": "python scripts/export_codebase_schema.py --timestamped"
+      },
+      "notes": [
+        "Does not modify codebase_schema.js",
+        "Uses standard library only"
+      ]
+    },
+    "minimal_schema_generator": {
+      "status": "PRODUCTION_READY",
+      "version": "1.0",
+      "added": "2026-01-12",
+      "description": "Generate a minimal schema map from repository files",
+      "purpose": "Extract imports, classes, functions, and variables into JSON",
+      "file": "scripts/generate_minimal_schema.py",
+      "inputs": [
+        "Repository files (all folders)"
+      ],
+      "outputs": [
+        "codebase_minimal_schema.json (default)"
+      ],
+      "cli_options": {
+        "root": "--root PATH (default: .)",
+        "out": "--out PATH (default: codebase_minimal_schema.json)",
+        "include_env": "--include-env (include .env as API key file entry)"
+      },
+      "usage_examples": {
+        "default": "python3 scripts/generate_minimal_schema.py --include-env",
+        "custom_out": "python3 scripts/generate_minimal_schema.py --out reports/codebase_minimal_schema.json --include-env"
+      },
+      "notes": [
+        "AST-based parsing; skips invalid syntax with parse_error flag",
+        "Uses standard library only"
+      ]
+    },
     "smart_semantic_matcher": {
       "status": "PRODUCTION_READY",
       "version": "1.0",
@@ -283,7 +340,7 @@
         "log_format": "Cross-venue matcher found {count} semantic pairs",
         "debug_details": "Logs top 3 pairs with similarity scores",
         "telegram_notification": "If Telegram is enabled, sends full match list when pairs change; LLM pass/fail verdicts for each pair are sent as separate messages",
-        "llm_verification": "If LLM verification enabled, each top pair is verified with OpenAI/Gemini/Mock, and PASS/FAIL with reason is sent to Telegram",
+        "llm_verification": "If LLM verification enabled, each top pair is verified with OpenAI/Gemini/Ollama/Mock, and PASS/FAIL with reason is sent to Telegram",
         "integration": "Pairs used by detectors for opportunity detection"
       },
       "advantages": {
@@ -1476,8 +1533,8 @@
           "provider": {
             "type": "str",
             "default": "mock",
-            "options": ["mock", "openai", "gemini"],
-            "description": "LLM provider to use. 'mock' for testing (no API calls), 'openai' for GPT-3.5"
+            "options": ["mock", "openai", "gemini", "ollama"],
+            "description": "LLM provider to use. 'mock' for testing (no API calls), 'openai' for GPT-3.5, 'ollama' for local models"
           },
           "model": {
             "type": "str",
@@ -1520,6 +1577,8 @@
       "yaml_example": "llm_verification:\n  enabled: true\n  provider: openai\n  model: gpt-3.5-turbo\n  timeout_s: 3.0\n  max_pairs_per_group: 5\n  fail_mode: fail_open",
       "environment_requirements": {
         "openai_provider": "Set OPENAI_API_KEY env var for GPT-3.5 verification",
+        "gemini_provider": "Set GEMINI_API_KEY env var for Gemini verification",
+        "ollama_provider": "Set OLLAMA_HOST (optional, default http://localhost:11434) and run a local Ollama model",
         "mock_provider": "No API key needed; deterministic testing"
       },
       "components": {

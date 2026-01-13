@@ -754,5 +754,761 @@
       }
     },
     "timestamp": 1768228171.411478
+  },
+  "53c7d7de27f63e868bd78ff71f54b72b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228684.6348405
+  },
+  "716f3ea2061e5523b71fed4037431aef": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7058482
+  },
+  "5b54ee9a49c3900d063112c0d069fc27": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.708457
+  },
+  "0f20f1796a83238f63764de460565096": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7106545
+  },
+  "921e126a83badb7c318f0ed52f5a0e67": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7126231
+  },
+  "ef14a0baea40e56b351dc0a3152c7a3a": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7148228
+  },
+  "3a47dce60eba167040f1f139c5ac1e14": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7172785
+  },
+  "d6ae958f5efbf735438e5c61f3bd0178": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.719132
+  },
+  "f2967e6750d0fe9dd1146397639fc43c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7211926
+  },
+  "486913029f8a1587be111a2f8a03c55e": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7231808
+  },
+  "12d77cc39dbe343e3f1a9ad3da3beace": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228788.7250752
+  },
+  "159801f5ab3de61dd5dc5c5b18e2e651": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768228849.4699063
+  },
+  "f814b9bc28f38af4bf5743ba6f5f89e2": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229181.8648589
+  },
+  "c8f857f0438e9a691660863a07ce0f2b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.4937665
+  },
+  "52253aa8323bafa8ef90df7d2ecd9b9b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.4991739
+  },
+  "c57a87569472a4e8d53c4dda3d1fa30b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5035007
+  },
+  "0c0bf50699a5cea4433366aa8322b5fd": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5077767
+  },
+  "e3f300877ec4462c9ce85b25858081d4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5116694
+  },
+  "451d75a2bd4aad953b243e1c91255522": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5155332
+  },
+  "8a6da701b8a7e6428d66e600bee3f892": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5194027
+  },
+  "c382f7683edc4346602fd643453750e9": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5258386
+  },
+  "40a83004989f83d7b6db9c01ee9baa08": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5419135
+  },
+  "009a80285d4f9f4de3e31aaf3f3e022d": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768229919.5459769
+  },
+  "0f03c2cb6313a12e204c5ce74378c3e8": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230026.9865985
+  },
+  "0295c66bf6b030320214b263daa03b1d": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230026.9912734
+  },
+  "a84c65c65b0638988b836d19169c4f33": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230026.995757
+  },
+  "da54da8b4ac69e85cccc314a4413bc59": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.0004804
+  },
+  "d4959362aa8c6f5d37a9f91f3fd7bda4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.0043015
+  },
+  "b501976f9ab62484ab418751063a1b20": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.008811
+  },
+  "3c8ddc6af9469cbc1df1c3fd04d2d2e1": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.0126102
+  },
+  "c3c7d5444f86b164a001807a4a2fee30": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.0206428
+  },
+  "dc37a12159150afe40333affb40fadb3": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.024299
+  },
+  "d6e48d4ea54f96c6425c65b4411775e3": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230027.0284653
+  },
+  "a0117733abc1de25bc8ae78d81c77b12": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230238.0395749
+  },
+  "a089f5a0e7d0d3540db6ba9e99a232c6": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230261.9211822
+  },
+  "0f77898113c72027b67e2f5b4185da2c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768230574.8554554
+  },
+  "befa1b529baa9e7b32ae349119235d7d": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231001.8603213
+  },
+  "c46dff6e17ce39ab11ad43f9a8d9298e": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231003.0396917
+  },
+  "53436d655dc09281d568e04bd2205477": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231004.8208396
+  },
+  "371b661284c8db96ec124c690c8e5862": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231007.0755665
+  },
+  "18326fb2486999ddbc9b75cd24904962": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231013.4466195
+  },
+  "d595a90b8682df6112ec83443f1f8252": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231013.5927577
+  },
+  "e74b34ffcaa87490a726e9d54dc7bd9c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231013.8176787
+  },
+  "e3ba6a1653bb6a496ea75ae31f41ab48": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "No reason provided",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231013.9571846
+  },
+  "cc567a6465af4cf008a919921dac96f7": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about Kristi Noem winning and accepting the Republican Party's nomination for President. The phrasing and criteria for resolution are functionally identical, even though Market B specifies '2028 Republican presidential nomination' which implies the next available nomination cycle. The resolution sources, while worded differently, point to the same underlying event of official Republican Party designation.",
+      "resolution_source": "Consensus of official Republican Party sources / Kalshi Official",
+      "resolution_date": "null",
+      "key_fields": {
+        "resolution_source": "Consensus of official Republican Party sources / Kalshi Official",
+        "resolution_date": "null"
+      }
+    },
+    "timestamp": 1768231400.6350708
+  },
+  "544c983f1b3990ca6e21660f2740638d": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.9,
+      "reason": "Both markets resolve based on Katie Britt winning and accepting the Republican presidential nomination. While Market A is more general (referring to 'the Presidency' without a specific year, implying the next cycle), the implicit context for a current political figure like Katie Britt, and the specific mention of '2028' in Market B, strongly suggest they are targeting the same future nomination event. The difference in resolution sources is noted but the core event is identical.",
+      "resolution_source": "Consensus of official Republican Party sources (inferred commonality)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Consensus of official Republican Party sources (inferred commonality)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231401.932252
+  },
+  "81a4f8a10ed913dd9de81d2e1892d242": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both markets are asking about Elon Musk winning and accepting the Republican Party's nomination for President. While Market B specifies the year '2028', the question in Market A is implicitly tied to the next relevant election cycle, which would be 2028 if not stated otherwise. The core event of becoming the Republican nominee is the same. Market A's resolution source (Kalshi Official) is likely to align with official party pronouncements, similar to Market B's stated consensus.",
+      "resolution_source": "Official Republican Party sources (consensus)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Official Republican Party sources (consensus)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231403.5178785
+  },
+  "c2a97c9dddfbf42c9eb68f8a2bc85623": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market B specifically states the year '2028' for the nomination, while Market A does not specify a year and could refer to any election cycle. Market B also explicitly mentions a consensus of official Republican Party sources for resolution, whereas Market A relies on 'Kalshi Official' which is less specific to party sources. The exclusion of nominee replacement before election day in Market B is also a differentiating factor.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231405.0964458
+  },
+  "19bf1530b2a2b3729bc5243b7a047c03": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about Brian Kemp winning and accepting the Republican Party's nomination for the Presidency. While Market B specifies the year '2028', and Market A does not, the underlying event being predicted is the same: Kemp becoming the Republican nominee. The resolution criteria are identical, focusing on him winning and accepting the nomination.",
+      "resolution_source": "Kalshi Official/Consensus of official Republican Party sources",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Kalshi Official/Consensus of official Republican Party sources",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231406.3833723
+  },
+  "47c5be24e62aed41fa75f27010bf2db1": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.9,
+      "reason": "Both markets hinge on Josh Hawley winning and accepting the Republican Party's nomination for President. While Market B specifies the year 2028, Market A's absence of a year implies it refers to the next available nomination opportunity, which would also be the 2028 election cycle given the current political landscape. The criteria for winning and accepting the nomination are identical. The differing resolution sources (Kalshi Official vs. consensus of official Republican Party sources) are both highly authoritative for this type of political event. Market B's explicit mention of '2028' is a strong indicator, and Market A's wording implicitly points to the same future nomination event.",
+      "resolution_source": "consensus of official Republican Party sources",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "consensus of official Republican Party sources",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231408.0695865
+  },
+  "f17d28afb287cea455d046af97f1191f": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking about Vivek Ramaswamy winning and accepting the Republican presidential nomination. While Market A doesn't explicitly state a year, the phrasing 'nominee for the Presidency for the Republican party' implies a specific election cycle. Market B explicitly states '2028 Republican presidential nomination'. The core event being predicted is the same: Vivek Ramaswamy securing and accepting the Republican party's nomination for President. The additional clause in Market B about replacements before election day and the specific resolution source in Market A (Kalshi Official) are details about how the event is confirmed, not the event itself. The consensus resolution source in Market B will likely align with official party announcements, which would also satisfy the 'Kalshi Official' source if it's reliable for such confirmations.",
+      "resolution_source": "Official Republican Party sources / Kalshi Official (implied alignment)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Official Republican Party sources / Kalshi Official (implied alignment)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231410.1877959
+  },
+  "b356b58926145502f602d54e7867571e": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A refers to 'the Presidency for the Republican party' without a specific election year, implying any nomination. Market B explicitly specifies 'the 2028 Republican presidential nomination'. The inclusion of the year in Market B makes it a narrower event. Additionally, the resolution sources differ: Market A specifies 'Kalshi Official' while Market B relies on a 'consensus of official Republican Party sources'.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768231411.2863011
+  },
+  "45a215d83cdeb459fc8d0b96a35acc5d": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are asking whether Mike Pence will win and accept the Republican presidential nomination. While Market B specifies the year 2028, the phrasing in Market A 'nominee for the Presidency for the Republican party' implies a future nomination, and in the context of current political discussions, this would likely refer to the next available presidential election cycle. The core event of winning and accepting the nomination is the same.",
+      "resolution_source": "Kalshi Official / consensus of official Republican Party sources",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Kalshi Official / consensus of official Republican Party sources",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231412.7762036
+  },
+  "e8695489e21e91b864556a13a149f918": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets resolve to 'Yes' if Marco Rubio wins and accepts the Republican Party's nomination for the Presidency. While Market B specifies the year '2028', the phrasing in Market A 'nominee for the Presidency for the Republican party' implies a specific cycle, and given Rubio's current political standing, it's highly probable both refer to the same future nomination event.",
+      "resolution_source": "Consensus of official Republican Party sources and Kalshi Official (as both are likely to defer to official party pronouncements for nomination acceptance)",
+      "resolution_date": "2028",
+      "key_fields": {
+        "resolution_source": "Consensus of official Republican Party sources and Kalshi Official (as both are likely to defer to official party pronouncements for nomination acceptance)",
+        "resolution_date": "2028"
+      }
+    },
+    "timestamp": 1768231414.164013
   }
 }

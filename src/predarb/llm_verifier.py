@@ -24,6 +24,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+import requests
+
 from pydantic import BaseModel, Field
 
 from predarb.models import Market
@@ -58,7 +60,7 @@ class LLMVerifierConfig(BaseModel):
     """Configuration for LLM-based market verification."""
 
     enabled: bool = False
-    provider: str = "mock"  # "openai", "gemini", "mock"
+    provider: str = "mock"  # "openai", "gemini", "ollama", "mock"
     model: str = "gpt-3.5-turbo"  # or "gemini-1.5-flash", etc.
     timeout_s: float = 3.0
     max_pairs_per_group: int = 5
@@ -169,6 +171,122 @@ class OpenAIChatProvider(LLMProvider):
 
         logger.warning(f"Failed to parse JSON from response: {text[:100]}")
         return {}
+
+
+class GeminiProvider(LLMProvider):
+    """Gemini provider (network-enabled)."""
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: str = "gemini-1.5-flash",
+        timeout_s: float = 3.0,
+    ):
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY", "")
+        self.model = model
+        self.timeout_s = timeout_s
+        if not self.api_key:
+            logger.warning("Gemini API key not set; verify_pair will fail")
+
+    def complete_json(self, prompt: str) -> dict:
+        if not self.api_key:
+            logger.debug("Gemini API key not configured")
+            return {}
+
+        url = (
+            f"https://generativelanguage.googleapis.com/v1/models/"
+            f"{self.model}:generateContent?key={self.api_key}"
+        )
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": prompt}],
+                }
+            ]
+        }
+
+        try:
+            resp = requests.post(url, json=payload, timeout=self.timeout_s)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.exceptions.Timeout:
+            logger.warning("Gemini request timed out")
+            raise TimeoutError("Gemini request timeout") from None
+        except requests.exceptions.HTTPError as e:
+            status = getattr(e.response, "status_code", "unknown")
+            body = getattr(e.response, "text", "") or ""
+            body = body[:2000]
+            logger.error("Gemini request failed: HTTP %s | %s", status, body)
+            return {}
+        except Exception as e:
+            logger.error(f"Gemini request failed: {e}")
+            return {}
+
+        try:
+            candidates = data.get("candidates") or []
+            if not candidates:
+                logger.warning("Gemini returned no candidates")
+                return {}
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if not parts:
+                logger.warning("Gemini returned empty parts")
+                return {}
+            text = str(parts[0].get("text", "")).strip()
+        except Exception as e:
+            logger.error(f"Gemini response parse failed: {e}")
+            return {}
+
+        if not text:
+            logger.warning("Gemini returned empty response text")
+            return {}
+
+        return OpenAIChatProvider._parse_json_from_text(text)
+
+
+class OllamaProvider(LLMProvider):
+    """Ollama provider for local models (no API cost)."""
+
+    def __init__(
+        self,
+        model: str,
+        host: Optional[str] = None,
+        timeout_s: float = 3.0,
+    ):
+        self.model = model
+        self.host = (host or os.getenv("OLLAMA_HOST", "http://localhost:11434")).rstrip("/")
+        self.timeout_s = timeout_s
+
+    def complete_json(self, prompt: str) -> dict:
+        if not self.model:
+            logger.warning("Ollama model not set; verify_pair will fail")
+            return {}
+
+        url = f"{self.host}/api/generate"
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json",
+        }
+
+        try:
+            resp = requests.post(url, json=payload, timeout=self.timeout_s)
+            resp.raise_for_status()
+            data = resp.json()
+        except TimeoutError:
+            logger.warning("Ollama request timed out")
+            raise TimeoutError("Ollama request timeout") from None
+        except Exception as e:
+            logger.error(f"Ollama request failed: {e}")
+            return {}
+
+        text = str(data.get("response", "")).strip()
+        if not text:
+            logger.warning("Ollama returned empty response")
+            return {}
+
+        return OpenAIChatProvider._parse_json_from_text(text)
 
 
 class MockLLMProvider(LLMProvider):
@@ -310,9 +428,15 @@ Respond with ONLY valid JSON in this exact format:
         if self.config.provider == "openai":
             return OpenAIChatProvider(timeout_s=self.config.timeout_s)
         elif self.config.provider == "gemini":
-            # Placeholder for Gemini implementation
-            logger.warning("Gemini provider not yet implemented; using mock")
-            return MockLLMProvider(timeout_s=self.config.timeout_s)
+            return GeminiProvider(
+                model=self.config.model,
+                timeout_s=self.config.timeout_s,
+            )
+        elif self.config.provider == "ollama":
+            return OllamaProvider(
+                model=self.config.model,
+                timeout_s=self.config.timeout_s,
+            )
         else:
             return MockLLMProvider(timeout_s=self.config.timeout_s)
 
@@ -419,6 +543,10 @@ Respond with ONLY valid JSON in this exact format:
         except TimeoutError:
             logger.warning(f"Verification timeout for markets {market_a.id}, {market_b.id}")
             return self._handle_timeout()
+
+        if not response_json:
+            logger.warning(f"Empty verification response for markets {market_a.id}, {market_b.id}")
+            return self._handle_parse_error()
 
         # Parse response
         try:

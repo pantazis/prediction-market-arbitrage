@@ -103,3 +103,34 @@ market_dumps/
 *Polymarket:*
 - `GET https://gamma-api.polymarket.com/markets` (list markets)
 - `GET https://clob.polymarket.com/book?token_id=...` (orderbook)
+
+### export_codebase_schema.py
+
+Exports the canonical `codebase_schema.js` into a JSON snapshot.
+
+**Usage:**
+
+```bash
+# Default output to codebase_schema.json
+python scripts/export_codebase_schema.py
+
+# Write to a custom location
+python scripts/export_codebase_schema.py --out reports/codebase_schema.json
+
+# Write a timestamped snapshot
+python scripts/export_codebase_schema.py --timestamped
+```
+
+### generate_minimal_schema.py
+
+Generates a minimal schema map (imports, classes, functions, variables) for the entire repo.
+
+**Usage:**
+
+```bash
+# Default output to codebase_minimal_schema.json
+python3 scripts/generate_minimal_schema.py --include-env
+
+# Custom output location
+python3 scripts/generate_minimal_schema.py --out reports/codebase_minimal_schema.json --include-env
+```

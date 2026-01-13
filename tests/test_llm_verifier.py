@@ -18,6 +18,8 @@ from predarb.llm_verifier import (
     VerifiedGroup,
     MockLLMProvider,
     OpenAIChatProvider,
+    GeminiProvider,
+    OllamaProvider,
     PROMPT_VERSION,
 )
 from predarb.models import Market, Outcome
@@ -318,6 +320,22 @@ class TestLLMVerifier:
         assert result.same_event is False
         assert result.confidence == 0.0
 
+    def test_empty_response_uses_fail_mode(self, fed_market_jan, fed_market_jan_alt):
+        """Empty provider response should respect fail_mode."""
+        class EmptyProvider:
+            def complete_json(self, prompt: str) -> dict:
+                return {}
+
+        config = LLMVerificationConfig(
+            enabled=True,
+            provider="mock",
+            fail_mode="fail_open",
+        )
+        verifier = LLMVerifier(config, provider=EmptyProvider())
+        result = verifier.verify_pair(fed_market_jan, fed_market_jan_alt)
+        assert result.same_event is True
+        assert "parse error" in result.reason.lower()
+
     def test_verify_group_single_market(self, mock_config, fed_market_jan):
         """Test verifying group with single market."""
         verifier = LLMVerifier(mock_config)
@@ -463,6 +481,70 @@ class TestOpenAIChatProvider:
         response_text = "This is not JSON at all"
         result = OpenAIChatProvider._parse_json_from_text(response_text)
         assert result == {}
+
+
+class TestOllamaProvider:
+    """Test OllamaProvider (mock network calls)."""
+
+    def test_ollama_parses_json_response(self):
+        """Test Ollama JSON parsing with format=json output."""
+        provider = OllamaProvider(model="llama3.1")
+        response_text = '{"same_event": true, "confidence": 0.9, "reason": "match"}'
+
+        mock_resp = type("Resp", (), {})()
+        mock_resp.json = lambda: {"response": response_text}
+        mock_resp.raise_for_status = lambda: None
+
+        with patch("predarb.llm_verifier.requests.post", return_value=mock_resp) as post_mock:
+            result = provider.complete_json("prompt")
+            assert result["same_event"] is True
+            assert result["confidence"] == 0.9
+            post_mock.assert_called_once()
+
+    def test_ollama_empty_response(self):
+        """Test Ollama empty response handling."""
+        provider = OllamaProvider(model="llama3.1")
+        mock_resp = type("Resp", (), {})()
+        mock_resp.json = lambda: {"response": ""}
+        mock_resp.raise_for_status = lambda: None
+
+        with patch("predarb.llm_verifier.requests.post", return_value=mock_resp):
+            result = provider.complete_json("prompt")
+            assert result == {}
+
+
+class TestGeminiProvider:
+    """Test GeminiProvider (mock network calls)."""
+
+    def test_gemini_parses_json_response(self):
+        """Test Gemini JSON parsing from candidate text."""
+        provider = GeminiProvider(api_key="test_key", model="gemini-1.5-flash")
+        response_text = '{"same_event": true, "confidence": 0.9, "reason": "match"}'
+
+        mock_resp = type("Resp", (), {})()
+        mock_resp.json = lambda: {
+            "candidates": [
+                {"content": {"parts": [{"text": response_text}]}}
+            ]
+        }
+        mock_resp.raise_for_status = lambda: None
+
+        with patch("predarb.llm_verifier.requests.post", return_value=mock_resp) as post_mock:
+            result = provider.complete_json("prompt")
+            assert result["same_event"] is True
+            assert result["confidence"] == 0.9
+            post_mock.assert_called_once()
+
+    def test_gemini_empty_candidates(self):
+        """Test Gemini empty candidates handling."""
+        provider = GeminiProvider(api_key="test_key", model="gemini-1.5-flash")
+        mock_resp = type("Resp", (), {})()
+        mock_resp.json = lambda: {"candidates": []}
+        mock_resp.raise_for_status = lambda: None
+
+        with patch("predarb.llm_verifier.requests.post", return_value=mock_resp):
+            result = provider.complete_json("prompt")
+            assert result == {}
 
 
 class TestIntegration:

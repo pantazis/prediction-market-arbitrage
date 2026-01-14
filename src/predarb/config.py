@@ -148,9 +148,11 @@ class CrossVenueMatcherConfig(BaseModel):
 
     enabled: bool = False
     model_name: str = "all-MiniLM-L6-v2"
-    min_similarity: float = 0.60
+    min_similarity: float = 0.10
     max_hours_diff: int = 24
     batch_size: int = 50  # Process markets in batches to avoid memory issues
+    top_k: int = 5  # Candidates per market before thresholding
+    encode_batch_size: int = 32  # Embedding batch size
 
 
 class AppConfig(BaseModel):

@@ -19,13 +19,11 @@ logger = logging.getLogger(__name__)
 # Optional semantic similarity imports
 try:
     from sentence_transformers import SentenceTransformer, util
-    import numpy as np
     SEMANTIC_AVAILABLE = True
 except (ImportError, OSError, Exception):
     SEMANTIC_AVAILABLE = False
     SentenceTransformer = None
     util = None
-    np = None
 
 # Global model cache
 _semantic_model: Optional[SentenceTransformer] = None
@@ -102,10 +100,12 @@ class CrossVenueMatcher:
     def __init__(
         self,
         model_name: str = 'all-MiniLM-L6-v2',
-        min_similarity: float = 0.60,
+        min_similarity: float = 0.10,
         max_hours_diff: int = 24,
         enabled: bool = True,
-        batch_size: int = 50
+        batch_size: int = 50,
+        top_k: int = 5,
+        encode_batch_size: int = 32,
     ):
         """
         Initialize cross-venue matcher.
@@ -116,12 +116,16 @@ class CrossVenueMatcher:
             max_hours_diff: Maximum hours between expiry dates
             enabled: If False, matcher is disabled (returns empty list)
             batch_size: Number of markets to process per batch (default: 50)
+            top_k: Top-k candidates to retrieve per Kalshi market
+            encode_batch_size: Batch size for embedding encoding
         """
         self.model_name = model_name
         self.min_similarity = min_similarity
         self.max_hours_diff = max_hours_diff
         self.enabled = enabled
         self.batch_size = batch_size
+        self.top_k = top_k
+        self.encode_batch_size = encode_batch_size
         self._model: Optional[SentenceTransformer] = None
         
         if not SEMANTIC_AVAILABLE and enabled:
@@ -201,12 +205,19 @@ class CrossVenueMatcher:
         try:
             # Encode Polymarket markets once (corpus)
             logger.info(f"Encoding {len(p_binary)} Polymarket markets...")
-            p_emb = model.encode(p_texts, convert_to_tensor=True, show_progress_bar=False, batch_size=32)
+            p_emb = model.encode(
+                p_texts,
+                convert_to_tensor=True,
+                normalize_embeddings=True,
+                show_progress_bar=False,
+                batch_size=self.encode_batch_size,
+            )
             
             # Process Kalshi markets in batches
             total_batches = (len(k_binary) + self.batch_size - 1) // self.batch_size
             logger.info(f"Processing {len(k_binary)} Kalshi markets in {total_batches} batches of {self.batch_size}...")
             
+            top_k = min(self.top_k, len(p_binary))
             for batch_idx in range(0, len(k_binary), self.batch_size):
                 batch_end = min(batch_idx + self.batch_size, len(k_binary))
                 batch_markets = k_binary[batch_idx:batch_end]
@@ -215,10 +226,16 @@ class CrossVenueMatcher:
                 logger.info(f"Batch {batch_idx // self.batch_size + 1}/{total_batches}: Processing markets {batch_idx+1}-{batch_end}...")
                 
                 # Encode batch
-                k_batch_emb = model.encode(batch_texts, convert_to_tensor=True, show_progress_bar=False, batch_size=32)
+                k_batch_emb = model.encode(
+                    batch_texts,
+                    convert_to_tensor=True,
+                    normalize_embeddings=True,
+                    show_progress_bar=False,
+                    batch_size=self.encode_batch_size,
+                )
                 
                 # Search for matches
-                hits = util.semantic_search(k_batch_emb, p_emb, top_k=5)
+                hits = util.semantic_search(k_batch_emb, p_emb, top_k=top_k)
                 
                 # Filter by similarity and date proximity
                 for k_local_idx, hit_list in enumerate(hits):

@@ -97,6 +97,8 @@ class Engine:
                 min_similarity=getattr(cross_venue_config, 'min_similarity', 0.60),
                 max_hours_diff=getattr(cross_venue_config, 'max_hours_diff', 24),
                 batch_size=getattr(cross_venue_config, 'batch_size', 50),
+                top_k=getattr(cross_venue_config, 'top_k', 5),
+                encode_batch_size=getattr(cross_venue_config, 'encode_batch_size', 32),
                 enabled=True
             )
             print(f"DEBUG: Created matcher, enabled={self.cross_venue_matcher.enabled}")

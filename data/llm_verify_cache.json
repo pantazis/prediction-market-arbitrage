@@ -1804,5 +1804,19 @@
       }
     },
     "timestamp": 1768314015.71142
+  },
+  "b9c3f5d36f0672311a1c6004cf3b1025": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A resolves to 'Yes' if Putin announces his intention to leave or actually leaves before Jan 1, 2027. Market B resolves to 'Yes' specifically if Putin is removed from power between July 6, 2025, and December 31, 2026. Market B's definition of 'removed from power' is more specific and its timeframe is narrower, focusing on removal rather than voluntary departure or announcement of departure. The start date for Market B (July 6, 2025) is also significantly later than the implied start date for Market A (which is implicitly from now).",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768395999.10749
   }
 }

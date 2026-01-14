@@ -40,6 +40,11 @@ cross_venue_matcher:
   model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
   min_similarity: 0.60             # 0.50-0.80 range (higher = stricter matching)
   max_hours_diff: 24               # Maximum hours between market expiry dates
+  require_tag_overlap: true
+  cluster_by_tags: true
+  cluster_tag_prefixes: ["topic", "time"]
+  keyword_index_enabled: true
+  min_keyword_overlap: 2
 
 detectors:
   parity_threshold: 0.99
@@ -63,3 +68,11 @@ telegram:
   enabled: true
   bot_token: ""
   chat_id: ""
+
+llm_verification:
+  enabled: true
+  provider: "gemini"
+  model: "gemini-1.5-flash"
+  min_similarity_to_verify: 0.0
+  max_pairs_per_group: 100000
+  verify_all_pairs: true

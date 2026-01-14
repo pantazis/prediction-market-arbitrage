@@ -79,6 +79,7 @@ class LLMVerifierConfig(BaseModel):
     timeout_s: float = 3.0
     max_pairs_per_group: int = 5
     min_similarity_to_verify: float = 0.90
+    verify_all_pairs: bool = False
     cache_path: str = "data/llm_verify_cache.json"
     ttl_hours: int = 168
     fail_mode: str = "fail_open"  # "fail_open" or "fail_closed"

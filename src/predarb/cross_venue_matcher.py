@@ -232,6 +232,10 @@ class CrossVenueMatcher:
         generic = {"type:binary", "type:multi"}
         tags_a = {t for t in tags_a if t not in generic}
         tags_b = {t for t in tags_b if t not in generic}
+        entity_a = {t for t in tags_a if t.startswith("entity:") or t.startswith("name:")}
+        entity_b = {t for t in tags_b if t.startswith("entity:") or t.startswith("name:")}
+        if entity_a or entity_b:
+            return bool(entity_a.intersection(entity_b))
         if not tags_a or not tags_b:
             return False
         return len(tags_a.intersection(tags_b)) >= self.min_shared_tags

@@ -47,6 +47,26 @@ _TYPE_KEYWORDS = {
     "approval": ["approval", "approve", "regulator", "sec", "fta"],
 }
 
+_NAME_STOPWORDS = {
+    "will",
+    "the",
+    "a",
+    "an",
+    "us",
+    "u.s",
+    "united",
+    "states",
+    "president",
+    "republican",
+    "democratic",
+    "nomination",
+    "party",
+}
+
+_NAME_PATTERN = re.compile(
+    r"\b(?:[A-Z][a-z]+|[A-Z]\.)(?:\s+(?:[A-Z][a-z]+|[A-Z]\.)){1,3}\b"
+)
+
 
 def normalize_tag(tag: str) -> str:
     if not tag:
@@ -84,6 +104,17 @@ def _extract_time_tags(end_date: datetime, tags: List[str], seen: Set[str]) -> N
     _add_tag(tags, seen, f"time:{month}")
 
 
+def _extract_name_tags(raw_text: str, tags: List[str], seen: Set[str]) -> None:
+    for match in _NAME_PATTERN.finditer(raw_text or ""):
+        value = match.group(0).strip()
+        parts = [p.strip(".").lower() for p in value.split() if p]
+        if not parts:
+            continue
+        if all(p in _NAME_STOPWORDS for p in parts):
+            continue
+        _add_tag(tags, seen, f"name:{'_'.join(parts)}")
+
+
 def build_tags(market: Market) -> List[str]:
     tags: List[str] = []
     seen: Set[str] = set()
@@ -95,6 +126,7 @@ def build_tags(market: Market) -> List[str]:
 
     _extract_topics(text, tags, seen)
     _extract_types(text, tags, seen)
+    _extract_name_tags(" ".join(text_parts), tags, seen)
 
     if market.end_date:
         _extract_time_tags(market.end_date, tags, seen)

@@ -164,7 +164,11 @@ class Engine:
 
         min_similarity = float(getattr(self.llm_verifier.config, "min_similarity_to_verify", 0.0))
         max_pairs = int(getattr(self.llm_verifier.config, "max_pairs_per_group", len(pairs)))
-        candidates = [p for p in pairs if p[2] >= min_similarity][:max_pairs]
+        verify_all = bool(getattr(self.llm_verifier.config, "verify_all_pairs", False))
+        if verify_all:
+            candidates = list(pairs)
+        else:
+            candidates = [p for p in pairs if p[2] >= min_similarity][:max_pairs]
 
         results: List[tuple[Market, Market, float, VerificationResult]] = []
         for k_market, p_market, score in candidates:
@@ -434,7 +438,11 @@ class Engine:
                 if not expiries:
                     return opp.net_edge
                 max_expiry = max(expiries)
-                days = (max_expiry - datetime.utcnow()).total_seconds() / 86_400
+                if max_expiry.tzinfo is not None:
+                    now = datetime.now(max_expiry.tzinfo)
+                else:
+                    now = datetime.utcnow()
+                days = (max_expiry - now).total_seconds() / 86_400
                 if days <= 0:
                     return opp.net_edge
                 return opp.net_edge / days

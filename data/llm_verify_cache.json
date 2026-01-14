@@ -11,21 +11,21 @@
         "resolution_date": "2024-01-31"
       }
     },
-    "timestamp": 1767770548.0652263
+    "timestamp": 1768381380.8899646
   },
   "ad3664286e36d603e11e80dbcafdd0b5": {
     "result": {
-      "same_event": true,
-      "confidence": 0.92,
-      "reason": "Both markets resolve on Fed decision in January",
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Different resolution months (January vs March)",
       "resolution_source": "Federal Reserve",
-      "resolution_date": "2024-01-31",
+      "resolution_date": "Different",
       "key_fields": {
         "resolution_source": "Federal Reserve",
-        "resolution_date": "2024-01-31"
+        "resolution_date": "Different"
       }
     },
-    "timestamp": 1767770548.100738
+    "timestamp": 1768381380.896908
   },
   "b1cc2ef82b67ad7233d9c7cd15f0fd20": {
     "result": {

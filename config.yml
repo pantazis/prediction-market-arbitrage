@@ -36,15 +36,7 @@ filter:
   require_resolution_source: true
 
 cross_venue_matcher:
-  enabled: true                    # Enable semantic matching between Kalshi and Polymarket
-  model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
-  min_similarity: 0.60             # 0.50-0.80 range (higher = stricter matching)
-  max_hours_diff: 24               # Maximum hours between market expiry dates
-  require_tag_overlap: true
-  cluster_by_tags: true
-  cluster_tag_prefixes: ["topic", "time"]
-  keyword_index_enabled: true
-  min_keyword_overlap: 2
+  enabled: false
 
 detectors:
   parity_threshold: 0.99
@@ -70,9 +62,25 @@ telegram:
   chat_id: ""
 
 llm_verification:
+  enabled: false
+
+strict_ab:
   enabled: true
-  provider: "gemini"
-  model: "gemini-1.5-flash"
-  min_similarity_to_verify: 0.0
-  max_pairs_per_group: 100000
-  verify_all_pairs: true
+  max_hours_diff: 24
+  min_shared_tags: 1
+  trade_size_usd: 100.0
+  min_net_edge: 0.01
+  min_expiry_hours: 24.0
+  min_depth_multiple: 3.0
+  watchlist_json: "data/watchlist_pairs.json"
+  watchlist_csv: "data/watchlist_pairs.csv"
+  audit_log: "data/pipeline_audit.jsonl"
+  raw_dump_dir: "market_dumps/strict_ab"
+  dry_run: true
+  llm:
+    enabled: true
+    provider: "mock"
+    model: "gpt-4o-mini"
+    timeout_s: 5.0
+    daily_limit: 1000
+    cache_path: "data/llm_strict_ab_cache.json"

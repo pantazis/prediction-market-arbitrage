@@ -2390,23 +2390,589 @@
     },
     "dependencies": {
       "core": [
-        "requests - HTTP client",
-        "pydantic - data validation",
-        "pyyaml - YAML parsing",
-        "python-dotenv - env loading"
+        {
+          "package": "requests",
+          "version": "2.31.0",
+          "purpose": "HTTP client for API calls"
+        },
+        {
+          "package": "pydantic",
+          "version": "2.5.3",
+          "purpose": "Data validation and models"
+        },
+        {
+          "package": "pyyaml",
+          "version": "6.0.1",
+          "purpose": "YAML config parsing"
+        },
+        {
+          "package": "python-dotenv",
+          "version": "1.0.0",
+          "purpose": "Environment variable loading"
+        }
       ],
       "trading": [
-        "py-clob-client - Polymarket API",
-        "eth-account - Ethereum signing",
-        "python-dateutil - date parsing"
+        {
+          "package": "py-clob-client",
+          "version": "0.19.0",
+          "purpose": "Polymarket CLOB API client"
+        },
+        {
+          "package": "eth-account",
+          "version": ">=0.13.0",
+          "purpose": "Ethereum key management and signing"
+        },
+        {
+          "package": "python-dateutil",
+          "version": "2.9.0.post0",
+          "purpose": "Date parsing and manipulation"
+        },
+        {
+          "package": "cryptography",
+          "version": ">=41.0.0",
+          "purpose": "RSA signing for Kalshi API authentication",
+          "added": "2026-01-09"
+        }
       ],
       "notifications": [
-        "python-telegram-bot - Telegram integration"
+        {
+          "package": "python-telegram-bot",
+          "version": ">=20.0",
+          "purpose": "Telegram bot integration"
+        }
       ],
       "testing": [
-        "pytest - test framework",
-        "pytest-asyncio - async test support"
+        {
+          "package": "pytest",
+          "version": "7.4.3",
+          "purpose": "Testing framework"
+        }
       ]
+    },
+    "schema_metadata": {
+      "source": "codebase_minimal_schema.json",
+      "schema_version": "1.3",
+      "generated_date": "2026-01-06",
+      "last_updated": "2026-01-12T13:10:00Z"
+    },
+    "entry_points": [
+      {
+        "name": "predarb_cli",
+        "path": "src/predarb/__main__.py",
+        "type": "cli",
+        "call": "predarb.cli:main()",
+        "commands": [
+          "run",
+          "once",
+          "selftest",
+          "dual-stress",
+          "validate-ab"
+        ],
+        "description": "Main arbitrage engine CLI with run loop, single iteration, self-test, dual-venue stress testing, and strict A+B validation modes"
+      },
+      {
+        "name": "strict_ab_validation",
+        "path": "validate_strict_ab_mode.py",
+        "type": "cli",
+        "call": "validate_strict_ab_mode:main()",
+        "added": "2026-01-09",
+        "description": "Comprehensive strict A+B mode validation - proves ZERO false positives",
+        "purpose": "Validate that system ONLY detects opportunities requiring BOTH venues (Kalshi + Polymarket)",
+        "options": [
+          "--config CONFIG_PATH (default: config_strict_ab.yml)",
+          "--seed SEED (default: 42 for reproducibility)"
+        ],
+        "validation_rules": [
+          "Rule 1: Exactly 2 venues per opportunity",
+          "Rule 2: At least one leg on venue A (Kalshi, supports shorting)",
+          "Rule 3: At least one leg on venue B (Polymarket, NO shorting)",
+          "Rule 4: No SELL-TO-OPEN on Polymarket",
+          "Rule 5: Opportunity requires BOTH venues (not executable on one alone)"
+        ],
+        "test_coverage": {
+          "valid_scenarios": [
+            "cross_venue_parity",
+            "cross_venue_complement",
+            "cross_venue_ladder",
+            "cross_venue_with_kalshi_short",
+            "range_replication_valid",
+            "multi_outcome_additivity",
+            "composite_hierarchical",
+            "calendar_basis_valid"
+          ],
+          "invalid_scenarios": [
+            "single_venue_parity_poly",
+            "single_venue_parity_kalshi",
+            "polymarket_only",
+            "polymarket_short_forbidden",
+            "theoretical_arithmetic",
+            "tiny_liquidity",
+            "range_replication_single_venue",
+            "multi_outcome_requires_short",
+            "composite_single_venue",
+            "calendar_basis_insufficient"
+          ],
+          "total_scenarios": 18,
+          "expected_valid": 8,
+          "expected_rejected": 10
+        },
+        "exit_codes": {
+          "0": "All validation tests passed (ZERO false positives confirmed)",
+          "1": "Validation failures detected"
+        },
+        "outputs": [
+          "Console: Real-time validation progress and summary",
+          "reports/strict_ab_validation_report.json: Detailed validation results"
+        ]
+      },
+      {
+        "name": "live_paper_trading",
+        "path": "run_live_paper.py",
+        "type": "cli",
+        "call": "run_live_paper:main()",
+        "added": "2026-01-09",
+        "description": "Live paper-trading arbitrage runner with ONLY real-time market data (no historical/injected)",
+        "purpose": "Run the bot TODAY with paper trades, full PnL tracking, and comprehensive reporting",
+        "config": "config_live_paper.yml",
+        "options": [
+          "--duration HOURS (default: 8.0)",
+          "--capital USDC (default: 500.0)",
+          "--config PATH (default: config_live_paper.yml)",
+          "--log-level LEVEL (default: INFO)"
+        ],
+        "features": [
+          "Real-time API data only (Polymarket + optional Kalshi)",
+          "Paper wallet: 500 USDC starting balance",
+          "Full PnL tracking (realized + unrealized)",
+          "Position tracking per venue",
+          "Fee/slippage modeling (20bps + 30bps)",
+          "Stop conditions (duration, 15% drawdown, manual)",
+          "Live console logging with wallet state",
+          "Comprehensive end-of-run report",
+          "No short selling (enforced)",
+          "All safety invariants validated"
+        ],
+        "outputs": [
+          "reports/live_paper_trades.csv",
+          "reports/unified_report.json",
+          "reports/live_summary.csv"
+        ]
+      },
+      {
+        "name": "live_paper_setup",
+        "path": "run_live_paper_setup.sh",
+        "type": "bash",
+        "added": "2026-01-09",
+        "description": "Automated setup and execution script for live paper trading",
+        "actions": [
+          "Environment validation (Python 3.10+)",
+          "Dependency installation",
+          "Config verification",
+          "API connectivity test",
+          "Interactive confirmation",
+          "Bot execution",
+          "Post-run summary"
+        ]
+      },
+      {
+        "name": "market_data_downloader",
+        "path": "scripts/download_markets.py",
+        "type": "cli",
+        "added": "2026-01-12",
+        "description": "Standalone market data downloader for Kalshi and Polymarket APIs",
+        "purpose": "Download and archive market data (markets + orderbooks) to timestamped JSON/JSONL files",
+        "requirements": [
+          "python-dotenv (for .env loading)",
+          "requests (for HTTP calls)"
+        ],
+        "environment_variables": [
+          "ENV_FILE - Path to .env file (default: .env)",
+          "KALSHI_API_KEY_ID - Kalshi API key (optional)",
+          "KALSHI_PRIVATE_KEY_PATH - Path to Kalshi PEM file (optional)",
+          "KALSHI_PRIVATE_KEY_PEM - Kalshi PEM content (optional)",
+          "POLYMARKET_API_KEY - Polymarket API key (optional)",
+          "POLYMARKET_SECRET - Polymarket API secret (optional)",
+          "POLYMARKET_PASSPHRASE - Polymarket passphrase (optional)",
+          "POLYMARKET_FUNDER - Polymarket wallet address (optional)",
+          "HTTP_TIMEOUT - Request timeout in seconds (default: 30)"
+        ],
+        "cli_arguments": [
+          "--out DIR - Output directory base (default: market_dumps)",
+          "--kalshi - Download Kalshi markets (flag)",
+          "--poly - Download Polymarket markets (flag)",
+          "--kalshi-status STATUS - Kalshi market status filter (default: open)",
+          "--kalshi-series TICKER - Kalshi series ticker filter (optional)",
+          "--kalshi-orderbooks N - Fetch orderbooks for top N Kalshi markets by volume",
+          "--poly-orderbooks N - Fetch orderbooks for top N Polymarket markets by volume"
+        ],
+        "features": [
+          "Automatic pagination for both APIs",
+          "Exponential backoff retry logic (3 attempts, 1s/2s/4s)",
+          "Timestamped output folders (YYYYMMDD_HHMMSS_UTC)",
+          "Dual format output (JSON + JSONL)",
+          "Top-N orderbook fetching by volume",
+          "Environment variable loading from configurable .env",
+          "No hardcoded secrets",
+          "Progress logging without secret exposure",
+          "Manifest file with metadata",
+          "Kalshi: mve_filter=exclude (single-event markets only)",
+          "Kalshi: Sports category exclusion (NBA, NFL, NHL, tennis, soccer, NCAA, esports)",
+          "Polymarket: closed=false (active markets only)"
+        ],
+        "api_endpoints": {
+          "kalshi": [
+            "GET https://api.elections.kalshi.com/trade-api/v2/markets (cursor pagination)",
+            "GET https://api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook"
+          ],
+          "polymarket": [
+            "GET https://gamma-api.polymarket.com/markets (limit+offset pagination)",
+            "GET https://clob.polymarket.com/book?token_id=... (orderbook)"
+          ]
+        },
+        "output_structure": {
+          "base_dir": "market_dumps/{TIMESTAMP}/",
+          "files": [
+            "manifest.json - Download metadata",
+            "kalshi_markets.json + .jsonl",
+            "kalshi_orderbooks_top.json + .jsonl (optional)",
+            "polymarket_gamma_markets.json + .jsonl",
+            "polymarket_clob_orderbooks_top.json + .jsonl (optional)"
+          ]
+        },
+        "example_usage": [
+          "python scripts/download_markets.py --kalshi --poly",
+          "ENV_FILE=.env python scripts/download_markets.py --kalshi --poly --kalshi-orderbooks 50 --poly-orderbooks 50",
+          "python scripts/download_markets.py --kalshi --kalshi-series KXPRES --kalshi-orderbooks 20"
+        ]
+      },
+      {
+        "name": "codebase_schema_exporter",
+        "path": "scripts/export_codebase_schema.py",
+        "type": "cli",
+        "added": "2026-01-12",
+        "description": "Export the canonical codebase schema (codebase_schema.js) to a JSON file",
+        "purpose": "Generate codebase_schema.json snapshots for tooling or sharing",
+        "requirements": [
+          "python (stdlib only)"
+        ],
+        "cli_arguments": [
+          "--source PATH - Schema source file (default: codebase_schema.js)",
+          "--out PATH - Output JSON path (default: codebase_schema.json)",
+          "--minify - Write minified JSON (optional)",
+          "--timestamped - Append UTC timestamp to output filename"
+        ],
+        "outputs": [
+          "codebase_schema.json (default, pretty-printed)",
+          "codebase_schema_YYYYMMDD_HHMMSS_UTC.json (when --timestamped)"
+        ],
+        "usage": [
+          "python scripts/export_codebase_schema.py",
+          "python scripts/export_codebase_schema.py --out reports/codebase_schema.json",
+          "python scripts/export_codebase_schema.py --timestamped"
+        ]
+      },
+      {
+        "name": "minimal_schema_generator",
+        "path": "scripts/generate_minimal_schema.py",
+        "type": "cli",
+        "added": "2026-01-12",
+        "description": "Generate a minimal code schema map from repository files",
+        "purpose": "Create a JSON snapshot of imports, classes, functions, and variables",
+        "requirements": [
+          "python (stdlib only)"
+        ],
+        "cli_arguments": [
+          "--root PATH - Repository root to scan (default: .)",
+          "--out PATH - Output JSON path (default: codebase_minimal_schema.json)",
+          "--include-env - Include .env as API key file entry"
+        ],
+        "outputs": [
+          "codebase_minimal_schema.json (default)"
+        ],
+        "usage": [
+          "python scripts/generate_minimal_schema.py --include-env",
+          "python scripts/generate_minimal_schema.py --root . --out codebase_minimal_schema.json --include-env"
+        ]
+      },
+      {
+        "name": "dual_market_verification",
+        "path": "test_dual_markets.py",
+        "type": "cli",
+        "added": "2026-01-09",
+        "description": "Data verification test for both Polymarket and Kalshi market feeds",
+        "purpose": "Validate real-time API connectivity and data quality from both exchanges",
+        "requirements": [
+          "KALSHI_API_KEY_ID environment variable",
+          "KALSHI_PRIVATE_KEY_PEM environment variable (RSA private key in PEM format)",
+          "KALSHI_API_HOST environment variable (default: https://api.elections.kalshi.com)"
+        ],
+        "verification_steps": [
+          "1. Check Kalshi credentials in environment",
+          "2. Initialize Polymarket client and fetch markets",
+          "3. Validate Polymarket data (questions, prices, exchange tags)",
+          "4. Initialize Kalshi client with credentials",
+          "5. Fetch and filter Kalshi markets (liquidity, expiry)",
+          "6. Validate Kalshi data quality",
+          "7. Report total markets and data integrity"
+        ],
+        "test_coverage": {
+          "polymarket_tests": [
+            "Market count (expected: 500)",
+            "Sample market structure validation",
+            "Exchange tag verification",
+            "Price range validation (0.0-1.0)",
+            "Outcome data completeness"
+          ],
+          "kalshi_tests": [
+            "API authentication",
+            "Market fetch (raw count ~200)",
+            "Liquidity filtering (min 500 USD)",
+            "Expiry filtering (min 1 day)",
+            "Price range validation (0.0-1.0)",
+            "Outcome data completeness"
+          ]
+        },
+        "expected_results": {
+          "polymarket": "500 active markets with valid price data",
+          "kalshi": "1-200 markets after filtering (varies by market conditions)",
+          "exit_status": "Success message showing total market count from both venues"
+        },
+        "usage_example": "export KALSHI_API_KEY_ID='xxx' && export KALSHI_PRIVATE_KEY_PEM='$(cat key.pem)' && export KALSHI_API_HOST='https://api.elections.kalshi.com' && python3 test_dual_markets.py"
+      },
+      {
+        "name": "multiday_monitoring",
+        "path": "monitor_multiday_dryrun.sh",
+        "type": "bash",
+        "added": "2026-01-09",
+        "description": "Real-time monitoring dashboard for 72-hour paper trading dry run",
+        "purpose": "Track bot health, performance metrics, and execution status during extended runs",
+        "monitoring_capabilities": [
+          "Process status (running/stopped, PID, uptime, resource usage)",
+          "Configuration display (duration, capital, iterations, config files)",
+          "Log file health (size, line count, recent entries)",
+          "Report generation status (CSV, JSON reports)",
+          "Performance metrics (opportunities detected/approved, trades executed)",
+          "Recent activity snapshot (last detections)"
+        ],
+        "related_files": {
+          "status_doc": "MULTIDAY_DRYRUN_STATUS.md (218 lines, human-readable mission status)",
+          "log_file": "bot_multiday_dryrun.log (68,000+ lines, complete execution trace)",
+          "config": "config_live_paper.yml (Kalshi enabled for dual-venue testing)"
+        },
+        "usage": "./monitor_multiday_dryrun.sh",
+        "output_sections": [
+          "Bot Status (process health)",
+          "Configuration (runtime parameters)",
+          "Log File Status (size, recent entries)",
+          "Generated Reports (available files)",
+          "Performance Snapshot (PnL, opportunities, trades)",
+          "Recent Activity (latest detections)"
+        ]
+      },
+      {
+        "name": "validate_live_paper",
+        "path": "validate_live_paper_setup.py",
+        "type": "cli",
+        "added": "2026-01-09",
+        "description": "Pre-flight validation for live paper trading setup",
+        "checks": [
+          "Python version (3.10+)",
+          "Dependencies installed",
+          "Config file valid",
+          "Required files present",
+          "Reports directory setup",
+          "API connectivity"
+        ]
+      },
+      {
+        "name": "dual_stress_runner",
+        "path": "run_all_scenarios.py",
+        "type": "cli",
+        "call": "run_all_scenarios:main()",
+        "added": "2026-01-12",
+        "description": "Master test runner for comprehensive dual-venue stress testing with 8 validation checks",
+        "purpose": "Validate entire arbitrage pipeline end-to-end with planted opportunities across both venues",
+        "validation_checks": [
+          "Market count validation (37 expected)",
+          "Exchange tag validation (all markets tagged)",
+          "Opportunity detection (5+ opportunities expected)",
+          "Approval rate validation (>0% approval)",
+          "Determinism validation (same seed = same results)",
+          "Report generation (unified_report.json created)",
+          "CSV logging (live_summary.csv appended)",
+          "No crashes (clean execution)"
+        ],
+        "exit_codes": {
+          "0": "All validations passed",
+          "1": "One or more validations failed"
+        }
+      },
+      {
+        "name": "sim_run",
+        "path": "sim_run.py",
+        "type": "cli",
+        "call": "sim_run:main()",
+        "commands": [
+          "--days",
+          "--trade-size",
+          "--seed",
+          "--markets",
+          "--config",
+          "--no-telegram",
+          "-v/--verbose"
+        ],
+        "description": "Simulation harness: run bot against fake Polymarket client with real Telegram notifications"
+      },
+      {
+        "name": "legacy_bot",
+        "path": "bot.py",
+        "type": "cli",
+        "call": "main()",
+        "commands": [
+          "run",
+          "test_connection"
+        ],
+        "description": "Legacy Polymarket arbitrage client (reference only)"
+      },
+      {
+        "name": "telegram_bot",
+        "path": "arbitrage_bot/main.py",
+        "type": "module",
+        "class": "TelegramControlledArbitrageBot",
+        "description": "Telegram-controlled arbitrage bot with command routing and authorization"
+      },
+      {
+        "name": "connection_test",
+        "path": "check_connection.py",
+        "type": "script",
+        "description": "Test Polymarket API connectivity"
+      },
+      {
+        "name": "key_utility",
+        "path": "get_keys.py",
+        "type": "script",
+        "description": "Utility for key retrieval"
+      }
+    ],
+    "test_coverage": {
+      "test_files": [
+        "tests/test_engine.py",
+        "tests/test_engine_llm_verification.py",
+        "tests/test_broker.py",
+        "tests/test_detectors.py",
+        "tests/test_filtering.py",
+        "tests/test_filtering_polymarket.py",
+        "tests/test_models_and_extractors.py",
+        "tests/test_polymarket_client.py",
+        "tests/test_notifier.py",
+        "tests/test_telegram_interface.py",
+        "tests/test_telegram_notifier.py",
+        "tests/test_simulation_harness.py",
+        "tests/test_market_invariants.py",
+        "tests/test_filter_invariants.py",
+        "tests/test_detector_invariants.py",
+        "tests/test_broker_invariants.py",
+        "tests/test_risk_invariants.py"
+      ],
+      "invariant_tests": {
+        "description": "Comprehensive unit test invariants to prove bot correctness (215+ tests, 40+ fixtures)",
+        "test_classes": [
+          "tests/test_market_invariants.py - Market data safety (A1-A3 invariants, 35 tests)",
+          "tests/test_filter_invariants.py - Filtering logic (B4-B6 invariants, 18 tests)",
+          "tests/test_detector_invariants.py - Detector correctness (C7-C10 invariants, 21 tests)",
+          "tests/test_broker_invariants.py - Broker execution (D11-D14 invariants, 18 tests)",
+          "tests/test_risk_invariants.py - Risk management (E15-E16 invariants, 11 tests)"
+        ],
+        "total_tests": "215+ tests across 16 invariants",
+        "fixture_count": "40+ shared fixtures in conftest.py",
+        "documentation": [
+          "INVARIANT_TESTS.md - Comprehensive implementation guide",
+          "INVARIANT_TESTS_SUMMARY.md - Quick reference with examples",
+          "INVARIANT_TESTS_CHECKLIST.md - Running instructions and debugging"
+        ],
+        "invariants_covered": {
+          "A_market_data": [
+            "A1a: Price bounds (0 ≤ price ≤ 1)",
+            "A1b: Bid-ask spread (bid ≤ ask)",
+            "A2: Missing data safety (NaN, None rejection)",
+            "A3: Time monotonicity"
+          ],
+          "B_filtering": [
+            "B4: Spread computation correctness",
+            "B5: Scaling monotonicity",
+            "B6: Resolution source rules enforcement"
+          ],
+          "C_detectors": [
+            "C7: Parity correctness (YES+NO < threshold)",
+            "C8: Ladder monotonicity",
+            "C9: Exclusive outcome sum validation",
+            "C10: Timelag persistence"
+          ],
+          "D_broker": [
+            "D11: Fees and slippage calculation",
+            "D12: No overfills (liquidity enforcement)",
+            "D13: PnL identity (equity = cash + unrealized)",
+            "D14: Settlement idempotence"
+          ],
+          "E_risk": [
+            "E15: Exposure limits (allocation, positions)",
+            "E16: Kill switch on drawdown"
+          ]
+        },
+        "running_invariant_tests": "pytest tests/test_*_invariants.py -v"
+      },
+      "harness_tests": {
+        "path": "tests/test_simulation_harness.py",
+        "description": "Tests for simulation harness (notifiers, fake client, synthetic data)",
+        "test_classes": [
+          "TestNotifierInterface (Notifier abstract base)",
+          "TestTelegramNotifierMock (mock implementation, in-memory storage)",
+          "TestTelegramNotifierReal (real implementation, error handling)",
+          "TestSyntheticDataGeneration (market generation, determinism)",
+          "TestFakePolymarketClient (in-memory client, evolution)",
+          "TestSimulationIntegration (end-to-end harness tests)"
+        ]
+      },
+      "fixtures": {
+        "conftest.py": "Pytest configuration and shared fixtures",
+        "markets.json": "Mock market data for selftest"
+      },
+      "running_tests": "pytest tests/ or python -m pytest",
+      "harness_testing": "pytest tests/test_simulation_harness.py for simulation tests",
+      "selftest_mode": "python -m predarb selftest --fixtures tests/fixtures/markets.json"
+    },
+    "deployment_checklist": [
+      "✅ Telegram bot created via @BotFather",
+      "✅ TELEGRAM_BOT_TOKEN obtained",
+      "✅ TELEGRAM_CHAT_ID set (use /tg_info to find yours)",
+      "✅ TELEGRAM_ENABLED=true in config.yml or .env",
+      "✅ Permissions configured (auth_gate with read_status, execute_action roles)",
+      "✅ Rate limits tuned for your usage pattern",
+      "✅ Confirmation manager enabled for dangerous commands",
+      "✅ Message formatting tested (numbers, markdown escape, length)"
+    ],
+    "known_limitations": {
+      "paper_trading": "Simulated only; no real capital or blockchain interaction",
+      "single_threaded": "Sequential detector execution (no parallelization)",
+      "live_api_only": "Requires live Polymarket API (uses fixtures for offline testing)",
+      "polling_based": "Fixed refresh rate; no event-driven updates",
+      "parity_only": "Detects pricing inefficiencies, not market consensus divergence"
+    },
+    "next_steps_for_developers": {
+      "understand_flow": "Read engine.py run() method end-to-end",
+      "add_detector": "Create new detector in src/predarb/detectors/, register in Engine.__init__()",
+      "customize_filtering": "Filtering is minimal; new rules TBD (FilterConfig only controls resolution requirement)",
+      "enable_telegram": "Set TELEGRAM_ENABLED=true, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID in .env",
+      "live_trading": "Modify PaperBroker to use real py-clob-client instead of simulation",
+      "performance_optimization": "Profile detectors.py and matchers.py; parallelize if needed",
+      "dual_venue_testing": {
+        "quickstart": "Run ./quickstart_dual_venue.sh for interactive guide",
+        "comprehensive_test": "python run_all_scenarios.py for full validation suite",
+        "cli_test": "python -m predarb dual-stress --cross-venue for single iteration",
+        "custom_scenarios": "Extend CrossVenueArbitrageScenarios with new scenario methods",
+        "custom_injection": "Use InjectionFactory.from_spec() with file: or inline: specs",
+        "unit_tests": "pytest tests/test_dual_injection.py tests/test_cross_venue_scenarios.py -v"
+      }
     },
     "quick_reference": {
       "start_quick_test": "python -m predarb selftest",

@@ -129,6 +129,22 @@ class TelegramNotifier:
         ]
         self._post("\n".join(lines))
 
+    def notify_strict_ab_pass(self, entry, case, report) -> None:
+        edge_pct = (report.edge_net or 0.0) * 100.0 if report.edge_net is not None else 0.0
+        size = report.executable_size_usd or 0.0
+        depth = min(report.depth_a or 0.0, report.depth_b or 0.0)
+        reason = case.reason
+        lines = [
+            "✅ Strict A+B PASS",
+            f"Pair: {entry.pair_key}",
+            f"Case: {case.case_name}",
+            f"Edge: {edge_pct:.2f}%",
+            f"Size: ${size:.2f}",
+            f"Depth: ${depth:.2f}",
+            f"Reason: {reason}",
+        ]
+        self._post("\n".join(lines))
+
     def notify_cross_venue_matches(self, pairs):
         def _shorten(text: object, limit: int = 80) -> str:
             raw = str(text) if text is not None else ""

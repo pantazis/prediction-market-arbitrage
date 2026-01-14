@@ -164,6 +164,31 @@ class CrossVenueMatcherConfig(BaseModel):
     faiss_top_k: int = 5
 
 
+class StrictABLLMConfig(BaseModel):
+    enabled: bool = True
+    provider: str = "mock"  # "openai", "gemini", "ollama", "mock"
+    model: str = "gpt-4o-mini"
+    timeout_s: float = 5.0
+    daily_limit: int = 1000
+    cache_path: str = "data/llm_strict_ab_cache.json"
+
+
+class StrictABConfig(BaseModel):
+    enabled: bool = False
+    max_hours_diff: int = 24
+    min_shared_tags: int = 1
+    trade_size_usd: float = 100.0
+    min_net_edge: float = 0.01
+    min_expiry_hours: float = 24.0
+    min_depth_multiple: float = 3.0
+    watchlist_json: str = "data/watchlist_pairs.json"
+    watchlist_csv: str = "data/watchlist_pairs.csv"
+    audit_log: str = "data/pipeline_audit.jsonl"
+    raw_dump_dir: str = "market_dumps/strict_ab"
+    dry_run: bool = False
+    llm: StrictABLLMConfig = Field(default_factory=StrictABLLMConfig)
+
+
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
     kalshi: KalshiConfig = Field(default_factory=KalshiConfig)
@@ -175,6 +200,7 @@ class AppConfig(BaseModel):
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     llm_verification: LLMVerificationConfig = Field(default_factory=LLMVerificationConfig)
     cross_venue_matcher: CrossVenueMatcherConfig = Field(default_factory=CrossVenueMatcherConfig)
+    strict_ab: StrictABConfig = Field(default_factory=StrictABConfig)
 
 
 def load_config(path: str | Path) -> AppConfig:

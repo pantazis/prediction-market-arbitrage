@@ -31,6 +31,7 @@ from predarb.cross_venue_matcher import CrossVenueMatcher
 from predarb.llm_verifier import LLMVerifier, VerificationResult
 from predarb.ab_filters import FilterConfig as ABFilterConfig
 from predarb.ab_filters import evaluate_ab_filters, quote_from_market
+from predarb.strict_ab_pipeline import StrictABPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +156,10 @@ class Engine:
         else:
             self.llm_verifier = None
 
+        self.strict_ab_pipeline: Optional[StrictABPipeline] = None
+        if getattr(config, "strict_ab", None) and getattr(config.strict_ab, "enabled", False):
+            self.strict_ab_pipeline = StrictABPipeline(config, notifier=self.notifier)
+
     def _verify_cross_venue_pairs(
         self,
         pairs: List[tuple[Market, Market, float]],
@@ -221,6 +226,12 @@ class Engine:
         return clients
 
     def run_once(self) -> List[Opportunity]:
+        if self.strict_ab_pipeline:
+            strict_results = self.strict_ab_pipeline.run_once()
+            self._last_markets = list(self.strict_ab_pipeline._last_markets)
+            self._last_detected = []
+            self._last_approved = []
+            return []
         if self.notifier and not self._startup_notified:
             self._startup_notified = True
             try:

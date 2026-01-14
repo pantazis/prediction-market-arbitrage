@@ -53,3 +53,30 @@ telegram:
   enabled: false
   bot_token: ""
   chat_id: ""
+
+cross_venue_matcher:
+  enabled: false
+
+llm_verification:
+  enabled: false
+
+strict_ab:
+  enabled: true
+  max_hours_diff: 24
+  min_shared_tags: 1
+  trade_size_usd: 100.0
+  min_net_edge: 0.01
+  min_expiry_hours: 24.0
+  min_depth_multiple: 3.0
+  watchlist_json: "data/watchlist_pairs.json"
+  watchlist_csv: "data/watchlist_pairs.csv"
+  audit_log: "data/pipeline_audit.jsonl"
+  raw_dump_dir: "market_dumps/strict_ab"
+  dry_run: true
+  llm:
+    enabled: true
+    provider: "mock"
+    model: "gpt-4o-mini"
+    timeout_s: 5.0
+    daily_limit: 1000
+    cache_path: "data/llm_strict_ab_cache.json"

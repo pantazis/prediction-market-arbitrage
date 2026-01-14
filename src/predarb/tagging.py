@@ -47,6 +47,35 @@ _TYPE_KEYWORDS = {
     "approval": ["approval", "approve", "regulator", "sec", "fta"],
 }
 
+_FAST_ENTITY_KEYWORDS = {
+    "trump": "trump",
+    "biden": "biden",
+    "fed": "fed",
+    "fomc": "fomc",
+    "btc": "btc",
+    "bitcoin": "btc",
+    "eth": "eth",
+    "ethereum": "eth",
+    "venezuela": "venezuela",
+}
+
+_FAST_TOPIC_KEYWORDS = {
+    "election": ["election", "vote", "ballot", "poll", "president", "primary"],
+    "rates": ["rate", "rates", "fomc", "fed", "interest"],
+    "war": ["war", "invasion", "conflict", "missile", "ukraine", "russia", "israel", "gaza"],
+    "crypto": ["crypto", "bitcoin", "btc", "ethereum", "eth", "solana"],
+    "macro": ["inflation", "cpi", "ppi", "gdp", "unemployment", "recession", "treasury", "yield"],
+}
+
+_FAST_COUNTRY_KEYWORDS = {
+    "us": ["u.s.", "us ", "united states", "america", "american"],
+    "china": ["china", "chinese", "beijing"],
+    "russia": ["russia", "russian", "moscow"],
+    "ukraine": ["ukraine", "ukrainian", "kyiv"],
+    "israel": ["israel", "israeli"],
+    "venezuela": ["venezuela", "venezuelan"],
+}
+
 _NAME_STOPWORDS = {
     "will",
     "the",
@@ -160,3 +189,51 @@ def ensure_market_tags(market: Market) -> None:
 
 def normalized_tag_set(tags: Iterable[str]) -> Set[str]:
     return {normalize_tag(t) for t in tags if t}
+
+
+def _expiry_bucket(end_date: datetime) -> str:
+    now = datetime.utcnow().replace(tzinfo=end_date.tzinfo) if end_date.tzinfo else datetime.utcnow()
+    delta_hours = (end_date - now).total_seconds() / 3600.0
+    if delta_hours <= 24:
+        return "day"
+    if delta_hours <= 24 * 7:
+        return "week"
+    if delta_hours <= 24 * 31:
+        return "month"
+    return "year"
+
+
+def fast_tag_market(market: Market) -> List[str]:
+    """
+    Fast O(N) tagging for strict A+B pipeline using regex/keywords only.
+    """
+    tags: List[str] = []
+    seen: Set[str] = set()
+
+    raw_text = " ".join(
+        [str(market.question or ""), str(market.description or "")]
+    )
+    text = normalize_text(raw_text)
+
+    for topic, keywords in _FAST_TOPIC_KEYWORDS.items():
+        if any(k in text for k in keywords):
+            _add_tag(tags, seen, f"topic:{topic}")
+
+    for country, keywords in _FAST_COUNTRY_KEYWORDS.items():
+        if any(k in text for k in keywords):
+            _add_tag(tags, seen, f"country:{country}")
+
+    for keyword, entity in _FAST_ENTITY_KEYWORDS.items():
+        if keyword in text:
+            _add_tag(tags, seen, f"entity:{entity}")
+
+    # Asset/country hints from extractors (regex only)
+    entity = extract_entity(market.question or "")
+    if entity and entity not in STOPWORDS and len(entity) > 2:
+        _add_tag(tags, seen, f"asset:{entity}")
+
+    if market.end_date:
+        bucket = _expiry_bucket(market.end_date)
+        _add_tag(tags, seen, f"expiry:{bucket}")
+
+    return tags

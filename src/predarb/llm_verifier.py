@@ -533,8 +533,18 @@ Respond with ONLY valid JSON in this exact format:
 
         Order-invariant: pair (a, b) and (b, a) have same key.
         """
-        ids = sorted([market_a.id, market_b.id])
-        content = f"{ids[0]}|{ids[1]}|{PROMPT_VERSION}|{self.config.model}"
+        def _sig(market: Market) -> str:
+            return "|".join(
+                [
+                    str(market.id),
+                    str(market.question or ""),
+                    str(market.resolution_source or ""),
+                    str(market.description or ""),
+                ]
+            )
+
+        pair = sorted([_sig(market_a), _sig(market_b)])
+        content = f"{pair[0]}|{pair[1]}|{PROMPT_VERSION}|{self.config.model}"
         return hashlib.md5(content.encode()).hexdigest()
 
     def _load_cache(self) -> None:

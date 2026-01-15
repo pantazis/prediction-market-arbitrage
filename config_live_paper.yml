@@ -12,6 +12,7 @@
 polymarket:
   enabled: true
   host: "https://gamma-api.polymarket.com"
+  clob_host: "https://clob.polymarket.com"
   limit: 1000  # Fetch 1000 markets for cross-venue matching
   # Note: API credentials not required for read-only market data fetching
 
@@ -36,6 +37,7 @@ risk:
   min_expiry_hours: 48.0               # Reject markets expiring within 48 hours
   max_entry_spread_pct: 0.08           # Maximum 8% spread for entry
   kill_switch_on_partial: true         # Cancel and hedge on partial fills
+  allow_kalshi_shorting: true          # Allow shorting on Kalshi for A+B paper simulation
 
 # ==================== BROKER (PAPER WALLET) ==================== #
 broker:
@@ -43,6 +45,7 @@ broker:
   fee_bps: 20.0                        # 0.2% taker fee (conservative estimate)
   slippage_bps: 30.0                   # 0.3% slippage (realistic for live markets)
   depth_fraction: 0.10                 # Use 10% of quoted depth for execution
+  allow_kalshi_shorting: true          # Allow shorting on Kalshi for A+B paper simulation
 
 # ==================== ENGINE (LIVE CONTINUOUS MODE) ==================== #
 engine:
@@ -85,7 +88,7 @@ llm_verification:
   model: "gemini-2.5-flash-lite"
   timeout_s: 3.0
   max_pairs_per_group: 10
-  min_similarity_to_verify: 0.70
+  min_similarity_to_verify: 0.10  # Kept in sync with cross_venue_matcher.min_similarity
   fail_mode: "fail_open"
 
 # ==================== CROSS-VENUE SEMANTIC MATCHING ==================== #
@@ -95,3 +98,20 @@ cross_venue_matcher:
   min_similarity: 0.10             # 0.50-0.80 range (higher = stricter matching)
   max_hours_diff: 24               # Maximum hours between market expiry dates
   batch_size: 50                   # Process in batches to avoid memory issues
+
+# ==================== WATCHLIST FAST SCAN ==================== #
+watchlist:
+  enabled: true
+  csv_path: "data/watchlist_pairs.csv"
+  scan_log_path: "data/scan_log.jsonl"
+  reject_log_path: "data/reject_reasons.jsonl"
+  approve_log_path: "data/approve_packets.jsonl"
+  min_edge: 0.006
+  min_depth_usd: 50
+  max_age_sec: 15
+  depth_fraction: 0.10
+  orderbook_enabled: true
+  orderbook_timeout_s: 2.5
+  price_change_threshold_pct: 0.002
+  execute_paper_trades: true
+  max_trades_per_loop: 1

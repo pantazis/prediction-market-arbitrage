@@ -1818,5 +1818,271 @@
       }
     },
     "timestamp": 1768395999.10749
+  },
+  "3e1c93b1b407caad46a0a18c517bc5ac": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Both markets have identical, underspecified descriptions and resolution criteria. Without a defined resolution source or specific event, it's impossible for them to definitively resolve on the *same* real-world event. They could both resolve to 'Yes' or 'No' based on an unspecified 'breaking news event', but this doesn't guarantee it's the *same* event or that the resolution will align in meaning.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461767.1372845
+  },
+  "4fac2852d7ce868133225d739c72353b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Both markets have identical titles, tags, and no specified resolution sources or descriptions. However, the specific stock index and threshold are not provided, making it impossible to confirm they refer to the exact same underlying event. They *could* be the same, but without more detail, it's more likely they are distinct unless context is provided indicating otherwise.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461795.7383814
+  },
+  "4d5314ca13ecf2faeac09556a6b88b19": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Both markets have identical titles, tags, and lack of description or resolution source. Without any distinguishing information (like specific crypto, target price, or deadline), it's impossible to determine if they refer to the same real-world event. They are effectively identical placeholders.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461796.5432806
+  },
+  "73ab5def32dc4053178d4e07ec70b87c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.1,
+      "reason": "Both market descriptions are identical and lack specific details about which 'tech stock' is being referred to and which specific earnings report is in question. Without a defined underlying event (e.g., 'Will Apple (AAPL) beat Q3 2023 earnings?'), it's impossible to determine if they refer to the same real-world event. They are essentially generic placeholders for a market.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461797.5032396
+  },
+  "71d23e205da7f0f7ae6bd9b5a8f95caf": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.1,
+      "reason": "Both markets have identical titles, tags, and descriptions, and lack specific resolution sources. However, without any identifying information about 'the scheduled announcement,' it's impossible to ascertain if they refer to the same real-world event. They could be for entirely different announcements.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461798.1689727
+  },
+  "cc0944f22e26ee37a584c2700a3e4436": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Both markets are named identically and share the same tags, suggesting they intend to resolve on the same real-world event. However, without a specified 'Resolution Source', there's ambiguity. If the same candidate and election are implied, they *should* resolve on the same event. But the lack of a specific source means that, in practice, different criteria or interpretations of 'winning' could lead to divergent resolutions. Polymarket typically requires a specific source for unambiguous resolution. The 'duplicate' tag further implies these are meant to be identical markets.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461799.2809567
+  },
+  "1ebc3bdf9ab093764b551459797d52ce": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A refers to a stock index closing above a specific threshold, which is a single, defined price point. Market B refers to a 'tech stock' beating earnings, which is ambiguous. It's unclear which tech stock is meant, and 'beating earnings' implies a comparison to analyst expectations, which is a more complex financial metric than a simple price threshold. Even if a specific tech stock were identified, the events are fundamentally different types of financial outcomes.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461799.9837635
+  },
+  "3e2b6b715979b53c4873aa8adbaec42b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A refers to the earnings of individual tech stocks, while Market B refers to the closing price of a stock index. These are distinct events. Although both are related to the stock market, they do not resolve on the same specific real-world event without further clarification.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461800.6002824
+  },
+  "c2788739da4230e83ad6a5a56e4c87fc": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The events are distinct. 'Low-liquidity event' refers to a situation where it is difficult to buy or sell an asset without significantly impacting its price. 'Marginal fee-sensitive event' refers to a situation where the cost of a transaction (fee) has a significant impact on the decision-making process. While there might be overlap in certain scenarios, they are not inherently the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461801.3085923
+  },
+  "873028e16c4fd09f041930ccb81c21c4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.8,
+      "reason": "Market A is about a 'scheduled announcement', implying a pre-determined event. Market B is about a 'breaking news event', which is by definition unexpected and un-scheduled. While a breaking news event could *be* an announcement, the core nature of the events being predicted is different.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768461802.1593428
+  },
+  "891f5ceb38dd0d1353cec5c70536bbe2": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are identical in their question, resolution source, and the specific event they are resolving on (the FOMC statement for the January 2026 meeting).",
+      "resolution_source": "Federal Reserve",
+      "resolution_date": "January 2026",
+      "key_fields": {
+        "resolution_source": "Federal Reserve",
+        "resolution_date": "January 2026"
+      }
+    },
+    "timestamp": 1768461922.5942357
+  },
+  "8c62ba9c90db076725c3ed61cecda2ae": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are identical in their question, resolution source, and resolution criteria. They both seek the same Year-over-Year US CPI figure for March 2026 from the BLS CPI release.",
+      "resolution_source": "BLS CPI release",
+      "resolution_date": "March 2026",
+      "key_fields": {
+        "resolution_source": "BLS CPI release",
+        "resolution_date": "March 2026"
+      }
+    },
+    "timestamp": 1768461923.5092876
+  },
+  "c279abdf8baf1f66731f34f1c40861b3": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets are identical in their question, resolution source, and resolution criteria, targeting the same specific price point of BTC at the exact same time and date.",
+      "resolution_source": "CoinGecko BTC-USD",
+      "resolution_date": "2026-12-31T23:59:00Z",
+      "key_fields": {
+        "resolution_source": "CoinGecko BTC-USD",
+        "resolution_date": "2026-12-31T23:59:00Z"
+      }
+    },
+    "timestamp": 1768461924.3820736
+  },
+  "161992dc6128d84ae1c9f092a80f75aa": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "While both markets use the 'Scenario Fixture' as a resolution source and relate to 'news', the core event being predicted is different. Market A predicts a 'breaking news event' which implies an unforeseen, spontaneous occurrence. Market B predicts a 'scheduled announcement', which by definition is pre-planned and expected. The 'timelag' tag on Market A further suggests a focus on the immediacy of breaking news, distinguishing it from a planned announcement.",
+      "resolution_source": "Scenario Fixture",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Scenario Fixture",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462612.5994291
+  },
+  "5ddae6d1fd7fbabb643c6017168751b2": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The market descriptions clearly indicate two distinct 'scenario fixture event keys': 'event liquidity low occur' and 'asymmetric depth event occur'. These refer to different hypothetical events, even though they share the same resolution source.",
+      "resolution_source": "Scenario Fixture",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Scenario Fixture",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462613.2111802
+  },
+  "0dcb8eebfa47ccddbf45162e5ead6a17": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets are inquiring about entirely different real-world events. Market A concerns the closing price of Apple stock (AAPL) on a specific date, while Market B concerns the temperature in Phoenix on a different specific date. Although both use the 'Scenario Fixture' resolution source, the underlying events being measured are distinct.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462684.620895
+  },
+  "c907278120b14f23a1a290075450b98f": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets resolve on completely different real-world events. Market A concerns the closing price of Apple stock on a specific date, while Market B concerns the temperature in Phoenix on another specific date. Therefore, they do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462685.2241962
+  },
+  "e388d15835326d8457f85f4904f54e0c": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets refer to entirely different events. Market A concerns the SEC expanding tick-size pilot rules on a specific date, while Market B concerns the NYSE halting trading in SPY on a different specific date. The resolution sources (SEC press release vs. NYSE official notices) and the nature of the events are also distinct.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462725.4455833
+  },
+  "cf7b3b41e6b3967c80d2c164639950c8": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets are based on entirely different events. Market A concerns the SEC expanding tick-size pilot rules, while Market B concerns the NYSE raising per-trade fees. Although both involve regulatory bodies and financial markets, they are distinct occurrences with different triggers and potential outcomes.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768462726.157827
   }
 }

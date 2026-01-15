@@ -40,6 +40,10 @@ class PaperBroker:
                 position_key = f"{action.market_id}:{action.outcome_id}"
                 inventory = self.positions.get(position_key, 0.0)
                 if inventory <= 0:
+                    market = market_lookup.get(action.market_id)
+                    market_exchange = str(getattr(market, "exchange", "") or "").lower() if market else ""
+                    if bool(getattr(self.config, "allow_kalshi_shorting", False)) and market_exchange == "kalshi":
+                        continue
                     error_msg = (
                         f"FATAL INVARIANT VIOLATION: SELL action reached execution without position! "
                         f"Market: {action.market_id}, Outcome: {action.outcome_id}, "

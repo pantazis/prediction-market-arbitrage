@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "approve_packet.json",
+  "type": "object",
+  "required": [
+    "pair_id",
+    "polarity",
+    "side",
+    "kalshi",
+    "polymarket",
+    "edge_gross",
+    "edge_net",
+    "min_edge",
+    "min_depth_usd",
+    "max_age_sec",
+    "k_expiration_time",
+    "p_endDate",
+    "last_verified_at"
+  ],
+  "properties": {
+    "pair_id": { "type": "string" },
+    "polarity": { "type": "string", "enum": ["normal", "inverted"] },
+    "side": { "type": "string", "enum": ["YES", "NO"] },
+    "kalshi": {
+      "type": "object",
+      "required": ["market_id", "ticker", "bid", "ask"],
+      "properties": {
+        "market_id": { "type": "string" },
+        "ticker": { "type": "string" },
+        "bid": { "type": ["number", "null"] },
+        "ask": { "type": ["number", "null"] },
+        "bid_size_usd": { "type": ["number", "null"] },
+        "ask_size_usd": { "type": ["number", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "polymarket": {
+      "type": "object",
+      "required": ["market_id", "token_id", "bid", "ask"],
+      "properties": {
+        "market_id": { "type": "string" },
+        "token_id": { "type": "string" },
+        "bid": { "type": ["number", "null"] },
+        "ask": { "type": ["number", "null"] },
+        "bid_size_usd": { "type": ["number", "null"] },
+        "ask_size_usd": { "type": ["number", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "edge_gross": { "type": "number" },
+    "edge_net": { "type": "number" },
+    "min_edge": { "type": "number" },
+    "min_depth_usd": { "type": "number" },
+    "max_age_sec": { "type": "integer" },
+    "k_expiration_time": { "type": "string" },
+    "p_endDate": { "type": "string" },
+    "last_verified_at": { "type": "string" }
+  },
+  "additionalProperties": false
+}

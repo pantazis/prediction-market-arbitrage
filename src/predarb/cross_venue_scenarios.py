@@ -8,6 +8,53 @@ import random
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from src.predarb.models import Market, Outcome
+from src.predarb.normalize import stable_key
+
+
+def _resolution_source_for_question(question: str) -> str:
+    q = question.lower()
+    if "fomc" in q or "fed" in q:
+        return "Federal Reserve"
+    if "cpi" in q or "unemployment" in q or "gdp" in q:
+        return "US Bureau of Labor Statistics"
+    if "btc" in q or "bitcoin" in q:
+        return "CoinGecko BTC-USD"
+    if "s&p 500" in q:
+        return "S&P Dow Jones Indices"
+    if "aapl" in q or "apple" in q:
+        return "NASDAQ official close"
+    if "nba" in q or "lakers" in q or "celtics" in q or "warriors" in q:
+        return "NBA official results"
+    if "iowa" in q or "primary" in q or "senate" in q or "election" in q:
+        return "State election authority"
+    if "phoenix" in q or "temperature" in q:
+        return "NOAA Phoenix weather station"
+    if "faa" in q:
+        return "FAA official notices"
+    if "nyse" in q or "spy" in q:
+        return "NYSE official notices"
+    if "sec" in q or "tick-size" in q:
+        return "SEC press release"
+    if "treasury" in q or "budget deficit" in q:
+        return "US Treasury"
+    if "proposition" in q or "referendum" in q:
+        return "State ballot authority"
+    return "Scenario Fixture"
+
+
+def _apply_fixture_resolution(markets: List[Market]) -> None:
+    for market in markets:
+        question = getattr(market, "question", "") or ""
+        source = _resolution_source_for_question(question)
+        if not getattr(market, "resolution_source", None):
+            market.resolution_source = source
+        event_key = stable_key(question)
+        detail = f"Resolved using {source}. Scenario fixture event key: {event_key}."
+        if not getattr(market, "description", None):
+            market.description = detail
+        else:
+            if detail not in market.description:
+                market.description = f"{market.description} {detail}"
 
 
 class CrossVenueArbitrageScenarios:
@@ -95,7 +142,7 @@ class CrossVenueArbitrageScenarios:
         # Case 1: Profitable duplicate (Poly YES=0.45, Kalshi YES=0.60)
         poly.append(Market(
             id="poly:dup_profit_1",
-            question="Will candidate win the election?",
+            question="Will Candidate X win the 2026 Nevada Senate election?",
             outcomes=[
                 Outcome(id="poly:dup_profit_1:yes", label="YES", price=0.45, liquidity=10000.0),
                 Outcome(id="poly:dup_profit_1:no", label="NO", price=0.55, liquidity=10000.0),
@@ -109,7 +156,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:ELEC-WIN:ELEC-WIN-T1",
-            question="Will candidate win the election?",
+            question="Will Candidate X win the 2026 Nevada Senate election?",
             outcomes=[
                 Outcome(id="kalshi:ELEC-WIN:YES", label="YES", price=0.60, liquidity=8000.0),
                 Outcome(id="kalshi:ELEC-WIN:NO", label="NO", price=0.40, liquidity=8000.0),
@@ -125,7 +172,7 @@ class CrossVenueArbitrageScenarios:
         # Case 2: Near-zero edge (Poly=0.495, Kalshi=0.505 -> 1% gross, <0% after fees)
         poly.append(Market(
             id="poly:dup_tiny_edge",
-            question="Will stock index close above threshold?",
+            question="Will the S&P 500 close at or above 5,000 on 2026-03-15?",
             outcomes=[
                 Outcome(id="poly:dup_tiny:yes", label="YES", price=0.495, liquidity=5000.0),
                 Outcome(id="poly:dup_tiny:no", label="NO", price=0.505, liquidity=5000.0),
@@ -139,7 +186,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:INDEX-THR:INDEX-THR-T1",
-            question="Will stock index close above threshold?",
+            question="Will the S&P 500 close at or above 5,000 on 2026-03-15?",
             outcomes=[
                 Outcome(id="kalshi:INDEX:YES", label="YES", price=0.505, liquidity=5000.0),
                 Outcome(id="kalshi:INDEX:NO", label="NO", price=0.495, liquidity=5000.0),
@@ -156,7 +203,7 @@ class CrossVenueArbitrageScenarios:
         # With 0.5% fee each side = 1% total, plus slippage, may eliminate profit
         poly.append(Market(
             id="poly:dup_fee_killer",
-            question="Will crypto price reach target by deadline?",
+            question="Will BTC reach $100,000 by Dec 31, 2026?",
             outcomes=[
                 Outcome(id="poly:dup_fee:yes", label="YES", price=0.47, liquidity=3000.0),
                 Outcome(id="poly:dup_fee:no", label="NO", price=0.53, liquidity=3000.0),
@@ -170,7 +217,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:CRYPTO-PRICE:CRYPTO-T1",
-            question="Will crypto price reach target by deadline?",
+            question="Will BTC reach $100,000 by Dec 31, 2026?",
             outcomes=[
                 Outcome(id="kalshi:CRYPTO:YES", label="YES", price=0.52, liquidity=3000.0),
                 Outcome(id="kalshi:CRYPTO:NO", label="NO", price=0.48, liquidity=3000.0),
@@ -186,7 +233,7 @@ class CrossVenueArbitrageScenarios:
         # Case 4: Reverse direction (Kalshi cheaper than Poly)
         poly.append(Market(
             id="poly:dup_reverse",
-            question="Will tech stock beat earnings?",
+            question="Will Apple (AAPL) beat Q1 2026 earnings?",
             outcomes=[
                 Outcome(id="poly:dup_rev:yes", label="YES", price=0.68, liquidity=12000.0),
                 Outcome(id="poly:dup_rev:no", label="NO", price=0.32, liquidity=12000.0),
@@ -200,7 +247,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:TECH-EARN:TECH-EARN-T1",
-            question="Will tech stock beat earnings?",
+            question="Will Apple (AAPL) beat Q1 2026 earnings?",
             outcomes=[
                 Outcome(id="kalshi:TECH:YES", label="YES", price=0.55, liquidity=10000.0),
                 Outcome(id="kalshi:TECH:NO", label="NO", price=0.45, liquidity=10000.0),
@@ -232,7 +279,7 @@ class CrossVenueArbitrageScenarios:
         # Case 1: Clear profitable parity on Polymarket
         poly.append(Market(
             id="poly:parity_profit",
-            question="Will referendum pass?",
+            question="Will California Proposition 1 pass in 2026?",
             outcomes=[
                 Outcome(id="poly:parity_prof:yes", label="YES", price=0.44, liquidity=15000.0),
                 Outcome(id="poly:parity_prof:no", label="NO", price=0.46, liquidity=15000.0),
@@ -248,7 +295,7 @@ class CrossVenueArbitrageScenarios:
         # Case 2: Borderline parity on Kalshi (YES+NO = 0.98)
         kalshi.append(Market(
             id="kalshi:PARITY-BORD:PARITY-T1",
-            question="Will unemployment rate drop?",
+            question="Will US unemployment be below 4.0% in June 2026?",
             outcomes=[
                 Outcome(id="kalshi:PARITY:YES", label="YES", price=0.49, liquidity=8000.0),
                 Outcome(id="kalshi:PARITY:NO", label="NO", price=0.49, liquidity=8000.0),
@@ -264,7 +311,7 @@ class CrossVenueArbitrageScenarios:
         # Case 3: Rejected after slippage (YES+NO = 0.985)
         poly.append(Market(
             id="poly:parity_reject",
-            question="Will team win championship?",
+            question="Will the Boston Celtics win the 2026 NBA Finals?",
             outcomes=[
                 Outcome(id="poly:parity_rej:yes", label="YES", price=0.492, liquidity=5000.0),
                 Outcome(id="poly:parity_rej:no", label="NO", price=0.493, liquidity=5000.0),
@@ -313,7 +360,7 @@ class CrossVenueArbitrageScenarios:
         # Temperature thresholds: >30°C should be MORE likely than >35°C but isn't
         poly.append(Market(
             id="poly:ladder_strict_30",
-            question="Will temperature exceed 30°C?",
+            question="Will Phoenix reach 30°C on 2026-07-15?",
             outcomes=[
                 Outcome(id="poly:ladder_30:yes", label="YES", price=0.40, liquidity=8000.0),
                 Outcome(id="poly:ladder_30:no", label="NO", price=0.60, liquidity=8000.0),
@@ -327,7 +374,7 @@ class CrossVenueArbitrageScenarios:
         ))
         poly.append(Market(
             id="poly:ladder_strict_35",
-            question="Will temperature exceed 35°C?",
+            question="Will Phoenix reach 35°C on 2026-07-15?",
             outcomes=[
                 Outcome(id="poly:ladder_35:yes", label="YES", price=0.55, liquidity=8000.0),  # VIOLATION: Higher than 30°C!
                 Outcome(id="poly:ladder_35:no", label="NO", price=0.45, liquidity=8000.0),
@@ -343,7 +390,7 @@ class CrossVenueArbitrageScenarios:
         # Case 2: Tiny violation on Kalshi (below threshold)
         kalshi.append(Market(
             id="kalshi:LADDER-TINY-100:T1",
-            question="Will stock close above $100?",
+            question="Will AAPL close above $100 on 2026-06-30?",
             outcomes=[
                 Outcome(id="kalshi:L100:YES", label="YES", price=0.50, liquidity=5000.0),
                 Outcome(id="kalshi:L100:NO", label="NO", price=0.50, liquidity=5000.0),
@@ -357,7 +404,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:LADDER-TINY-105:T1",
-            question="Will stock close above $105?",
+            question="Will AAPL close above $105 on 2026-06-30?",
             outcomes=[
                 Outcome(id="kalshi:L105:YES", label="YES", price=0.505, liquidity=5000.0),  # Only 0.5% higher
                 Outcome(id="kalshi:L105:NO", label="NO", price=0.495, liquidity=5000.0),
@@ -373,7 +420,7 @@ class CrossVenueArbitrageScenarios:
         # Case 3: Equal-threshold edge case
         poly.append(Market(
             id="poly:ladder_equal_50",
-            question="Will score be at least 50 points?",
+            question="Will the Lakers score at least 50 points on 2026-01-10?",
             outcomes=[
                 Outcome(id="poly:leq_50:yes", label="YES", price=0.60, liquidity=6000.0),
                 Outcome(id="poly:leq_50:no", label="NO", price=0.40, liquidity=6000.0),
@@ -387,7 +434,7 @@ class CrossVenueArbitrageScenarios:
         ))
         poly.append(Market(
             id="poly:ladder_equal_60",
-            question="Will score be at least 60 points?",
+            question="Will the Lakers score at least 60 points on 2026-01-10?",
             outcomes=[
                 Outcome(id="poly:leq_60:yes", label="YES", price=0.60, liquidity=6000.0),  # Exactly equal!
                 Outcome(id="poly:leq_60:no", label="NO", price=0.40, liquidity=6000.0),
@@ -418,7 +465,7 @@ class CrossVenueArbitrageScenarios:
         # Three candidates, only one can win, but probabilities sum to 1.20
         poly.append(Market(
             id="poly:excl_cand_a",
-            question="Will Candidate A win primary?",
+            question="Will Candidate A win the 2026 Iowa GOP primary?",
             outcomes=[
                 Outcome(id="poly:excl_a:yes", label="YES", price=0.45, liquidity=10000.0),
                 Outcome(id="poly:excl_a:no", label="NO", price=0.55, liquidity=10000.0),
@@ -432,7 +479,7 @@ class CrossVenueArbitrageScenarios:
         ))
         poly.append(Market(
             id="poly:excl_cand_b",
-            question="Will Candidate B win primary?",
+            question="Will Candidate B win the 2026 Iowa GOP primary?",
             outcomes=[
                 Outcome(id="poly:excl_b:yes", label="YES", price=0.40, liquidity=10000.0),
                 Outcome(id="poly:excl_b:no", label="NO", price=0.60, liquidity=10000.0),
@@ -446,7 +493,7 @@ class CrossVenueArbitrageScenarios:
         ))
         poly.append(Market(
             id="poly:excl_cand_c",
-            question="Will Candidate C win primary?",
+            question="Will Candidate C win the 2026 Iowa GOP primary?",
             outcomes=[
                 Outcome(id="poly:excl_c:yes", label="YES", price=0.35, liquidity=10000.0),
                 Outcome(id="poly:excl_c:no", label="NO", price=0.65, liquidity=10000.0),
@@ -507,7 +554,7 @@ class CrossVenueArbitrageScenarios:
         stale_time = self.now - timedelta(minutes=5)
         poly.append(Market(
             id="poly:timelag_fresh",
-            question="Will breaking news event occur?",
+            question="Will the FAA issue an emergency grounding order for the Boeing 737 MAX in 2026?",
             outcomes=[
                 Outcome(
                     id="poly:timelag:yes",
@@ -534,7 +581,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:TIMELAG-STALE:T1",
-            question="Will breaking news event occur?",
+            question="Will the FAA issue an emergency grounding order for the Boeing 737 MAX in 2026?",
             outcomes=[
                 Outcome(
                     id="kalshi:TL:YES",
@@ -564,7 +611,7 @@ class CrossVenueArbitrageScenarios:
         very_stale = self.now - timedelta(minutes=60)
         poly.append(Market(
             id="poly:timelag_reject_fresh",
-            question="Will scheduled announcement happen?",
+            question="Will the Federal Reserve release an FOMC statement on 2026-06-14?",
             outcomes=[
                 Outcome(
                     id="poly:tlr:yes",
@@ -591,7 +638,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:TIMELAG-VERYSTALE:T1",
-            question="Will scheduled announcement happen?",
+            question="Will the Federal Reserve release an FOMC statement on 2026-06-14?",
             outcomes=[
                 Outcome(
                     id="kalshi:TVS:YES",
@@ -637,7 +684,7 @@ class CrossVenueArbitrageScenarios:
         # Violation: Can't win without reaching finals!
         poly.append(Market(
             id="poly:consist_champ",
-            question="Will team win championship?",
+            question="Will the Golden State Warriors win the 2026 NBA Finals?",
             outcomes=[
                 Outcome(id="poly:cons_ch:yes", label="YES", price=0.70, liquidity=12000.0),
                 Outcome(id="poly:cons_ch:no", label="NO", price=0.30, liquidity=12000.0),
@@ -651,7 +698,7 @@ class CrossVenueArbitrageScenarios:
         ))
         poly.append(Market(
             id="poly:consist_finals",
-            question="Will team reach finals?",
+            question="Will the Golden State Warriors reach the 2026 NBA Finals?",
             outcomes=[
                 Outcome(id="poly:cons_fi:yes", label="YES", price=0.50, liquidity=10000.0),  # Inconsistent!
                 Outcome(id="poly:cons_fi:no", label="NO", price=0.50, liquidity=10000.0),
@@ -721,7 +768,7 @@ class CrossVenueArbitrageScenarios:
         # Partial fill scenario (one leg has low liquidity)
         poly.append(Market(
             id="poly:partial_fill",
-            question="Will event with asymmetric depth occur?",
+            question="Will NYSE halt trading in SPY on 2026-08-01?",
             outcomes=[
                 Outcome(id="poly:pf:yes", label="YES", price=0.45, liquidity=20000.0),  # Deep
                 Outcome(id="poly:pf:no", label="NO", price=0.55, liquidity=500.0),  # Shallow!
@@ -737,7 +784,7 @@ class CrossVenueArbitrageScenarios:
         # Insufficient depth (both legs too thin)
         kalshi.append(Market(
             id="kalshi:INSUF-DEPTH:T1",
-            question="Will low-liquidity event occur?",
+            question="Will NYSE report a low-liquidity trading session for SPY on 2026-08-01?",
             outcomes=[
                 Outcome(id="kalshi:ID:YES", label="YES", price=0.40, liquidity=200.0),
                 Outcome(id="kalshi:ID:NO", label="NO", price=0.60, liquidity=200.0),
@@ -753,7 +800,7 @@ class CrossVenueArbitrageScenarios:
         # Fee schedule mismatch (marginal opportunity)
         poly.append(Market(
             id="poly:fee_mismatch",
-            question="Will marginal fee-sensitive event occur?",
+            question="Will NYSE raise per-trade fees on 2026-08-01?",
             outcomes=[
                 Outcome(id="poly:fm:yes", label="YES", price=0.48, liquidity=8000.0),
                 Outcome(id="poly:fm:no", label="NO", price=0.51, liquidity=8000.0),
@@ -769,7 +816,7 @@ class CrossVenueArbitrageScenarios:
         # Tick size rounding edge case (prices at weird increments)
         kalshi.append(Market(
             id="kalshi:TICK-ROUND:T1",
-            question="Will tick-size test event occur?",
+            question="Will the SEC expand tick-size pilot rules on 2026-09-01?",
             outcomes=[
                 Outcome(id="kalshi:TR:YES", label="YES", price=0.4999, liquidity=5000.0),
                 Outcome(id="kalshi:TR:NO", label="NO", price=0.5001, liquidity=5000.0),
@@ -785,7 +832,7 @@ class CrossVenueArbitrageScenarios:
         # Mismatched resolution dates (same event, different expiries - should not match)
         poly.append(Market(
             id="poly:mismatch_date_near",
-            question="Will annual target be hit?",
+            question="Will the US Treasury announce the 2026 budget deficit?",
             outcomes=[
                 Outcome(id="poly:md:yes", label="YES", price=0.60, liquidity=7000.0),
                 Outcome(id="poly:md:no", label="NO", price=0.40, liquidity=7000.0),
@@ -799,7 +846,7 @@ class CrossVenueArbitrageScenarios:
         ))
         kalshi.append(Market(
             id="kalshi:MISMATCH-DATE-FAR:T1",
-            question="Will annual target be hit?",
+            question="Will the US Treasury announce the 2026 budget deficit?",
             outcomes=[
                 Outcome(id="kalshi:MDF:YES", label="YES", price=0.55, liquidity=7000.0),
                 Outcome(id="kalshi:MDF:NO", label="NO", price=0.45, liquidity=7000.0),
@@ -826,4 +873,7 @@ def get_cross_venue_scenario(seed: int = 42) -> Tuple[List[Market], List[Market]
         Tuple of (polymarket_markets, kalshi_markets)
     """
     generator = CrossVenueArbitrageScenarios(seed=seed)
-    return generator.generate_all_scenarios()
+    poly_markets, kalshi_markets = generator.generate_all_scenarios()
+    _apply_fixture_resolution(poly_markets)
+    _apply_fixture_resolution(kalshi_markets)
+    return poly_markets, kalshi_markets

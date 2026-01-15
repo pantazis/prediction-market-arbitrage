@@ -18,6 +18,8 @@ class PolymarketClient(MarketClient):
     def __init__(self, config: PolymarketConfig):
         self.config = config
         self.host = config.host.rstrip("/")
+        self.clob_host = config.clob_host.rstrip("/")
+        self.clob_api_key = config.clob_api_key or config.api_key
 
     def fetch_markets(self) -> List[Market]:
         url = f"{self.host}/markets"
@@ -159,3 +161,27 @@ class PolymarketClient(MarketClient):
             "base_url": self.host,
             "supports_orderbook": False,  # Gamma API doesn't provide full orderbook
         }
+
+    def fetch_orderbook(self, token_id: str, timeout_s: float = 2.5) -> Optional[Dict[str, Any]]:
+        if not token_id:
+            return None
+        url = f"{self.clob_host}/book"
+        headers: Dict[str, str] = {"Accept": "application/json"}
+        if self.clob_api_key:
+            headers["Authorization"] = f"Bearer {self.clob_api_key}"
+            # Some deployments use an API-key header instead of Bearer auth.
+            headers["X-API-KEY"] = self.clob_api_key
+            headers["x-api-key"] = self.clob_api_key
+        try:
+            resp = requests.get(url, params={"token_id": token_id}, headers=headers, timeout=timeout_s)
+            resp.raise_for_status()
+            raw = resp.json()
+        except Exception as e:
+            logger.warning("Polymarket orderbook fetch failed for %s: %s", token_id, e)
+            return None
+
+        if isinstance(raw, dict) and ("bids" in raw or "asks" in raw):
+            return raw
+        if isinstance(raw, dict) and "orderbook" in raw and isinstance(raw["orderbook"], dict):
+            return raw["orderbook"]
+        return raw if isinstance(raw, dict) else None

@@ -122,7 +122,7 @@ class KalshiClient(MarketClient):
                 endpoint = "/trade-api/v2/series"
                 params = {"category": category, "limit": 200}
                 
-                response = self._make_request("GET", endpoint, params=params)
+                response = self._make_request("GET", endpoint, params=params, timeout_s=timeout_s)
                 if response and "series" in response and response["series"]:
                     for series in response["series"]:
                         ticker = series.get("ticker")
@@ -215,7 +215,8 @@ class KalshiClient(MarketClient):
         method: str,
         endpoint: str,
         params: Optional[Dict[str, Any]] = None,
-        json_body: Optional[Dict[str, Any]] = None
+        json_body: Optional[Dict[str, Any]] = None,
+        timeout_s: float = 10.0,
     ) -> Optional[Dict[str, Any]]:
         """
         Make authenticated request to Kalshi API.
@@ -260,7 +261,7 @@ class KalshiClient(MarketClient):
                 params=params,
                 json=json_body,
                 headers=headers,
-                timeout=10
+                timeout=timeout_s
             )
             response.raise_for_status()
             return response.json()
@@ -514,3 +515,21 @@ class KalshiClient(MarketClient):
             "supports_orderbook": True,
             "env": self.env,
         }
+
+    def fetch_orderbook(self, market_ticker: str, timeout_s: float = 2.5) -> Optional[Dict[str, Any]]:
+        if not market_ticker:
+            return None
+
+        endpoints = [
+            (f"/trade-api/v2/markets/{market_ticker}/orderbook", None),
+            ("/trade-api/v2/orderbook", {"market_ticker": market_ticker}),
+        ]
+        for endpoint, params in endpoints:
+            try:
+                response = self._make_request("GET", endpoint, params=params)
+            except Exception as e:
+                logger.warning("Kalshi orderbook fetch failed: %s", e)
+                response = None
+            if response:
+                return response
+        return None

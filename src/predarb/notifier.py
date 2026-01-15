@@ -119,6 +119,21 @@ class TelegramNotifier:
     def notify_trade_summary(self, count: int):
         self._post(f"✅ Executed {count} opportunities this iteration.")
 
+    def notify_price_alerts(self, alerts):
+        lines = [f"⚡ Price change alerts ({len(alerts)})"]
+        for idx, alert in enumerate(alerts, 1):
+            changes = alert.get("changes", {})
+            parts = []
+            for field, detail in changes.items():
+                parts.append(
+                    f"{field}: {detail.get('old'):.4f}->{detail.get('new'):.4f} ({detail.get('delta_pct'):.2%})"
+                )
+            lines.append(
+                f"{idx}. {alert.get('pair_id','')} {alert.get('outcome','').upper()} | "
+                f"{', '.join(parts)}"
+            )
+        self._post("\n".join(lines))
+
     def notify_filtering(self, total: int, eligible: int, ranked: int, high_quality: int):
         lines = [
             "🔍 Market Filtering Results",

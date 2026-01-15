@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "watchlist_pairs.csv row",
+  "type": "object",
+  "required": [
+    "pair_id",
+    "k_ticker",
+    "p_market_id",
+    "p_yes_token_id",
+    "p_no_token_id",
+    "polarity",
+    "k_expiration_time",
+    "p_endDate",
+    "min_edge",
+    "min_depth_usd",
+    "max_age_sec",
+    "status",
+    "last_verified_at"
+  ],
+  "properties": {
+    "pair_id": { "type": "string" },
+    "k_ticker": { "type": "string" },
+    "p_market_id": { "type": "string" },
+    "p_yes_token_id": { "type": "string" },
+    "p_no_token_id": { "type": "string" },
+    "polarity": { "type": "string", "enum": ["normal", "inverted"] },
+    "k_expiration_time": { "type": "string" },
+    "p_endDate": { "type": "string" },
+    "min_edge": { "type": "number" },
+    "min_depth_usd": { "type": "number" },
+    "max_age_sec": { "type": "integer" },
+    "status": { "type": "string", "enum": ["active", "paused"] },
+    "last_verified_at": { "type": "string" }
+  },
+  "additionalProperties": false
+}

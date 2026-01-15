@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Sequence, Union
 from predarb.broker import PaperBroker
 from predarb.config import AppConfig
 from predarb.models import Market, Opportunity
+from predarb.models import TradeAction
 from predarb.market_client_base import MarketClient
 from predarb.polymarket_client import PolymarketClient
 from predarb.kalshi_client import KalshiClient
@@ -31,6 +32,15 @@ from predarb.cross_venue_matcher import CrossVenueMatcher
 from predarb.llm_verifier import LLMVerifier, VerificationResult
 from predarb.ab_filters import FilterConfig as ABFilterConfig
 from predarb.ab_filters import evaluate_ab_filters, quote_from_market
+from predarb.watchlist import (
+    append_jsonl,
+    build_watchlist_row,
+    load_watchlist_csv,
+    prune_watchlist,
+    scan_watchlist,
+    upsert_watchlist_rows,
+    write_watchlist_csv,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -140,12 +150,94 @@ class Engine:
         self._last_cross_venue_verify_hash: Optional[str] = None
         self._last_cross_venue_arb_hash: Optional[str] = None
         self._last_cross_venue_filter_hash: Optional[str] = None
+        self._last_watchlist_hash: Optional[str] = None
+        self._last_watchlist_quotes: Dict[str, Dict[str, Optional[float]]] = {}
 
         llm_config = getattr(config, "llm_verification", None)
         if llm_config and getattr(llm_config, "enabled", False):
             self.llm_verifier: Optional[LLMVerifier] = LLMVerifier(llm_config)
         else:
             self.llm_verifier = None
+
+    def _fee_bps_for_exchange(self, name: str) -> float:
+        for client in self.clients:
+            if client.get_exchange_name().lower() == name.lower():
+                return float(client.get_metadata().get("fee_bps", self.config.broker.fee_bps))
+        return float(self.config.broker.fee_bps)
+
+    def _get_client_by_exchange(self, name: str) -> Optional[MarketClient]:
+        for client in self.clients:
+            if client.get_exchange_name().lower() == name.lower():
+                return client
+        return None
+
+    @staticmethod
+    def _market_ticker(market: Market) -> str:
+        return str(getattr(market, "id", "")).split(":")[-1]
+
+    def _build_cross_venue_opportunity_from_approve_packet(
+        self,
+        packet: Dict[str, object],
+        market_lookup: Dict[str, Market],
+    ) -> Optional[Opportunity]:
+        try:
+            kalshi_block = packet.get("kalshi") or {}
+            poly_block = packet.get("polymarket") or {}
+            k_market_id = str(kalshi_block.get("market_id") or "")
+            p_market_id = str(poly_block.get("market_id") or "")
+            side = str(packet.get("side") or "").strip().lower()
+            if side not in ("yes", "no"):
+                return None
+
+            k_market = market_lookup.get(k_market_id)
+            p_market = market_lookup.get(p_market_id)
+            if not k_market or not p_market:
+                return None
+
+            k_outcome = k_market.outcome_by_label(side)
+            p_outcome = p_market.outcome_by_label(side)
+            if not k_outcome or not p_outcome:
+                return None
+
+            k_bid = kalshi_block.get("bid")
+            p_ask = poly_block.get("ask")
+            if k_bid is None or p_ask is None:
+                return None
+
+            # Use tiny size by default; risk manager / allocation caps will constrain.
+            amount = 1.0
+            actions = [
+                TradeAction(
+                    market_id=k_market.id,
+                    outcome_id=k_outcome.id,
+                    side="SELL",
+                    amount=amount,
+                    limit_price=float(k_bid),
+                ),
+                TradeAction(
+                    market_id=p_market.id,
+                    outcome_id=p_outcome.id,
+                    side="BUY",
+                    amount=amount,
+                    limit_price=float(p_ask),
+                ),
+            ]
+            edge_net = float(packet.get("edge_net") or 0.0)
+            desc = (
+                f"Watchlist cross-venue {side.upper()} | "
+                f"K={self._market_ticker(k_market)} bid={float(k_bid):.4f} "
+                f"P={p_market.id} ask={float(p_ask):.4f} | edge_net={edge_net:.6f}"
+            )
+            return Opportunity(
+                type="CROSS_VENUE_WATCHLIST",
+                market_ids=[k_market.id, p_market.id],
+                description=desc,
+                net_edge=edge_net,
+                actions=actions,
+                metadata={"approve_packet": packet},
+            )
+        except Exception:
+            return None
 
     def _verify_cross_venue_pairs(
         self,
@@ -228,11 +320,14 @@ class Engine:
                 logger.info(f"Fetched {len(markets)} markets from {exchange}")
                 all_markets.extend(markets)
                 
-                # Separate by exchange for cross-venue matching
-                if exchange.lower() == 'kalshi':
-                    kalshi_markets.extend(markets)
-                elif exchange.lower() == 'polymarket':
-                    poly_markets.extend(markets)
+                # Separate by exchange for cross-venue matching.
+                # Prefer per-market exchange tag so dual injection works.
+                for market in markets:
+                    ex = str(getattr(market, "exchange", "") or "").lower()
+                    if ex == "kalshi":
+                        kalshi_markets.append(market)
+                    elif ex == "polymarket":
+                        poly_markets.append(market)
             except Exception as e:
                 logger.error(f"Failed to fetch markets from {client.get_exchange_name()}: {e}")
         
@@ -403,6 +498,189 @@ class Engine:
                                 logger.warning("Notifier trade alert failed: %s", e)
             except Exception as e:
                 logger.error(f"Cross-venue matching failed: {e}")
+
+        # Always scan watchlist (independent of semantic matching / LLM).
+        watch_cfg = getattr(self.config, "watchlist", None)
+        if watch_cfg and getattr(watch_cfg, "enabled", False):
+            rows = load_watchlist_csv(watch_cfg.csv_path)
+            pruned = prune_watchlist(rows)
+            if len(pruned) != len(rows):
+                write_watchlist_csv(watch_cfg.csv_path, pruned)
+
+            orderbook_fetcher = None
+            if getattr(watch_cfg, "orderbook_enabled", False):
+                kalshi_client = self._get_client_by_exchange("kalshi")
+                poly_client = self._get_client_by_exchange("polymarket")
+                kalshi_cache: Dict[str, Dict[str, object]] = {}
+                poly_cache: Dict[str, Dict[str, object]] = {}
+
+                def _extract_kalshi_book(raw: Dict[str, object], outcome_label: str) -> Optional[Dict[str, object]]:
+                    if not raw:
+                        return None
+                    if "orderbook" in raw and isinstance(raw.get("orderbook"), dict):
+                        raw = raw["orderbook"]  # type: ignore[assignment]
+                    key = outcome_label.lower()
+                    for candidate in (key, key.upper(), key.capitalize()):
+                        if isinstance(raw.get(candidate), dict):
+                            return raw[candidate]  # type: ignore[index]
+                    if "yes" in raw or "no" in raw:
+                        block = raw.get("yes" if key == "yes" else "no")
+                        if isinstance(block, dict):
+                            return block
+                    if "bids" in raw or "asks" in raw:
+                        return raw
+                    return None
+
+                def _fetch_orderbook(venue: str, market: Market, outcome_label: str):
+                    if venue == "kalshi" and kalshi_client and hasattr(kalshi_client, "fetch_orderbook"):
+                        ticker = market.id.split(":")[-1]
+                        if ticker not in kalshi_cache:
+                            raw = kalshi_client.fetch_orderbook(
+                                ticker,
+                                timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)),
+                            )
+                            kalshi_cache[ticker] = raw or {}
+                        return _extract_kalshi_book(kalshi_cache.get(ticker, {}), outcome_label)
+                    if venue == "polymarket" and poly_client and hasattr(poly_client, "fetch_orderbook"):
+                        outcome = market.outcome_by_label(outcome_label)
+                        if not outcome:
+                            return None
+                        token_id = str(outcome.id)
+                        if token_id not in poly_cache:
+                            raw = poly_client.fetch_orderbook(
+                                token_id,
+                                timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)),
+                            )
+                            poly_cache[token_id] = raw or {}
+                        return poly_cache.get(token_id)
+                    return None
+
+                orderbook_fetcher = _fetch_orderbook
+
+            scan_output = scan_watchlist(
+                pruned,
+                kalshi_markets=kalshi_markets,
+                polymarket_markets=poly_markets,
+                fee_bps_kalshi=self._fee_bps_for_exchange("kalshi"),
+                fee_bps_polymarket=self._fee_bps_for_exchange("polymarket"),
+                slippage_bps=float(self.config.broker.slippage_bps),
+                depth_fraction=float(watch_cfg.depth_fraction),
+                orderbook_fetcher=orderbook_fetcher,
+            )
+            append_jsonl(watch_cfg.scan_log_path, [scan_output.scan_log])
+            if scan_output.rejects:
+                append_jsonl(watch_cfg.reject_log_path, scan_output.rejects)
+            if scan_output.approve_packets:
+                append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
+
+            if getattr(watch_cfg, "execute_paper_trades", False) and scan_output.approve_packets:
+                max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
+                market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
+                executed_count = 0
+                for packet in scan_output.approve_packets:
+                    if executed_count >= max_trades:
+                        break
+                    opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
+                    if not opp:
+                        continue
+                    if not self.risk.approve(market_lookup_all, opp):
+                        continue
+                    trades = self.broker.execute(market_lookup_all, opp)
+                    opp.metadata["trades"] = [
+                        {
+                            "market_id": t.market_id,
+                            "outcome_id": t.outcome_id,
+                            "side": t.side,
+                            "amount": t.amount,
+                            "price": t.price,
+                            "fees": t.fees,
+                            "slippage": t.slippage,
+                            "realized_pnl": t.realized_pnl,
+                        }
+                        for t in trades
+                    ]
+                    executed_count += 1
+                    if self.notifier and hasattr(self.notifier, "notify_opportunity"):
+                        try:
+                            self.notifier.notify_opportunity(opp)
+                        except Exception as e:
+                            logger.warning("Notifier watchlist opportunity failed: %s", e)
+
+            if scan_output.quote_snapshots:
+                threshold = float(getattr(watch_cfg, "price_change_threshold_pct", 0.0))
+                alerts = []
+                for snap in scan_output.quote_snapshots:
+                    key = f"{snap['pair_id']}:{snap['outcome']}"
+                    prev = self._last_watchlist_quotes.get(key, {})
+                    changes = {}
+                    for field in ("kalshi_bid", "kalshi_ask", "polymarket_bid", "polymarket_ask"):
+                        new_val = snap.get(field)
+                        old_val = prev.get(field)
+                        if new_val is None or old_val is None:
+                            continue
+                        if old_val == 0:
+                            continue
+                        delta_pct = abs(float(new_val) - float(old_val)) / float(old_val)
+                        if delta_pct >= threshold:
+                            changes[field] = {
+                                "old": old_val,
+                                "new": new_val,
+                                "delta_pct": delta_pct,
+                            }
+                    if changes:
+                        alerts.append(
+                            {
+                                "pair_id": snap["pair_id"],
+                                "outcome": snap["outcome"],
+                                "polarity": snap["polarity"],
+                                "kalshi_market_id": snap["kalshi_market_id"],
+                                "polymarket_market_id": snap["polymarket_market_id"],
+                                "changes": changes,
+                            }
+                        )
+                    self._last_watchlist_quotes[key] = {
+                        "kalshi_bid": snap.get("kalshi_bid"),
+                        "kalshi_ask": snap.get("kalshi_ask"),
+                        "polymarket_bid": snap.get("polymarket_bid"),
+                        "polymarket_ask": snap.get("polymarket_ask"),
+                    }
+                if alerts and self.notifier and hasattr(self.notifier, "notify_price_alerts"):
+                    try:
+                        self.notifier.notify_price_alerts(alerts)
+                    except Exception as e:
+                        logger.warning("Notifier price alert failed: %s", e)
+
+            signature = "|".join(
+                f"{p['pair_id']}:{p['side']}:{p.get('edge_net', 0.0):.6f}"
+                for p in scan_output.approve_packets
+            ) or "no_candidates"
+            watch_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+            if watch_hash != self._last_watchlist_hash:
+                self._last_watchlist_hash = watch_hash
+                if self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
+                    if scan_output.arbitrage_cases:
+                        results = [(None, None, 0.0, scan_output.arbitrage_cases)]
+                    else:
+                        results = []
+                    try:
+                        self.notifier.notify_cross_venue_arbitrage(results)
+                    except Exception as e:
+                        logger.warning("Notifier watchlist arbitrage alert failed: %s", e)
+                if self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
+                    try:
+                        self.notifier.notify_cross_venue_filters(scan_output.filter_reports)
+                    except Exception as e:
+                        logger.warning("Notifier watchlist filter alert failed: %s", e)
+                if self.notifier and hasattr(self.notifier, "notify_cross_venue_risk"):
+                    try:
+                        self.notifier.notify_cross_venue_risk(scan_output.filter_reports)
+                    except Exception as e:
+                        logger.warning("Notifier watchlist risk alert failed: %s", e)
+                if self.notifier and hasattr(self.notifier, "notify_cross_venue_trade"):
+                    try:
+                        self.notifier.notify_cross_venue_trade(scan_output.filter_reports)
+                    except Exception as e:
+                        logger.warning("Notifier watchlist trade alert failed: %s", e)
         
         # Scan ALL markets for opportunities (no pre-filtering)
         # Risk manager will validate if each opportunity is viable

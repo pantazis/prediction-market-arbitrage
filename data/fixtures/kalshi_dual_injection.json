@@ -1,0 +1,107 @@
+[
+  {
+    "market_id": "kalshi:CPI-2026-03:CPI-2026-03-T1",
+    "title": "Will US CPI YoY be >= 3.0% in March 2026?",
+    "outcomes": [
+      {
+        "id": "kalshi:CPI-2026-03:yes",
+        "label": "YES",
+        "price": 0.48,
+        "liquidity": 5000.0
+      },
+      {
+        "id": "kalshi:CPI-2026-03:no",
+        "label": "NO",
+        "price": 0.52,
+        "liquidity": 5000.0
+      }
+    ],
+    "end_time": "2026-03-15T12:00:00+00:00",
+    "liquidity_usd": 10000.0,
+    "resolution_source": "BLS CPI release",
+    "resolution_rules": "Resolved using the Bureau of Labor Statistics CPI YoY for March 2026.",
+    "best_bid": {
+      "yes": 0.47,
+      "no": 0.51
+    },
+    "best_ask": {
+      "yes": 0.49,
+      "no": 0.53
+    },
+    "tags": [
+      "economics",
+      "cpi"
+    ],
+    "exchange": "kalshi"
+  },
+  {
+    "market_id": "kalshi:FED-2026-01:FED-2026-01-T1",
+    "title": "Will the Fed hold rates in January 2026?",
+    "outcomes": [
+      {
+        "id": "kalshi:FED-2026-01:yes",
+        "label": "YES",
+        "price": 0.60,
+        "liquidity": 6000.0
+      },
+      {
+        "id": "kalshi:FED-2026-01:no",
+        "label": "NO",
+        "price": 0.40,
+        "liquidity": 6000.0
+      }
+    ],
+    "end_time": "2026-01-29T20:00:00+00:00",
+    "liquidity_usd": 12000.0,
+    "resolution_source": "Federal Reserve",
+    "resolution_rules": "Resolved based on the FOMC statement for the January 2026 meeting.",
+    "best_bid": {
+      "yes": 0.59,
+      "no": 0.39
+    },
+    "best_ask": {
+      "yes": 0.61,
+      "no": 0.41
+    },
+    "tags": [
+      "rates",
+      "fomc"
+    ],
+    "exchange": "kalshi"
+  },
+  {
+    "market_id": "kalshi:BTC-100K-2026:BTC-100K-2026-T1",
+    "title": "Will BTC reach $100,000 by Dec 31, 2026?",
+    "outcomes": [
+      {
+        "id": "kalshi:BTC-100K-2026:yes",
+        "label": "YES",
+        "price": 0.44,
+        "liquidity": 7000.0
+      },
+      {
+        "id": "kalshi:BTC-100K-2026:no",
+        "label": "NO",
+        "price": 0.56,
+        "liquidity": 7000.0
+      }
+    ],
+    "end_time": "2026-12-31T23:59:00+00:00",
+    "liquidity_usd": 14000.0,
+    "resolution_source": "CoinGecko BTC-USD",
+    "resolution_rules": "Resolved using CoinGecko BTC-USD price at 23:59 UTC on Dec 31, 2026.",
+    "best_bid": {
+      "yes": 0.43,
+      "no": 0.55
+    },
+    "best_ask": {
+      "yes": 0.45,
+      "no": 0.57
+    },
+    "tags": [
+      "crypto",
+      "bitcoin"
+    ],
+    "exchange": "kalshi"
+  }
+]

@@ -50,6 +50,12 @@ class RiskManager:
             inventory = self.broker_state.positions.get(position_key, 0.0)
             
             if action.side.upper() == "SELL":
+                # Allow shorting only on Kalshi if enabled (cross-venue A+B).
+                allow_kalshi_shorting = bool(getattr(self.config, "allow_kalshi_shorting", False))
+                market = market_lookup.get(action.market_id)
+                market_exchange = str(getattr(market, "exchange", "") or "").lower() if market else ""
+                if allow_kalshi_shorting and market_exchange == "kalshi":
+                    continue
                 if inventory <= 0:
                     logger.info(
                         f"REJECTED {opp.type} opportunity: "

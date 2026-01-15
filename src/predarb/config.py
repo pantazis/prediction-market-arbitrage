@@ -12,6 +12,11 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 class PolymarketConfig(BaseModel):
     enabled: bool = True  # Enable/disable Polymarket client
     host: str = "https://gamma-api.polymarket.com"  # Gamma API for market metadata
+    clob_host: str = Field(default_factory=lambda: os.getenv("POLYMARKET_CLOB_HOST", "https://clob.polymarket.com"))
+    clob_api_key: Optional[str] = Field(
+        default_factory=lambda: os.getenv("POLYMARKET_CLOB_API_KEY")
+        or os.getenv("POLYMARKET_API_KEY")
+    )
     api_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_API_KEY"))
     secret: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_SECRET"))
     passphrase: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PASSPHRASE"))
@@ -63,6 +68,8 @@ class RiskConfig(BaseModel):
     # If True, cancel remaining orders on partial fill and mark as CANCELLED
     # If False, allow partial fills (NOT RECOMMENDED for venues without short selling)
     kill_switch_on_partial: bool = True
+    # Allow shorting only on Kalshi (useful for cross-venue A+B paper simulation).
+    allow_kalshi_shorting: bool = False
 
     @field_validator("max_allocation_per_market")
     @classmethod
@@ -77,6 +84,7 @@ class BrokerConfig(BaseModel):
     fee_bps: float = 10.0
     slippage_bps: float = 20.0
     depth_fraction: float = 0.05  # fraction of quoted liquidity available
+    allow_kalshi_shorting: bool = False
 
 
 class EngineConfig(BaseModel):
@@ -155,6 +163,25 @@ class CrossVenueMatcherConfig(BaseModel):
     encode_batch_size: int = 32  # Embedding batch size
 
 
+class WatchlistConfig(BaseModel):
+    """Configuration for watchlist polling after LLM PASS."""
+
+    enabled: bool = False
+    csv_path: str = "data/watchlist_pairs.csv"
+    scan_log_path: str = "data/scan_log.jsonl"
+    reject_log_path: str = "data/reject_reasons.jsonl"
+    approve_log_path: str = "data/approve_packets.jsonl"
+    min_edge: float = 0.006
+    min_depth_usd: float = 50.0
+    max_age_sec: int = 15
+    depth_fraction: float = 0.10
+    orderbook_enabled: bool = False
+    orderbook_timeout_s: float = 2.5
+    price_change_threshold_pct: float = 0.002
+    execute_paper_trades: bool = False
+    max_trades_per_loop: int = 1
+
+
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
     kalshi: KalshiConfig = Field(default_factory=KalshiConfig)
@@ -166,6 +193,7 @@ class AppConfig(BaseModel):
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     llm_verification: LLMVerificationConfig = Field(default_factory=LLMVerificationConfig)
     cross_venue_matcher: CrossVenueMatcherConfig = Field(default_factory=CrossVenueMatcherConfig)
+    watchlist: WatchlistConfig = Field(default_factory=WatchlistConfig)
 
 
 def load_config(path: str | Path) -> AppConfig:
@@ -178,6 +206,8 @@ def load_config(path: str | Path) -> AppConfig:
         cfg = AppConfig(**data)
     except ValidationError as e:
         raise RuntimeError(f"Invalid config: {e}") from e
+    # Keep semantic match threshold consistent across retrieval and LLM verification.
+    cfg.llm_verification.min_similarity_to_verify = cfg.cross_venue_matcher.min_similarity
     # If YAML has empty/placeholder values, fill from env
     if not cfg.telegram.bot_token:
         cfg.telegram.bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")

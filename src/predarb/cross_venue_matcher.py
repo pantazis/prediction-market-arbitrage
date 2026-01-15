@@ -29,25 +29,28 @@ except (ImportError, OSError, Exception):
 _semantic_model: Optional[SentenceTransformer] = None
 
 
+
 def _norm_text(s: str) -> str:
     """Normalize text for embedding clarity."""
     if not s:
         return ""
     s = str(s).lower()
+    # Keep $ and % as they are semantically important for SBERT
     s = re.sub(r"https?://\S+", " ", s)
-    s = s.replace("%", " percent ").replace("$", " usd ")
-    s = re.sub(r"[^a-z0-9\s\.\-]", " ", s)
+    # Allow alphanumeric, spaces, and common currency/pct symbols
+    s = re.sub(r"[^a-z0-9\s\.\-\$\%]", " ", s)
     return " ".join(s.split())
 
 
 def _get_text_blob(market: Market) -> str:
     """Extract rich semantic text from Market object."""
-    # Use question + description + metadata
+    # Use question + truncated description + metadata
     parts = [market.question or ""]
     
-    # Add description if available
+    # Add description if available (truncated to reduce boilerplate noise)
     if hasattr(market, 'description') and market.description:
-        parts.append(str(market.description))
+        desc = str(market.description)
+        parts.append(desc[:200])  # First 200 chars usually contain the core rules
     
     # Add group/category context
     if hasattr(market, 'category') and market.category:
@@ -99,7 +102,7 @@ class CrossVenueMatcher:
     
     def __init__(
         self,
-        model_name: str = 'all-MiniLM-L6-v2',
+        model_name: str = 'all-mpnet-base-v2',  # Upgraded model
         min_similarity: float = 0.10,
         max_hours_diff: int = 24,
         enabled: bool = True,

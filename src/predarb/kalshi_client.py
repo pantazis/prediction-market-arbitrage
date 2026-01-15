@@ -122,7 +122,7 @@ class KalshiClient(MarketClient):
                 endpoint = "/trade-api/v2/series"
                 params = {"category": category, "limit": 200}
                 
-                response = self._make_request("GET", endpoint, params=params, timeout_s=timeout_s)
+                response = self._make_request("GET", endpoint, params=params)
                 if response and "series" in response and response["series"]:
                     for series in response["series"]:
                         ticker = series.get("ticker")

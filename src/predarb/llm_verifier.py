@@ -81,7 +81,8 @@ class LLMVerifierConfig(BaseModel):
     min_similarity_to_verify: float = 0.90
     cache_path: str = "data/llm_verify_cache.json"
     ttl_hours: int = 168
-    fail_mode: str = "fail_open"  # "fail_open" or "fail_closed"
+    fail_mode: str = "fail_closed"  # "fail_open" or "fail_closed"
+
 
     def __post_init__(self):
         """Validate configuration."""
@@ -174,16 +175,23 @@ class OpenAIChatProvider(LLMProvider):
         except json.JSONDecodeError:
             pass
 
-        # Try extracting JSON block
+        # Try extracting JSON block (support markdown fences)
         start_idx = text.find("{")
         end_idx = text.rfind("}")
         if start_idx >= 0 and end_idx > start_idx:
+            block = text[start_idx : end_idx + 1]
             try:
-                return json.loads(text[start_idx : end_idx + 1])
+                return json.loads(block)
             except json.JSONDecodeError:
-                pass
+                # Fallback: Try ast.literal_eval for single-quoted Python dicts
+                # LLMs often output Python dicts instead of strict JSON
+                try:
+                    import ast
+                    return ast.literal_eval(block)
+                except (ValueError, SyntaxError):
+                    pass
 
-        logger.warning(f"Failed to parse JSON from response: {text[:100]}")
+        logger.warning(f"Failed to parse JSON from response: {text[:200]}...")
         return {}
 
 

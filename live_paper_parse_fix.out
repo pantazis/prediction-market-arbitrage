@@ -1,0 +1,107 @@
+nohup: ignoring input
+/usr/local/lib/python3.12/dist-packages/pydantic/_internal/_fields.py:149: UserWarning: Field "model_name" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+2026-01-15 14:10:32 [INFO] predarb.engine - Polymarket client enabled
+2026-01-15 14:10:32 [INFO] predarb.kalshi_client - KalshiClient initialized: env=prod, host=https://api.elections.kalshi.com
+2026-01-15 14:10:32 [INFO] predarb.engine - Kalshi client enabled
+2026-01-15 14:10:32 [INFO] predarb.engine - Engine initialized with clients: polymarket, kalshi
+2026-01-15 14:10:32 [INFO] predarb.engine - Cross-venue semantic matcher enabled
+2026-01-15 14:10:32 [INFO] __main__ - ✓ Validation passed: Using real-time data only
+2026-01-15 14:10:32 [INFO] __main__ - Iteration 1/86400
+2026-01-15 14:10:32 [INFO] predarb.engine - Fetched 500 markets from polymarket
+2026-01-15 14:10:32 [INFO] predarb.kalshi_client - Fetching series for categories: ['Politics', 'Economics', 'Crypto']
+2026-01-15 14:10:34 [INFO] predarb.kalshi_client - Category 'Politics': 2684 series found
+2026-01-15 14:10:34 [INFO] predarb.kalshi_client - Category 'Economics': 405 series found
+2026-01-15 14:10:35 [INFO] predarb.kalshi_client - Category 'Crypto': 205 series found
+2026-01-15 14:10:35 [INFO] predarb.kalshi_client - Total: 3294 series across 3 categories
+2026-01-15 14:10:35 [INFO] predarb.kalshi_client - Fetching markets for first 100 series (out of 3294)...
+2026-01-15 14:10:35 [INFO] predarb.kalshi_client - Series KXUSELECTIONARIZONA7: 0 markets
+2026-01-15 14:10:35 [INFO] predarb.kalshi_client - Series KXSENATEWYR: 3 markets
+2026-01-15 14:10:36 [INFO] predarb.kalshi_client - Series KXCANADABLOCK: 0 markets
+2026-01-15 14:10:37 [INFO] predarb.kalshi_client - Series KXCLOSEHORMUZ: 1 markets
+2026-01-15 14:10:37 [INFO] predarb.kalshi_client - Series GOVPARTYND: 2 markets
+2026-01-15 14:10:38 [INFO] predarb.kalshi_client - Series KXVANCOUVEREAST: 0 markets
+2026-01-15 14:10:39 [INFO] predarb.kalshi_client - Series KXCONFFEDGOV: 0 markets
+2026-01-15 14:10:39 [INFO] predarb.kalshi_client - Series KXATTYGENMA: 2 markets
+2026-01-15 14:10:40 [INFO] predarb.kalshi_client - Series KXCONGRESSEXPELSCHIFF: 0 markets
+2026-01-15 14:10:41 [INFO] predarb.kalshi_client - Series SENATECA: 2 markets
+2026-01-15 14:10:41 [INFO] predarb.kalshi_client - Series KXGOVPANOMD: 0 markets
+2026-01-15 14:10:42 [INFO] predarb.kalshi_client - Series NETCHOICE: 0 markets
+2026-01-15 14:10:43 [INFO] predarb.kalshi_client - Series KXSILVERSTATES: 0 markets
+2026-01-15 14:10:43 [INFO] predarb.kalshi_client - Series KXTRUMPSPACE: 0 markets
+2026-01-15 14:10:44 [INFO] predarb.kalshi_client - Series KXELONDJTSAY: 0 markets
+2026-01-15 14:10:45 [INFO] predarb.kalshi_client - Series SENATEOHS: 2 markets
+2026-01-15 14:10:45 [INFO] predarb.kalshi_client - Series KXINDJUDICIARY: 1 markets
+2026-01-15 14:10:46 [INFO] predarb.kalshi_client - Series KXSAVEACT: 1 markets
+2026-01-15 14:10:46 [INFO] predarb.kalshi_client - Series KXSWENCOUNTERS: 8 markets
+2026-01-15 14:10:47 [INFO] predarb.kalshi_client - Series KXCONGRESSTARIFFVOTE: 0 markets
+2026-01-15 14:10:48 [INFO] predarb.kalshi_client - Series KXSECVA: 0 markets
+2026-01-15 14:10:48 [INFO] predarb.kalshi_client - Series KXLAKENRILEY: 0 markets
+2026-01-15 14:10:49 [INFO] predarb.kalshi_client - Series KXGOVILNOMR: 5 markets
+2026-01-15 14:10:50 [INFO] predarb.kalshi_client - Series KXSOTHLEAVE: 2 markets
+2026-01-15 14:10:50 [INFO] predarb.kalshi_client - Series KXHAMILTONCENTRE: 0 markets
+2026-01-15 14:10:51 [INFO] predarb.kalshi_client - Series RRF: 0 markets
+2026-01-15 14:10:52 [INFO] predarb.kalshi_client - Series KXAMBMALAY: 3 markets
+2026-01-15 14:10:52 [INFO] predarb.kalshi_client - Series KXENDORSEADAMSACKMAN: 0 markets
+2026-01-15 14:10:53 [INFO] predarb.kalshi_client - Series KXGERMANYCONFIDENCE: 0 markets
+2026-01-15 14:10:54 [INFO] predarb.kalshi_client - Series KXVOTETULSI: 0 markets
+2026-01-15 14:10:54 [INFO] predarb.kalshi_client - Series KXPCTVOTEMAMR1: 0 markets
+2026-01-15 14:10:55 [INFO] predarb.kalshi_client - Series KXTRUMPBULLCASECOMBO: 1 markets
+2026-01-15 14:10:56 [INFO] predarb.kalshi_client - Series KXSKTARIFFSIZE: 0 markets
+2026-01-15 14:10:56 [INFO] predarb.kalshi_client - Series KXGOVNJNOMR: 0 markets
+2026-01-15 14:10:57 [INFO] predarb.kalshi_client - Series ASYLUMCASES: 0 markets
+2026-01-15 14:10:58 [INFO] predarb.kalshi_client - Series VAXMAND: 0 markets
+2026-01-15 14:10:58 [INFO] predarb.kalshi_client - Series HOUSEPA8: 2 markets
+2026-01-15 14:10:59 [INFO] predarb.kalshi_client - Series KXSNAPCUTS: 0 markets
+2026-01-15 14:11:00 [INFO] predarb.kalshi_client - Series KXEXPELL: 1 markets
+2026-01-15 14:11:00 [INFO] predarb.kalshi_client - Series CFPB: 0 markets
+2026-01-15 14:11:01 [INFO] predarb.kalshi_client - Series KXDJTPARAMOUNT: 0 markets
+2026-01-15 14:11:01 [INFO] predarb.kalshi_client - Series EVICT: 0 markets
+2026-01-15 14:11:02 [INFO] predarb.kalshi_client - Series KXPUBLICINT: 0 markets
+2026-01-15 14:11:03 [INFO] predarb.kalshi_client - Series KXTX34R: 4 markets
+2026-01-15 14:11:03 [INFO] predarb.kalshi_client - Series HOUSECA40: 2 markets
+2026-01-15 14:11:04 [INFO] predarb.kalshi_client - Series KXARRESTJOHNBOLTON: 0 markets
+2026-01-15 14:11:05 [INFO] predarb.kalshi_client - Series SENATEPARTYMN: 0 markets
+2026-01-15 14:11:05 [INFO] predarb.kalshi_client - Series KXFESTIVALEVENTDNCMIDTERMS: 1 markets
+2026-01-15 14:11:06 [INFO] predarb.kalshi_client - Series INFRA: 0 markets
+2026-01-15 14:11:07 [INFO] predarb.kalshi_client - Series KXTRADEDEALPRC: 0 markets
+2026-01-15 14:11:07 [INFO] predarb.kalshi_client - Series SENATEPARTYMA: 0 markets
+2026-01-15 14:11:08 [INFO] predarb.kalshi_client - Series KXFRENCHPM: 0 markets
+2026-01-15 14:11:09 [INFO] predarb.kalshi_client - Series KXPOPEVISIT: 12 markets
+2026-01-15 14:11:09 [INFO] predarb.kalshi_client - Series KXJULYCHARTER: 0 markets
+2026-01-15 14:11:10 [INFO] predarb.kalshi_client - Series KXHOWMANYSPEAKERHOUSE: 3 markets
+2026-01-15 14:11:10 [INFO] predarb.kalshi_client - Series KXPAYGO: 0 markets
+2026-01-15 14:11:11 [INFO] predarb.kalshi_client - Series KXATTYGENAZ: 2 markets
+2026-01-15 14:11:12 [INFO] predarb.kalshi_client - Series KXATCZERO: 0 markets
+2026-01-15 14:11:12 [INFO] predarb.kalshi_client - Series KXCAPCONTROL: 1 markets
+2026-01-15 14:11:13 [INFO] predarb.kalshi_client - Series KXPOILIEVREOUT: 2 markets
+2026-01-15 14:11:14 [INFO] predarb.kalshi_client - Series KXCEA: 0 markets
+2026-01-15 14:11:14 [INFO] predarb.kalshi_client - Series KXGOVMANOMR: 8 markets
+2026-01-15 14:11:15 [INFO] predarb.kalshi_client - Series KXDJTMSNBC: 0 markets
+2026-01-15 14:11:16 [INFO] predarb.kalshi_client - Series KXSECTRANS: 0 markets
+2026-01-15 14:11:16 [INFO] predarb.kalshi_client - Series KXY: 0 markets
+2026-01-15 14:11:17 [INFO] predarb.kalshi_client - Series SHUTLENGTH: 0 markets
+2026-01-15 14:11:18 [INFO] predarb.kalshi_client - Series KXCORPTAXCUT: 1 markets
+2026-01-15 14:11:18 [INFO] predarb.kalshi_client - Series KXBLSCHIEF: 0 markets
+2026-01-15 14:11:19 [INFO] predarb.kalshi_client - Series KXTRUMPPUTIN: 0 markets
+2026-01-15 14:11:19 [INFO] predarb.kalshi_client - Series POPVOTEKHNY: 0 markets
+2026-01-15 14:11:20 [INFO] predarb.kalshi_client - Series KXNEWCENSUS: 0 markets
+2026-01-15 14:11:21 [INFO] predarb.kalshi_client - Series KXCLOSESTGOVERNOR: 14 markets
+2026-01-15 14:11:21 [INFO] predarb.kalshi_client - Series KXCOMMISHCBP: 0 markets
+2026-01-15 14:11:22 [INFO] predarb.kalshi_client - Series KXUNAMB: 0 markets
+2026-01-15 14:11:23 [INFO] predarb.kalshi_client - Series HOUSECA9: 2 markets
+2026-01-15 14:11:23 [INFO] predarb.kalshi_client - Series KXCANADA3RD: 0 markets
+2026-01-15 14:11:24 [INFO] predarb.kalshi_client - Series KXPAHLAVIHEAD: 1 markets
+2026-01-15 14:11:25 [INFO] predarb.kalshi_client - Series KXFL1RN: 0 markets
+2026-01-15 14:11:25 [INFO] predarb.kalshi_client - Series KXMACRONOWNES: 0 markets
+2026-01-15 14:11:26 [INFO] predarb.kalshi_client - Series KXLAGODAYS: 5 markets
+2026-01-15 14:11:27 [INFO] predarb.kalshi_client - Series RHOUSESEATS: 0 markets
+2026-01-15 14:11:27 [INFO] predarb.kalshi_client - Series CABINETNOM: 0 markets
+2026-01-15 14:11:28 [INFO] predarb.kalshi_client - Series KXADMINNASA: 0 markets
+2026-01-15 14:11:29 [INFO] predarb.kalshi_client - Series KXDUTCHCOALITION: 15 markets
+2026-01-15 14:11:29 [INFO] predarb.kalshi_client - Series KXTARIFFCAN: 0 markets
+2026-01-15 14:11:30 [INFO] predarb.kalshi_client - Series KXTEXASDHS: 0 markets
+2026-01-15 14:11:30 [INFO] predarb.kalshi_client - Series KXVRASCOTUSVOTE: 10 markets
+2026-01-15 14:11:31 [INFO] predarb.kalshi_client - Series POPVOTEMOVPA: 0 markets

@@ -2084,5 +2084,299 @@
       }
     },
     "timestamp": 1768462726.157827
+  },
+  "890bace43aa82b0bd04858d1420a4207": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves based on an announcement of a presidential run, while Market B resolves based on the outcome of the actual 2028 US Presidential Election. These are distinct events with different resolution criteria, even though a successful presidential run is a prerequisite for winning the election.",
+      "resolution_source": null,
+      "resolution_date": "November 7, 2028",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "November 7, 2028"
+      }
+    },
+    "timestamp": 1768481719.6995506
+  },
+  "b5d37d51a82cfa318884e60dd85b113f": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A resolves on an 'announcement' to run, while Market B resolves on the 'winning and acceptance' of the Republican nomination. An announcement does not guarantee winning the nomination, and winning the nomination does not require a prior explicit announcement in the exact wording of Market A.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481720.5045516
+  },
+  "1900ebfeb20b2cbd5e22179a381185dd": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves based on an announcement of a presidential run by Donald Trump. Market B resolves based on the outcome of the 2028 US Presidential Election, specifically who wins and is inaugurated. While Trump running (Market A) could be a precursor to him winning (Market B), these are distinct events with different resolution criteria. One is an announcement, the other is a victory in an election.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481721.2636492
+  },
+  "101e865935fc955afaaaf1810eba244e": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves based on Donald Trump's announcement of a presidential run. Market B resolves on the outcome of the 2028 US Presidential Election, specifically who wins it. These are distinct events; an announcement of a run does not guarantee winning the election, and someone else could win the election without having announced their candidacy before the specified date for Market A.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481721.9253309
+  },
+  "e2b8eafb390d35c2824803979404e466": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A is about Donald Trump announcing a presidential run before a specific date. Market B is about Zohran Mamdani winning the 2028 US Presidential Election. These are distinct events related to different individuals and different outcomes (announcement vs. winning).",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481722.5846229
+  },
+  "799889fa0035f4a963865184a6c23d90": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns the passage of a crypto market structure bill into law, while Market B concerns the Fully Diluted Valuation of a specific token ('Opinion') one day after its launch. These are entirely different real-world events.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481723.401872
+  },
+  "4a97159a0410b7e90ef19871f4df2792": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns the CEO of X (a company, likely Twitter/X), while Market B concerns the President of Russia. These are entirely different individuals and events.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481724.0062618
+  },
+  "58f3babfee7ac0eef575450b5d154fe8": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A is about the CEO of a company named 'X' and whether Nikita Bier will hold that position. Market B is about the removal of Vladimir Putin as the President of Russia. These are entirely different events.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481724.619183
+  },
+  "f488d53729aae490764c4d1e9a64d3db": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets refer to entirely different real-world events. Market A is about a specific US bill becoming law, while Market B is about the financial performance (Fully Diluted Valuation) of a cryptocurrency token after its launch.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481725.376923
+  },
+  "91491e3890af8f473f8d2fe8bbb53f28": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets concern entirely different real-world events: Market A is about the CEO of X, while Market B is about the presidency of Russia. The resolution criteria and involved individuals/entities are distinct.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481726.038795
+  },
+  "b8196edd42511ff2d61dce322f6758f2": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A resolves on Vladimir Putin *leaving* the presidency by a specific date, encompassing an official announcement or actual departure. Market B resolves on Vladimir Putin being *removed from power* (resignation, detention, etc.) within a narrower, specific timeframe. The definition of 'leaving' in A is broader and less time-specific in its trigger than the 'removed from power' and tight date range in B. The resolution sources are also different.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481833.4390037
+  },
+  "c1640d05ba0fb65a227d63516b38d707": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets are about different individuals (Zelenskyy vs. Putin) and different countries (Ukraine vs. Russia). Therefore, they cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481833.993811
+  },
+  "0bbbb410926cb0fd7be5e33eea587183": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets concern different individuals (Aleksandar Vu\u010di\u0107 and Vladimir Putin) and different countries (Serbia and Russia). Therefore, they cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481834.7057424
+  },
+  "fbdc543dd00750e7bd106447d56b7fed": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets are about different individuals (Macron vs. Putin) and different countries (France vs. Russia), and therefore cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481835.412221
+  },
+  "33f2998da8d24ebc4242c92ce5ea4656": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets refer to entirely different individuals (Gustavo Petro and Vladimir Putin) and different countries (Colombia and Russia). Therefore, they cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481835.867774
+  },
+  "9b7276354f299e46364cd33cb086002d": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets concern entirely different individuals (Recep Tayyip Erdo\u011fan vs. Vladimir Putin) and different countries (T\u00fcrkiye vs. Russia). Therefore, they cannot possibly resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481836.4802547
+  },
+  "01c0220d8788d9e6cbef96c6856564c8": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets concern two entirely different individuals (Rodrigo Paz Pereira and Vladimir Putin) and two different countries (Bolivia and Russia). Therefore, they cannot possibly resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481837.0463607
+  },
+  "2ffe361f2f257c00ecfe58036b874422": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets refer to entirely different political leaders (Cyril Ramaphosa of South Africa and Vladimir Putin of Russia) and different countries. Therefore, they cannot resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481837.5571353
+  },
+  "a4cc21ad4cfa502980b01d07b661ddfb": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns the departure of Denis Sassou Nguesso as President of the Republic of the Congo, while Market B concerns the departure of Vladimir Putin as President of Russia. These are two distinct individuals and two different countries, therefore they do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481838.3847091
+  },
+  "01ea9a14e6dd53fd8132cde2e3cb2f29": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns the leadership of Xi Jinping as General Secretary of the Communist Party of China, while Market B concerns the leadership of Vladimir Putin as President of Russia. These are entirely different individuals and political positions.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768481838.901657
+  },
+  "184f225a3cd8d358382405fc0b03fd35": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.8,
+      "reason": "Market A specifies resolution based on an 'officially held' ballot initiative, implying it needs to be voted on. Market B specifies resolution based on a 'passes in California election 2026', which implies it needs to be voted on AND approved by voters. The criteria for 'passing' are distinct from 'being held'. Market B also has a more detailed definition of what constitutes a 'qualifying ballot initiative' and a specific cutoff date for certification, which is not present in Market A's definition.",
+      "resolution_source": null,
+      "resolution_date": "2026-11-03",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-11-03"
+      }
+    },
+    "timestamp": 1768481944.1968267
   }
 }

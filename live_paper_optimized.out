@@ -1,0 +1,869 @@
+nohup: ignoring input
+/usr/local/lib/python3.12/dist-packages/pydantic/_internal/_fields.py:149: UserWarning: Field "model_name" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ()`.
+  warnings.warn(
+2026-01-15 14:04:11 [INFO] predarb.engine - Polymarket client enabled
+2026-01-15 14:04:11 [INFO] predarb.kalshi_client - KalshiClient initialized: env=prod, host=https://api.elections.kalshi.com
+2026-01-15 14:04:11 [INFO] predarb.engine - Kalshi client enabled
+2026-01-15 14:04:11 [INFO] predarb.engine - Engine initialized with clients: polymarket, kalshi
+2026-01-15 14:04:11 [INFO] predarb.engine - Cross-venue semantic matcher enabled
+2026-01-15 14:04:11 [INFO] __main__ - ✓ Validation passed: Using real-time data only
+2026-01-15 14:04:11 [INFO] __main__ - Iteration 1/86400
+2026-01-15 14:04:12 [INFO] predarb.engine - Fetched 500 markets from polymarket
+2026-01-15 14:04:12 [INFO] predarb.kalshi_client - Fetching series for categories: ['Politics', 'Economics', 'Crypto']
+2026-01-15 14:04:13 [INFO] predarb.kalshi_client - Category 'Politics': 2684 series found
+2026-01-15 14:04:13 [INFO] predarb.kalshi_client - Category 'Economics': 405 series found
+2026-01-15 14:04:14 [INFO] predarb.kalshi_client - Category 'Crypto': 205 series found
+2026-01-15 14:04:14 [INFO] predarb.kalshi_client - Total: 3294 series across 3 categories
+2026-01-15 14:04:14 [INFO] predarb.kalshi_client - Fetching markets for first 100 series (out of 3294)...
+2026-01-15 14:04:14 [INFO] predarb.kalshi_client - Series HOUSEIL17: 2 markets
+2026-01-15 14:04:15 [INFO] predarb.kalshi_client - Series KXVOTEPERCENTNOFRP: 0 markets
+2026-01-15 14:04:16 [INFO] predarb.kalshi_client - Series KX538APPROVEMAX: 0 markets
+2026-01-15 14:04:16 [INFO] predarb.kalshi_client - Series CABINETRFK: 0 markets
+2026-01-15 14:04:17 [INFO] predarb.kalshi_client - Series KXFETTERMANRESIGN: 0 markets
+2026-01-15 14:04:17 [INFO] predarb.kalshi_client - Series KXMAYORFRAMINGHAMMA: 0 markets
+2026-01-15 14:04:18 [INFO] predarb.kalshi_client - Series KX538APPROVEMIN: 0 markets
+2026-01-15 14:04:19 [INFO] predarb.kalshi_client - Series KXBUDGETRESS: 0 markets
+2026-01-15 14:04:19 [INFO] predarb.kalshi_client - Series HOUSEMT1: 2 markets
+2026-01-15 14:04:20 [INFO] predarb.kalshi_client - Series KXVOSVSTRUMP: 0 markets
+2026-01-15 14:04:21 [INFO] predarb.kalshi_client - Series KXNOMPATELCOM: 0 markets
+2026-01-15 14:04:21 [INFO] predarb.kalshi_client - Series KXNPRDEFUND: 0 markets
+2026-01-15 14:04:22 [INFO] predarb.kalshi_client - Series KXDJTFLAK: 0 markets
+2026-01-15 14:04:23 [INFO] predarb.kalshi_client - Series SENATEWI: 2 markets
+2026-01-15 14:04:23 [INFO] predarb.kalshi_client - Series KXPARTYSUPPORTMUSKD: 0 markets
+2026-01-15 14:04:24 [INFO] predarb.kalshi_client - Series KXNYCCHILDCARE: 1 markets
+2026-01-15 14:04:25 [INFO] predarb.kalshi_client - Series KXCHILEANRUNOFF: 0 markets
+2026-01-15 14:04:25 [INFO] predarb.kalshi_client - Series KXUSELECTIONOH9: 0 markets
+2026-01-15 14:04:26 [INFO] predarb.kalshi_client - Series KX538APPROVE: 0 markets
+2026-01-15 14:04:27 [INFO] predarb.kalshi_client - Series KXPOST: 0 markets
+2026-01-15 14:04:27 [INFO] predarb.kalshi_client - Series GOVPARTYMA: 2 markets
+2026-01-15 14:04:28 [INFO] predarb.kalshi_client - Series KXDCFUNDING: 0 markets
+2026-01-15 14:04:28 [INFO] predarb.kalshi_client - Series KXLEAVEWALZ: 3 markets
+2026-01-15 14:04:29 [INFO] predarb.kalshi_client - Series KXIAEAIRANAGREEMENT: 0 markets
+2026-01-15 14:04:30 [INFO] predarb.kalshi_client - Series KXCCLIMIT: 1 markets
+2026-01-15 14:04:30 [INFO] predarb.kalshi_client - Series KXSENMINORITY: 0 markets
+2026-01-15 14:04:31 [INFO] predarb.kalshi_client - Series KXAGENCIES: 7 markets
+2026-01-15 14:04:32 [INFO] predarb.kalshi_client - Series KXFOREIGNAID: 0 markets
+2026-01-15 14:04:32 [INFO] predarb.kalshi_client - Series KXCLOSESTSENATE: 10 markets
+2026-01-15 14:04:33 [INFO] predarb.kalshi_client - Series KXRELEASELANDER: 0 markets
+2026-01-15 14:04:34 [INFO] predarb.kalshi_client - Series KXGERMANYCONFIDENCE: 0 markets
+2026-01-15 14:04:34 [INFO] predarb.kalshi_client - Series KXVOTETARIFFS: 0 markets
+2026-01-15 14:04:35 [INFO] predarb.kalshi_client - Series KXPA3D: 7 markets
+2026-01-15 14:04:36 [INFO] predarb.kalshi_client - Series KXTIKTOKCOURT: 0 markets
+2026-01-15 14:04:36 [INFO] predarb.kalshi_client - Series KXDCMINWAGE: 0 markets
+2026-01-15 14:04:37 [INFO] predarb.kalshi_client - Series KXRECNCHVOTE: 0 markets
+2026-01-15 14:04:38 [INFO] predarb.kalshi_client - Series KXMA6D: 8 markets
+2026-01-15 14:04:38 [INFO] predarb.kalshi_client - Series KXBIDENPARDON: 0 markets
+2026-01-15 14:04:39 [INFO] predarb.kalshi_client - Series SENATE: 0 markets
+2026-01-15 14:04:39 [INFO] predarb.kalshi_client - Series KXSENATEVAD: 2 markets
+2026-01-15 14:04:40 [INFO] predarb.kalshi_client - Series KXDEFICIT: 0 markets
+2026-01-15 14:04:41 [INFO] predarb.kalshi_client - Series KXELECTIONMOVVAGOV: 0 markets
+2026-01-15 14:04:41 [INFO] predarb.kalshi_client - Series KXCABCOUNT: 0 markets
+2026-01-15 14:04:42 [INFO] predarb.kalshi_client - Series KXGREENIND: 1 markets
+2026-01-15 14:04:43 [INFO] predarb.kalshi_client - Series KXCANADAELECT: 0 markets
+2026-01-15 14:04:43 [INFO] predarb.kalshi_client - Series KXTREASBLOCKCHAIN: 1 markets
+2026-01-15 14:04:44 [INFO] predarb.kalshi_client - Series KXSSTAX: 0 markets
+2026-01-15 14:04:45 [INFO] predarb.kalshi_client - Series KXELECTIONMOVZOHRAN: 0 markets
+2026-01-15 14:04:45 [INFO] predarb.kalshi_client - Series KXNEWROLECEOAPPLE: 5 markets
+2026-01-15 14:04:46 [INFO] predarb.kalshi_client - Series POPVOTEKHVT: 0 markets
+2026-01-15 14:04:47 [INFO] predarb.kalshi_client - Series KXDOED: 1 markets
+2026-01-15 14:04:47 [INFO] predarb.kalshi_client - Series KXNEWROLECARVANA: 0 markets
+2026-01-15 14:04:48 [INFO] predarb.kalshi_client - Series KXUSELECTIONVA11D: 0 markets
+2026-01-15 14:04:49 [INFO] predarb.kalshi_client - Series KXSTATEWITHHOLD: 0 markets
+2026-01-15 14:04:49 [INFO] predarb.kalshi_client - Series KXPCTVOTEMAMR1: 0 markets
+2026-01-15 14:04:50 [INFO] predarb.kalshi_client - Series KXWISCOTUSMOV: 0 markets
+2026-01-15 14:04:51 [INFO] predarb.kalshi_client - Series KXENDORSEADAMS: 0 markets
+2026-01-15 14:04:51 [INFO] predarb.kalshi_client - Series KXTECHCEONEXT: 0 markets
+2026-01-15 14:04:52 [INFO] predarb.kalshi_client - Series KXSRIRAM: 0 markets
+2026-01-15 14:04:53 [INFO] predarb.kalshi_client - Series KXECOWASBURKINA: 0 markets
+2026-01-15 14:04:53 [INFO] predarb.kalshi_client - Series KXNYCCOUNCIL38: 0 markets
+2026-01-15 14:04:54 [INFO] predarb.kalshi_client - Series ECKHBLOWOUT: 0 markets
+2026-01-15 14:04:55 [INFO] predarb.kalshi_client - Series KXPARLIAMENTARIAN: 0 markets
+2026-01-15 14:04:55 [INFO] predarb.kalshi_client - Series PRESPARTYSD: 0 markets
+2026-01-15 14:04:56 [INFO] predarb.kalshi_client - Series KXNORWAYLABOUR: 0 markets
+2026-01-15 14:04:57 [INFO] predarb.kalshi_client - Series GOVPARTYNC: 2 markets
+2026-01-15 14:04:57 [INFO] predarb.kalshi_client - Series KXIRELAND1ROUND: 0 markets
+2026-01-15 14:04:58 [INFO] predarb.kalshi_client - Series HOUSECT5: 2 markets
+2026-01-15 14:04:58 [INFO] predarb.kalshi_client - Series KXSFFASUIT: 0 markets
+2026-01-15 14:04:59 [INFO] predarb.kalshi_client - Series KXATTYGENKS: 2 markets
+2026-01-15 14:05:00 [INFO] predarb.kalshi_client - Series KXBEDOYA: 0 markets
+2026-01-15 14:05:00 [INFO] predarb.kalshi_client - Series KXAGENCYELIM: 4 markets
+2026-01-15 14:05:01 [INFO] predarb.kalshi_client - Series HOUSENJ9: 2 markets
+2026-01-15 14:05:02 [INFO] predarb.kalshi_client - Series KXDDSUESAPD: 0 markets
+2026-01-15 14:05:02 [INFO] predarb.kalshi_client - Series KXDJTRGA: 0 markets
+2026-01-15 14:05:03 [INFO] predarb.kalshi_client - Series KXDEBATE: 0 markets
+2026-01-15 14:05:04 [INFO] predarb.kalshi_client - Series KXLARGETARIFF: 0 markets
+2026-01-15 14:05:04 [INFO] predarb.kalshi_client - Series KXNY17D: 8 markets
+2026-01-15 14:05:05 [INFO] predarb.kalshi_client - Series PRESPARTYHI: 0 markets
+2026-01-15 14:05:06 [INFO] predarb.kalshi_client - Series KXBONDICOUNT: 0 markets
+2026-01-15 14:05:06 [INFO] predarb.kalshi_client - Series KXMUSKOAI: 1 markets
+2026-01-15 14:05:07 [INFO] predarb.kalshi_client - Series KXSUNBELT: 0 markets
+2026-01-15 14:05:08 [INFO] predarb.kalshi_client - Series KXRELEASEBESIGYE: 0 markets
+2026-01-15 14:05:08 [INFO] predarb.kalshi_client - Series KXTEXASBTC: 0 markets
+2026-01-15 14:05:09 [INFO] predarb.kalshi_client - Series KXTX31R: 3 markets
+2026-01-15 14:05:10 [INFO] predarb.kalshi_client - Series KXBLOCKITOUTSOURCING: 0 markets
+2026-01-15 14:05:10 [INFO] predarb.kalshi_client - Series KXEVERIFY: 0 markets
+2026-01-15 14:05:11 [INFO] predarb.kalshi_client - Series KXSWINGSWEEP24: 0 markets
+2026-01-15 14:05:12 [INFO] predarb.kalshi_client - Series KXTRDBAN: 2 markets
+2026-01-15 14:05:12 [INFO] predarb.kalshi_client - Series SENATEPARTYIN: 0 markets
+2026-01-15 14:05:13 [INFO] predarb.kalshi_client - Series POPVOTEMOVSMALL: 0 markets
+2026-01-15 14:05:14 [INFO] predarb.kalshi_client - Series KXNE2D: 4 markets
+2026-01-15 14:05:14 [INFO] predarb.kalshi_client - Series KXNORWAYPM: 0 markets
+2026-01-15 14:05:15 [INFO] predarb.kalshi_client - Series KXSANCTIONSVEN: 0 markets
+2026-01-15 14:05:15 [INFO] predarb.kalshi_client - Series KXSTOCKBANHOUSE: 2 markets
+2026-01-15 14:05:16 [INFO] predarb.kalshi_client - Series KXUSAMBVATICAN: 0 markets
+2026-01-15 14:05:17 [INFO] predarb.kalshi_client - Series KXTRUMPVISITSTATES: 0 markets
+2026-01-15 14:05:17 [INFO] predarb.kalshi_client - Series POPVOTEKHNM: 0 markets
+2026-01-15 14:05:18 [INFO] predarb.kalshi_client - Series KXCARRIED: 0 markets
+2026-01-15 14:05:19 [INFO] predarb.kalshi_client - Series KXTARIFFSEMI: 0 markets
+2026-01-15 14:05:19 [INFO] predarb.kalshi_client - Fetched 87 unique markets from Kalshi
+2026-01-15 14:05:19 [INFO] predarb.kalshi_client - After filtering: 87 Kalshi markets
+2026-01-15 14:05:19 [INFO] predarb.engine - Fetched 87 markets from kalshi
+2026-01-15 14:05:19 [INFO] predarb.engine - Total markets across all exchanges: 587
+2026-01-15 14:05:19 [INFO] predarb.cross_venue_matcher - Cross-venue matching: 87 Kalshi × 460 Poly
+2026-01-15 14:05:19 [INFO] predarb.cross_venue_matcher - Loading semantic model: all-MiniLM-L6-v2
+2026-01-15 14:05:19 [INFO] sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-15 14:05:19 [INFO] sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2026-01-15 14:05:20 [INFO] predarb.cross_venue_matcher - Model loaded successfully
+2026-01-15 14:05:20 [INFO] predarb.cross_venue_matcher - Encoding 460 Polymarket markets...
+2026-01-15 14:05:32 [INFO] predarb.cross_venue_matcher - Processing 87 Kalshi markets in 2 batches of 50...
+2026-01-15 14:05:32 [INFO] predarb.cross_venue_matcher - Batch 1/2: Processing markets 1-50...
+2026-01-15 14:05:33 [INFO] predarb.cross_venue_matcher - Batch 1/2: Found 1 matches so far
+2026-01-15 14:05:33 [INFO] predarb.cross_venue_matcher - Batch 2/2: Processing markets 51-87...
+2026-01-15 14:05:34 [INFO] predarb.cross_venue_matcher - Batch 2/2: Found 2 matches so far
+2026-01-15 14:05:34 [INFO] predarb.cross_venue_matcher - Found 2 cross-venue pairs (min_sim=0.1)
+2026-01-15 14:05:34 [INFO] predarb.engine - Cross-venue matcher found 2 semantic pairs
+2026-01-15 14:05:35 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 24.686383244s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.5-flash-lite",
+              "location": "global"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "24s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:05:35 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXTREASBLOCKCHAIN-26:KXTREASBLOCKCHAIN-26-27, 0xdaa4866bae18be58c5a79d2aeeffd035ec78f1bb49dbd88f72993997778a990f
+2026-01-15 14:05:35 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 24.564803148s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "24s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:05:35 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXTRDBAN-25DEC31:KXTRDBAN-25DEC31-27, 0xdaa4866bae18be58c5a79d2aeeffd035ec78f1bb49dbd88f72993997778a990f
+2026-01-15 14:05:35 [INFO] predarb.engine - LLM verify PASS sim=0.54 conf=0.00 | K=Will Treasury have any transactions on the blockchain before 2027? | P=Will Bitcoin reach $100,000 by December 31, 2026? | reason=Verification parse error (fail_open)
+2026-01-15 14:05:35 [INFO] predarb.engine - LLM verify PASS sim=0.45 conf=0.00 | K=Will a Congressional stock trading ban become law by December 31, 2026? | P=Will Bitcoin reach $100,000 by December 31, 2026? | reason=Verification parse error (fail_open)
+2026-01-15 14:05:37 [INFO] predarb.unified_reporter - Iteration 1: Recorded (markets=587, detected=0, approved=0)
+2026-01-15 14:05:37 [INFO] __main__ - Iteration 2/86400
+2026-01-15 14:05:38 [INFO] predarb.engine - Fetched 500 markets from polymarket
+2026-01-15 14:05:38 [INFO] predarb.kalshi_client - Fetching series for categories: ['Politics', 'Economics', 'Crypto']
+2026-01-15 14:05:39 [INFO] predarb.kalshi_client - Category 'Politics': 2684 series found
+2026-01-15 14:05:40 [INFO] predarb.kalshi_client - Category 'Economics': 405 series found
+2026-01-15 14:05:40 [INFO] predarb.kalshi_client - Category 'Crypto': 205 series found
+2026-01-15 14:05:40 [INFO] predarb.kalshi_client - Total: 3294 series across 3 categories
+2026-01-15 14:05:40 [INFO] predarb.kalshi_client - Fetching markets for first 100 series (out of 3294)...
+2026-01-15 14:05:41 [INFO] predarb.kalshi_client - Series FIRERANKHARVARD: 0 markets
+2026-01-15 14:05:41 [INFO] predarb.kalshi_client - Series KXSENATETARIFFCOUNT: 0 markets
+2026-01-15 14:05:42 [INFO] predarb.kalshi_client - Series KXGOVVANOMD: 0 markets
+2026-01-15 14:05:43 [INFO] predarb.kalshi_client - Series KXATTYGENFL: 2 markets
+2026-01-15 14:05:43 [INFO] predarb.kalshi_client - Series KXTRUMPSLAUGHTERVOTE: 10 markets
+2026-01-15 14:05:44 [INFO] predarb.kalshi_client - Series KXDIDDYTRIALATTEND: 0 markets
+2026-01-15 14:05:44 [INFO] predarb.kalshi_client - Series KXCHILEROUNDONESECOND: 0 markets
+2026-01-15 14:05:45 [INFO] predarb.kalshi_client - Series KXREVOKECITIZENSHIP: 0 markets
+2026-01-15 14:05:46 [INFO] predarb.kalshi_client - Series KXSHANAHANGOV: 0 markets
+2026-01-15 14:05:46 [INFO] predarb.kalshi_client - Series KXCHILE1ROUND: 0 markets
+2026-01-15 14:05:47 [INFO] predarb.kalshi_client - Series SENATEPARTY-TX: 0 markets
+2026-01-15 14:05:48 [INFO] predarb.kalshi_client - Series AIDEBATES: 0 markets
+2026-01-15 14:05:48 [INFO] predarb.kalshi_client - Series USICA: 0 markets
+2026-01-15 14:05:49 [INFO] predarb.kalshi_client - Series KXDJTCANG7: 0 markets
+2026-01-15 14:05:50 [INFO] predarb.kalshi_client - Series KXWISCOTUS: 0 markets
+2026-01-15 14:05:50 [INFO] predarb.kalshi_client - Series KXJULYCHARTER: 0 markets
+2026-01-15 14:05:51 [INFO] predarb.kalshi_client - Series KXMUSKOAI: 1 markets
+2026-01-15 14:05:52 [INFO] predarb.kalshi_client - Series PRESPARTYNE2: 0 markets
+2026-01-15 14:05:52 [INFO] predarb.kalshi_client - Series KXTRUMPRUN: 3 markets
+2026-01-15 14:05:53 [INFO] predarb.kalshi_client - Series KXSCOTUSAICOPYRIGHT: 1 markets
+2026-01-15 14:05:54 [INFO] predarb.kalshi_client - Series KXDEFAULT: 0 markets
+2026-01-15 14:05:54 [INFO] predarb.kalshi_client - Series KXBIHARELECTION: 0 markets
+2026-01-15 14:05:55 [INFO] predarb.kalshi_client - Series KXDENMARKPARLI: 4 markets
+2026-01-15 14:05:56 [INFO] predarb.kalshi_client - Series KXUHCEXTRA: 0 markets
+2026-01-15 14:05:56 [INFO] predarb.kalshi_client - Series KXRETIREMILLS: 0 markets
+2026-01-15 14:05:57 [INFO] predarb.kalshi_client - Series KXIA03D: 4 markets
+2026-01-15 14:05:58 [INFO] predarb.kalshi_client - Series KXCOUNTRYTARIFF: 0 markets
+2026-01-15 14:05:58 [INFO] predarb.kalshi_client - Series KXVOTESHUTDOWNH: 0 markets
+2026-01-15 14:05:59 [INFO] predarb.kalshi_client - Series KXPARAGUAYPRES: 0 markets
+2026-01-15 14:06:00 [INFO] predarb.kalshi_client - Series KXINFRA: 0 markets
+2026-01-15 14:06:00 [INFO] predarb.kalshi_client - Series SENATENC: 4 markets
+2026-01-15 14:06:01 [INFO] predarb.kalshi_client - Series KXMLBSTRIKE: 0 markets
+2026-01-15 14:06:01 [INFO] predarb.kalshi_client - Series KXCANRESIGNPARTY: 0 markets
+2026-01-15 14:06:02 [INFO] predarb.kalshi_client - Series KXMUSKDOGE: 0 markets
+2026-01-15 14:06:03 [INFO] predarb.kalshi_client - Series ECDJTBLOWOUT: 0 markets
+2026-01-15 14:06:03 [INFO] predarb.kalshi_client - Series KXGOVMINOMR: 15 markets
+2026-01-15 14:06:04 [INFO] predarb.kalshi_client - Series HOUSEOR5: 2 markets
+2026-01-15 14:06:05 [INFO] predarb.kalshi_client - Series KXSINGHSEAT: 0 markets
+2026-01-15 14:06:05 [INFO] predarb.kalshi_client - Series KXAPSUIT: 0 markets
+2026-01-15 14:06:06 [INFO] predarb.kalshi_client - Series KXCRYPTOSUMMIT: 0 markets
+2026-01-15 14:06:07 [INFO] predarb.kalshi_client - Series HOUSETX15: 2 markets
+2026-01-15 14:06:07 [INFO] predarb.kalshi_client - Series SENATENM: 2 markets
+2026-01-15 14:06:08 [INFO] predarb.kalshi_client - Series KXCAN51: 0 markets
+2026-01-15 14:06:09 [INFO] predarb.kalshi_client - Series KXOTTAWAMAYOR: 3 markets
+2026-01-15 14:06:09 [INFO] predarb.kalshi_client - Series KXUNEMERGENCY: 1 markets
+2026-01-15 14:06:10 [INFO] predarb.kalshi_client - Series SENATEWI: 2 markets
+2026-01-15 14:06:10 [INFO] predarb.kalshi_client - Series CMEATBAN: 0 markets
+2026-01-15 14:06:11 [INFO] predarb.kalshi_client - Series RHOUSESEATSSMALL: 0 markets
+2026-01-15 14:06:12 [INFO] predarb.kalshi_client - Series KXEODATE: 0 markets
+2026-01-15 14:06:12 [INFO] predarb.kalshi_client - Series PRESPARTYOK: 0 markets
+2026-01-15 14:06:13 [INFO] predarb.kalshi_client - Series KXAILIMITSUSCHINA: 0 markets
+2026-01-15 14:06:14 [INFO] predarb.kalshi_client - Series PRESPARTYWY: 0 markets
+2026-01-15 14:06:14 [INFO] predarb.kalshi_client - Series KXGOVAK: 13 markets
+2026-01-15 14:06:15 [INFO] predarb.kalshi_client - Series KXBRBALLOT: 7 markets
+2026-01-15 14:06:16 [INFO] predarb.kalshi_client - Series KXMUSKUNCONST: 0 markets
+2026-01-15 14:06:16 [INFO] predarb.kalshi_client - Series KXVOTEPERCENTCUOMO: 0 markets
+2026-01-15 14:06:17 [INFO] predarb.kalshi_client - Series KXPOLIOWITHDRAW: 0 markets
+2026-01-15 14:06:18 [INFO] predarb.kalshi_client - Series KXBORDERBILL: 0 markets
+2026-01-15 14:06:18 [INFO] predarb.kalshi_client - Series KXPARDONANYONE: 0 markets
+2026-01-15 14:06:19 [INFO] predarb.kalshi_client - Series CEA: 0 markets
+2026-01-15 14:06:19 [INFO] predarb.kalshi_client - Series KXELECTIONMOVNJGOV: 0 markets
+2026-01-15 14:06:20 [INFO] predarb.kalshi_client - Series GOVPARTYME: 2 markets
+2026-01-15 14:06:21 [INFO] predarb.kalshi_client - Series HOUSENM2: 2 markets
+2026-01-15 14:06:21 [INFO] predarb.kalshi_client - Series KXSUPERINTWI: 0 markets
+2026-01-15 14:06:22 [INFO] predarb.kalshi_client - Series KXDIRECTORNPS: 0 markets
+2026-01-15 14:06:23 [INFO] predarb.kalshi_client - Series SENATEMS: 2 markets
+2026-01-15 14:06:23 [INFO] predarb.kalshi_client - Series KXELONDJTNEG: 0 markets
+2026-01-15 14:06:24 [INFO] predarb.kalshi_client - Series KXTARIFFRATEKR: 0 markets
+2026-01-15 14:06:25 [INFO] predarb.kalshi_client - Series KXECSUNBELTSWEEP: 0 markets
+2026-01-15 14:06:25 [INFO] predarb.kalshi_client - Series KXTRUMPOSC: 0 markets
+2026-01-15 14:06:26 [INFO] predarb.kalshi_client - Series AMBCN: 0 markets
+2026-01-15 14:06:27 [INFO] predarb.kalshi_client - Series KXFRENCHPRES: 27 markets
+2026-01-15 14:06:27 [INFO] predarb.kalshi_client - Series KXCOLOMBIASENATE: 2 markets
+2026-01-15 14:06:28 [INFO] predarb.kalshi_client - Series KXCHARLIEKIRKOFFICE: 0 markets
+2026-01-15 14:06:29 [INFO] predarb.kalshi_client - Series KXMTMCK: 0 markets
+2026-01-15 14:06:29 [INFO] predarb.kalshi_client - Series KXABRAHAMKAZ: 0 markets
+2026-01-15 14:06:30 [INFO] predarb.kalshi_client - Series KXAPPSTORE22JAN3: 0 markets
+2026-01-15 14:06:31 [INFO] predarb.kalshi_client - Series KXCANRESIGN: 0 markets
+2026-01-15 14:06:31 [INFO] predarb.kalshi_client - Series KXFBI: 0 markets
+2026-01-15 14:06:32 [INFO] predarb.kalshi_client - Series KXCHAMBERLAINCAFE: 0 markets
+2026-01-15 14:06:33 [INFO] predarb.kalshi_client - Series KXKENNEDYCENTER: 0 markets
+2026-01-15 14:06:33 [INFO] predarb.kalshi_client - Series KXVOTEPERCENTNOFRP: 0 markets
+2026-01-15 14:06:34 [INFO] predarb.kalshi_client - Series KXPCTVOTECUOR1: 0 markets
+2026-01-15 14:06:34 [INFO] predarb.kalshi_client - Series KXHOUSENY21: 0 markets
+2026-01-15 14:06:35 [INFO] predarb.kalshi_client - Series KXIRACUTS: 0 markets
+2026-01-15 14:06:36 [INFO] predarb.kalshi_client - Series KXHFHOUSING: 1 markets
+2026-01-15 14:06:36 [INFO] predarb.kalshi_client - Series HOUSEVA2: 2 markets
+2026-01-15 14:06:37 [INFO] predarb.kalshi_client - Series PRESPARTYDC: 0 markets
+2026-01-15 14:06:38 [INFO] predarb.kalshi_client - Series SCOURT: 0 markets
+2026-01-15 14:06:38 [INFO] predarb.kalshi_client - Series KXTURNOVER: 0 markets
+2026-01-15 14:06:39 [INFO] predarb.kalshi_client - Series KXCRIMESEN: 0 markets
+2026-01-15 14:06:40 [INFO] predarb.kalshi_client - Series KXSRIRAM: 0 markets
+2026-01-15 14:06:40 [INFO] predarb.kalshi_client - Series KXSENATEFLD: 4 markets
+2026-01-15 14:06:41 [INFO] predarb.kalshi_client - Series KXSENATEMTD: 3 markets
+2026-01-15 14:06:42 [INFO] predarb.kalshi_client - Series PRESPARTYIL: 0 markets
+2026-01-15 14:06:42 [INFO] predarb.kalshi_client - Series KXLTGOVVANOMD: 0 markets
+2026-01-15 14:06:43 [INFO] predarb.kalshi_client - Series HOUSEPA1: 2 markets
+2026-01-15 14:06:43 [INFO] predarb.kalshi_client - Series KX: 0 markets
+2026-01-15 14:06:44 [INFO] predarb.kalshi_client - Series KXPROTOCOLSTATEDEPT: 0 markets
+2026-01-15 14:06:45 [INFO] predarb.kalshi_client - Series PRESNOMD: 0 markets
+2026-01-15 14:06:45 [INFO] predarb.kalshi_client - Fetched 123 unique markets from Kalshi
+2026-01-15 14:06:45 [INFO] predarb.kalshi_client - After filtering: 123 Kalshi markets
+2026-01-15 14:06:45 [INFO] predarb.engine - Fetched 123 markets from kalshi
+2026-01-15 14:06:45 [INFO] predarb.engine - Total markets across all exchanges: 623
+2026-01-15 14:06:45 [INFO] predarb.cross_venue_matcher - Cross-venue matching: 123 Kalshi × 460 Poly
+2026-01-15 14:06:45 [INFO] predarb.cross_venue_matcher - Encoding 460 Polymarket markets...
+2026-01-15 14:06:56 [INFO] predarb.cross_venue_matcher - Processing 123 Kalshi markets in 3 batches of 50...
+2026-01-15 14:06:56 [INFO] predarb.cross_venue_matcher - Batch 1/3: Processing markets 1-50...
+2026-01-15 14:06:57 [INFO] predarb.cross_venue_matcher - Batch 1/3: Found 4 matches so far
+2026-01-15 14:06:57 [INFO] predarb.cross_venue_matcher - Batch 2/3: Processing markets 51-100...
+2026-01-15 14:06:58 [INFO] predarb.cross_venue_matcher - Batch 2/3: Found 11 matches so far
+2026-01-15 14:06:58 [INFO] predarb.cross_venue_matcher - Batch 3/3: Processing markets 101-123...
+2026-01-15 14:06:59 [INFO] predarb.cross_venue_matcher - Batch 3/3: Found 12 matches so far
+2026-01-15 14:06:59 [INFO] predarb.cross_venue_matcher - Found 12 cross-venue pairs (min_sim=0.1)
+2026-01-15 14:06:59 [INFO] predarb.engine - Cross-venue matcher found 12 semantic pairs
+2026-01-15 14:06:59 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 507.337267ms.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.5-flash-lite",
+              "location": "global"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "0s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:06:59 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-FBOL, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:06:59 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 318.296115ms.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.5-flash-lite",
+              "location": "global"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "0s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:06:59 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-EBOL, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:06:59 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 108.405082ms.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "0s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:06:59 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-JB, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:07:00 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 59.910881038s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "59s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:07:00 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXTRUMPRUN:KXTRUMPRUN-28NOV07, 0xae70ab9bf1c3726fe430a2ba8b517697ae24e0f0ab554b876a5b521153068882
+2026-01-15 14:07:00 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 59.716727661s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "59s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:07:00 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-TFRI, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:07:00 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 59.563183893s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "59s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:07:00 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-LULA, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:07:00 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 59.367452456s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "59s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:07:00 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXBRBALLOT-26:KXBRBALLOT-26-RSAN, 0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.85 conf=0.00 | K=Will Flávio Bolsonaro be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.76 conf=0.00 | K=Will Eduardo Bolsonaro be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.74 conf=0.00 | K=Will Jair Bolsonaro be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify FAIL sim=0.69 conf=1.00 | K=Will Donald Trump announce a run for President of the United States before Nov 7, 2028? | P=Will Ron DeSantis win the 2028 US Presidential Election? | reason=Market A resolves based on an announcement of a presidential run, while Market B resolves based on the outcome of the actual 2028 US Presidential Election. These are distinct events with different resolution criteria, even though a successful presidential run is a prerequisite for winning the election.
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify FAIL sim=0.69 conf=0.90 | K=Will Donald Trump announce a run for President of the United States before Nov 7, 2028? | P=Will Donald Trump win the 2028 Republican presidential nomination? | reason=Market A resolves on an 'announcement' to run, while Market B resolves on the 'winning and acceptance' of the Republican nomination. An announcement does not guarantee winning the nomination, and winning the nomination does not require a prior explicit announcement in the exact wording of Market A.
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.65 conf=0.00 | K=Will Donald Trump announce a run for President of the United States before Nov 7, 2028? | P=Will Tim Walz win the 2028 US Presidential Election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify FAIL sim=0.65 conf=1.00 | K=Will Donald Trump announce a run for President of the United States before Nov 7, 2028? | P=Will Elon Musk win the 2028 US Presidential Election? | reason=Market A resolves based on Donald Trump's announcement of a presidential run. Market B resolves on the outcome of the 2028 US Presidential Election, specifically who wins it. These are distinct events; an announcement of a run does not guarantee winning the election, and someone else could win the election without having announced their candidacy before the specified date for Market A.
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.62 conf=0.00 | K=Will Tarcisio de Frietas be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.61 conf=0.00 | K=Will Luiz Inácio Lula da Silva be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:00 [INFO] predarb.engine - LLM verify PASS sim=0.58 conf=0.00 | K=Will Renan Santos be on the ballot in the next Brazilian presidential election? | P=Will Flávio Bolsonaro win the 2026 Brazilian presidential election? | reason=Verification parse error (fail_open)
+2026-01-15 14:07:01 [INFO] predarb.unified_reporter - Iteration 2: Recorded (markets=623, detected=0, approved=0)
+2026-01-15 14:07:01 [INFO] __main__ - Iteration 3/86400
+2026-01-15 14:07:02 [INFO] predarb.engine - Fetched 500 markets from polymarket
+2026-01-15 14:07:02 [INFO] predarb.kalshi_client - Fetching series for categories: ['Politics', 'Economics', 'Crypto']
+2026-01-15 14:07:03 [INFO] predarb.kalshi_client - Category 'Politics': 2684 series found
+2026-01-15 14:07:04 [INFO] predarb.kalshi_client - Category 'Economics': 405 series found
+2026-01-15 14:07:04 [INFO] predarb.kalshi_client - Category 'Crypto': 205 series found
+2026-01-15 14:07:04 [INFO] predarb.kalshi_client - Total: 3294 series across 3 categories
+2026-01-15 14:07:04 [INFO] predarb.kalshi_client - Fetching markets for first 100 series (out of 3294)...
+2026-01-15 14:07:04 [INFO] predarb.kalshi_client - Series KXEODATE: 0 markets
+2026-01-15 14:07:05 [INFO] predarb.kalshi_client - Series KXWLEADERNEXT: 0 markets
+2026-01-15 14:07:06 [INFO] predarb.kalshi_client - Series KXUKRAINERESIGN: 0 markets
+2026-01-15 14:07:06 [INFO] predarb.kalshi_client - Series KXARGENTINASENATE: 0 markets
+2026-01-15 14:07:07 [INFO] predarb.kalshi_client - Series KXPARLIAMENTARIANBYRD: 0 markets
+2026-01-15 14:07:07 [INFO] predarb.kalshi_client - Series KXFORMALNOMGAETZ: 0 markets
+2026-01-15 14:07:08 [INFO] predarb.kalshi_client - Series KXFDACALIFF: 0 markets
+2026-01-15 14:07:09 [INFO] predarb.kalshi_client - Series KXELONSPACE: 0 markets
+2026-01-15 14:07:09 [INFO] predarb.kalshi_client - Series KXTX28D: 2 markets
+2026-01-15 14:07:10 [INFO] predarb.kalshi_client - Series CMEATBANTIME: 0 markets
+2026-01-15 14:07:11 [INFO] predarb.kalshi_client - Series PRESPARTYAK: 0 markets
+2026-01-15 14:07:11 [INFO] predarb.kalshi_client - Series KXRESTORELOCAL: 0 markets
+2026-01-15 14:07:12 [INFO] predarb.kalshi_client - Series KXENDORSEBERNIEZOHRAN: 0 markets
+2026-01-15 14:07:13 [INFO] predarb.kalshi_client - Series KXALLVOTERFKJR: 0 markets
+2026-01-15 14:07:13 [INFO] predarb.kalshi_client - Series KXIRSBROKER: 0 markets
+2026-01-15 14:07:14 [INFO] predarb.kalshi_client - Series KXDEMORAESSANCTION: 0 markets
+2026-01-15 14:07:15 [INFO] predarb.kalshi_client - Series KXGOVKSNOMR: 6 markets
+2026-01-15 14:07:15 [INFO] predarb.kalshi_client - Series KXPARDONSTRUMP: 7 markets
+2026-01-15 14:07:16 [INFO] predarb.kalshi_client - Series KXSEYCHELLESPRES: 0 markets
+2026-01-15 14:07:16 [INFO] predarb.kalshi_client - Series KXTRUMPOUT: 0 markets
+2026-01-15 14:07:17 [INFO] predarb.kalshi_client - Series KXNONCOMPETEBAN: 0 markets
+2026-01-15 14:07:18 [INFO] predarb.kalshi_client - Series KXUSMCA: 1 markets
+2026-01-15 14:07:18 [INFO] predarb.kalshi_client - Series KXROMANIAMOV: 0 markets
+2026-01-15 14:07:19 [INFO] predarb.kalshi_client - Series KXSECHUD: 0 markets
+2026-01-15 14:07:20 [INFO] predarb.kalshi_client - Series KXMA05D: 3 markets
+2026-01-15 14:07:20 [INFO] predarb.kalshi_client - Series KXSENATEORR: 0 markets
+2026-01-15 14:07:21 [INFO] predarb.kalshi_client - Series KXFLUORIDE: 0 markets
+2026-01-15 14:07:22 [INFO] predarb.kalshi_client - Series KXFETTERMANRESIGN: 0 markets
+2026-01-15 14:07:22 [INFO] predarb.kalshi_client - Series BARR: 0 markets
+2026-01-15 14:07:23 [INFO] predarb.kalshi_client - Series KXCONSTAMEND: 1 markets
+2026-01-15 14:07:24 [INFO] predarb.kalshi_client - Series KXFRENCHPM: 0 markets
+2026-01-15 14:07:24 [INFO] predarb.kalshi_client - Series KXPARAGUAYDEPUTIES: 6 markets
+2026-01-15 14:07:25 [INFO] predarb.kalshi_client - Series KXBOLIBRARYOPEN: 2 markets
+2026-01-15 14:07:26 [INFO] predarb.kalshi_client - Series KXTXSENCOMBO: 6 markets
+2026-01-15 14:07:26 [INFO] predarb.kalshi_client - Series KXTXRSEN3RD: 3 markets
+2026-01-15 14:07:27 [INFO] predarb.kalshi_client - Series TIKTOKBAN: 0 markets
+2026-01-15 14:07:27 [INFO] predarb.kalshi_client - Series KXDIRNIH: 0 markets
+2026-01-15 14:07:28 [INFO] predarb.kalshi_client - Series KXPRESROMANIA24: 0 markets
+2026-01-15 14:07:29 [INFO] predarb.kalshi_client - Series KXRELEASEKHAN: 0 markets
+2026-01-15 14:07:29 [INFO] predarb.kalshi_client - Series KXSENATEACAEXT: 0 markets
+2026-01-15 14:07:30 [INFO] predarb.kalshi_client - Series KXVOTERECISSION: 0 markets
+2026-01-15 14:07:31 [INFO] predarb.kalshi_client - Series KXTRUMPVISITSTATES: 0 markets
+2026-01-15 14:07:31 [INFO] predarb.kalshi_client - Series KXSKRMETTI: 0 markets
+2026-01-15 14:07:32 [INFO] predarb.kalshi_client - Series TIKTOKSELL: 0 markets
+2026-01-15 14:07:33 [INFO] predarb.kalshi_client - Series KXHARVARD: 0 markets
+2026-01-15 14:07:33 [INFO] predarb.kalshi_client - Series KXAOCSENATE: 1 markets
+2026-01-15 14:07:34 [INFO] predarb.kalshi_client - Series CORPTAX: 0 markets
+2026-01-15 14:07:35 [INFO] predarb.kalshi_client - Series KXWLEADER: 0 markets
+2026-01-15 14:07:35 [INFO] predarb.kalshi_client - Series KXGERMANYPARTY: 0 markets
+2026-01-15 14:07:36 [INFO] predarb.kalshi_client - Series KXVISITNYC: 10 markets
+2026-01-15 14:07:37 [INFO] predarb.kalshi_client - Series KXSAANICH: 0 markets
+2026-01-15 14:07:37 [INFO] predarb.kalshi_client - Series KXTRADEDEALPRC: 0 markets
+2026-01-15 14:07:38 [INFO] predarb.kalshi_client - Series KXIMPEACH: 4 markets
+2026-01-15 14:07:38 [INFO] predarb.kalshi_client - Series KXUHCCONVICT: 0 markets
+2026-01-15 14:07:39 [INFO] predarb.kalshi_client - Series KXMTRUSHMORE: 1 markets
+2026-01-15 14:07:40 [INFO] predarb.kalshi_client - Series KXTRUMPPUTINMEET: 0 markets
+2026-01-15 14:07:40 [INFO] predarb.kalshi_client - Series KXLAGODAYS: 5 markets
+2026-01-15 14:07:41 [INFO] predarb.kalshi_client - Series KXSTARLINKFAA: 0 markets
+2026-01-15 14:07:42 [INFO] predarb.kalshi_client - Series KXIVYFUNDING: 0 markets
+2026-01-15 14:07:42 [INFO] predarb.kalshi_client - Series SENATEWI: 2 markets
+2026-01-15 14:07:43 [INFO] predarb.kalshi_client - Series KXBIRTHRIGHT: 0 markets
+2026-01-15 14:07:44 [INFO] predarb.kalshi_client - Series KXUKPARTYPOLLS: 0 markets
+2026-01-15 14:07:44 [INFO] predarb.kalshi_client - Series HARVPRES: 0 markets
+2026-01-15 14:07:45 [INFO] predarb.kalshi_client - Series KXSENATEAK: 0 markets
+2026-01-15 14:07:46 [INFO] predarb.kalshi_client - Series KXSANCTIONRUSSIA: 1 markets
+2026-01-15 14:07:46 [INFO] predarb.kalshi_client - Series KXDJTJUSTICEMENTION: 0 markets
+2026-01-15 14:07:47 [INFO] predarb.kalshi_client - Series KXACAREPEAL: 1 markets
+2026-01-15 14:07:47 [INFO] predarb.kalshi_client - Series KXGOVWYNOMR: 5 markets
+2026-01-15 14:07:48 [INFO] predarb.kalshi_client - Series KXSUNBELT: 0 markets
+2026-01-15 14:07:49 [INFO] predarb.kalshi_client - Series KXNEWSOMTRUMP: 0 markets
+2026-01-15 14:07:49 [INFO] predarb.kalshi_client - Series KXTCJAPERMANENT: 0 markets
+2026-01-15 14:07:50 [INFO] predarb.kalshi_client - Series KXSECTRANS: 0 markets
+2026-01-15 14:07:51 [INFO] predarb.kalshi_client - Series PRESPARTYHI: 0 markets
+2026-01-15 14:07:51 [INFO] predarb.kalshi_client - Series KXBIDENAMBIEN: 1 markets
+2026-01-15 14:07:52 [INFO] predarb.kalshi_client - Series KXMAYORNOLA: 0 markets
+2026-01-15 14:07:53 [INFO] predarb.kalshi_client - Series KXBLSCHEIF: 0 markets
+2026-01-15 14:07:53 [INFO] predarb.kalshi_client - Series KXLATVIAPARLIAMENT: 9 markets
+2026-01-15 14:07:54 [INFO] predarb.kalshi_client - Series KXGOVSCNOMR: 5 markets
+2026-01-15 14:07:55 [INFO] predarb.kalshi_client - Series KXECDJT306: 0 markets
+2026-01-15 14:07:55 [INFO] predarb.kalshi_client - Series LIZARRAGA: 0 markets
+2026-01-15 14:07:56 [INFO] predarb.kalshi_client - Series KXELONMARS: 1 markets
+2026-01-15 14:07:57 [INFO] predarb.kalshi_client - Series KXTRUMPOFFICIAL: 0 markets
+2026-01-15 14:07:57 [INFO] predarb.kalshi_client - Series KXMALAYSIAPARLI: 0 markets
+2026-01-15 14:07:58 [INFO] predarb.kalshi_client - Series KXFDABANS: 0 markets
+2026-01-15 14:07:58 [INFO] predarb.kalshi_client - Series KXFINANCECEONEXT: 0 markets
+2026-01-15 14:07:59 [INFO] predarb.kalshi_client - Series KXMOLDOVAPARLI: 0 markets
+2026-01-15 14:08:00 [INFO] predarb.kalshi_client - Series KXWA4PRIMARY: 5 markets
+2026-01-15 14:08:00 [INFO] predarb.kalshi_client - Series KXCONGRESSTARIFFPASS: 0 markets
+2026-01-15 14:08:01 [INFO] predarb.kalshi_client - Series KXHEGSETHCOUNT: 0 markets
+2026-01-15 14:08:02 [INFO] predarb.kalshi_client - Series KXSENATENHR: 4 markets
+2026-01-15 14:08:02 [INFO] predarb.kalshi_client - Series KXGASTAX: 0 markets
+2026-01-15 14:08:03 [INFO] predarb.kalshi_client - Series VAXMAND: 0 markets
+2026-01-15 14:08:04 [INFO] predarb.kalshi_client - Series KXSBUDGETREST: 0 markets
+2026-01-15 14:08:04 [INFO] predarb.kalshi_client - Series KXWHBRIEFING: 0 markets
+2026-01-15 14:08:05 [INFO] predarb.kalshi_client - Series KXSENATEOHSD: 4 markets
+2026-01-15 14:08:06 [INFO] predarb.kalshi_client - Series KXFL1RN: 0 markets
+2026-01-15 14:08:06 [INFO] predarb.kalshi_client - Series KXNEXTLEADERPRESSCALL: 0 markets
+2026-01-15 14:08:07 [INFO] predarb.kalshi_client - Series SENATEPARTY-WI: 0 markets
+2026-01-15 14:08:08 [INFO] predarb.kalshi_client - Series KXPRESTURKEY: 0 markets
+2026-01-15 14:08:08 [INFO] predarb.kalshi_client - Series KXEUEXPANSION-C: 0 markets
+2026-01-15 14:08:08 [INFO] predarb.kalshi_client - Fetched 96 unique markets from Kalshi
+2026-01-15 14:08:08 [INFO] predarb.kalshi_client - After filtering: 96 Kalshi markets
+2026-01-15 14:08:08 [INFO] predarb.engine - Fetched 96 markets from kalshi
+2026-01-15 14:08:08 [INFO] predarb.engine - Total markets across all exchanges: 596
+2026-01-15 14:08:08 [INFO] predarb.cross_venue_matcher - Cross-venue matching: 96 Kalshi × 460 Poly
+2026-01-15 14:08:08 [INFO] predarb.cross_venue_matcher - Encoding 460 Polymarket markets...
+2026-01-15 14:08:20 [INFO] predarb.cross_venue_matcher - Processing 96 Kalshi markets in 2 batches of 50...
+2026-01-15 14:08:20 [INFO] predarb.cross_venue_matcher - Batch 1/2: Processing markets 1-50...
+2026-01-15 14:08:21 [INFO] predarb.cross_venue_matcher - Batch 1/2: Found 1 matches so far
+2026-01-15 14:08:21 [INFO] predarb.cross_venue_matcher - Batch 2/2: Processing markets 51-96...
+2026-01-15 14:08:22 [INFO] predarb.cross_venue_matcher - Batch 2/2: Found 2 matches so far
+2026-01-15 14:08:22 [INFO] predarb.cross_venue_matcher - Found 2 cross-venue pairs (min_sim=0.1)
+2026-01-15 14:08:22 [INFO] predarb.engine - Cross-venue matcher found 2 semantic pairs
+2026-01-15 14:08:23 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 36.747972138s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "36s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:08:23 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXSANCTIONRUSSIA-26JAN01:KXSANCTIONRUSSIA-26JAN01-27, 0x6bd56627aa21311850825edb27e53434a0e17a4f782be0086bc07f71eee00d0d
+2026-01-15 14:08:23 [ERROR] predarb.llm_verifier - Gemini request failed: HTTP 429 | {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash-lite\nPlease retry in 36.547243402s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash-lite"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "36s"
+      }
+    ]
+  }
+}
+
+2026-01-15 14:08:23 [WARNING] predarb.llm_verifier - Empty verification response for markets kalshi:KXIMPEACH:KXIMPEACH-27-JAN01, 0x6bd56627aa21311850825edb27e53434a0e17a4f782be0086bc07f71eee00d0d
+2026-01-15 14:08:23 [INFO] predarb.engine - LLM verify PASS sim=0.62 conf=0.00 | K=Will a Russian sanctions bill become law before 2027? | P=Putin out as President of Russia by end of 2026? | reason=Verification parse error (fail_open)
+2026-01-15 14:08:23 [INFO] predarb.engine - LLM verify PASS sim=0.57 conf=0.00 | K=Will the President be impeached before Jan 1, 2027? | P=Putin out as President of Russia by end of 2026? | reason=Verification parse error (fail_open)
+2026-01-15 14:08:24 [INFO] predarb.unified_reporter - Iteration 3: Recorded (markets=596, detected=0, approved=0)
+2026-01-15 14:08:24 [INFO] __main__ - Iteration 4/86400
+2026-01-15 14:08:24 [INFO] predarb.engine - Fetched 500 markets from polymarket
+2026-01-15 14:08:24 [INFO] predarb.kalshi_client - Fetching series for categories: ['Politics', 'Economics', 'Crypto']
+2026-01-15 14:08:25 [INFO] predarb.kalshi_client - Category 'Politics': 2684 series found
+2026-01-15 14:08:26 [INFO] predarb.kalshi_client - Category 'Economics': 405 series found
+2026-01-15 14:08:26 [INFO] predarb.kalshi_client - Category 'Crypto': 205 series found
+2026-01-15 14:08:26 [INFO] predarb.kalshi_client - Total: 3294 series across 3 categories
+2026-01-15 14:08:26 [INFO] predarb.kalshi_client - Fetching markets for first 100 series (out of 3294)...
+2026-01-15 14:08:26 [INFO] predarb.kalshi_client - Series KXSENATEIDR: 2 markets
+2026-01-15 14:08:27 [INFO] predarb.kalshi_client - Series KXNYTWHBAN: 0 markets
+2026-01-15 14:08:28 [INFO] predarb.kalshi_client - Series POPVOTEKHMN: 0 markets
+2026-01-15 14:08:28 [INFO] predarb.kalshi_client - Series KXCOUNTRYSTARLINK: 0 markets
+2026-01-15 14:08:29 [INFO] predarb.kalshi_client - Series KXMT01D: 4 markets
+2026-01-15 14:08:30 [INFO] predarb.kalshi_client - Series SENATEPARTY-AZ: 0 markets
+2026-01-15 14:08:30 [INFO] predarb.kalshi_client - Series KXUSCLIMATE: 2 markets
+2026-01-15 14:08:31 [INFO] predarb.kalshi_client - Series KXAMBMALAY: 3 markets
+2026-01-15 14:08:31 [INFO] predarb.kalshi_client - Series KXTRUMPDOLLAR: 1 markets
+2026-01-15 14:08:32 [INFO] predarb.kalshi_client - Series SENATEME: 2 markets
+2026-01-15 14:08:33 [INFO] predarb.kalshi_client - Series KXRETIREMM: 1 markets
+2026-01-15 14:08:33 [INFO] predarb.kalshi_client - Series SENATEPARTY-FL: 0 markets
+2026-01-15 14:08:34 [INFO] predarb.kalshi_client - Series KXPOILIEVRESEAT: 0 markets
+2026-01-15 14:08:35 [INFO] predarb.kalshi_client - Series SENATEPARTYMS: 0 markets
+2026-01-15 14:08:35 [INFO] predarb.kalshi_client - Series KXPCOIE: 0 markets
+2026-01-15 14:08:36 [INFO] predarb.kalshi_client - Series KXFOREIGNVISIT: 0 markets
+2026-01-15 14:08:37 [INFO] predarb.kalshi_client - Series KXGOOGLEBREAKUP: 0 markets
+2026-01-15 14:08:37 [INFO] predarb.kalshi_client - Series KXNYCRENTFREEZE: 1 markets
+2026-01-15 14:08:38 [INFO] predarb.kalshi_client - Series EVICT: 0 markets
+2026-01-15 14:08:38 [INFO] predarb.kalshi_client - Series KXPARISMAYOR: 7 markets
+2026-01-15 14:08:39 [INFO] predarb.kalshi_client - Series KXUKPARTY: 7 markets
+2026-01-15 14:08:40 [INFO] predarb.kalshi_client - Series KXPRESPARTY: 2 markets
+2026-01-15 14:08:40 [INFO] predarb.kalshi_client - Series KXZELENSKYPUTIN: 4 markets
+2026-01-15 14:08:41 [INFO] predarb.kalshi_client - Series KXTRUMPUFC: 4 markets
+2026-01-15 14:08:42 [INFO] predarb.kalshi_client - Series KXTRUMPCALI: 0 markets
+2026-01-15 14:08:42 [INFO] predarb.kalshi_client - Series KXIRELAND1ROUND: 0 markets
+2026-01-15 14:08:43 [INFO] predarb.kalshi_client - Series KXPRESCROATIA: 0 markets
+2026-01-15 14:08:44 [INFO] predarb.kalshi_client - Series KXPERUPRES: 7 markets
+2026-01-15 14:08:44 [INFO] predarb.kalshi_client - Series GOVPARTYCT: 2 markets
+2026-01-15 14:08:45 [INFO] predarb.kalshi_client - Series HARVARD: 0 markets
+2026-01-15 14:08:46 [INFO] predarb.kalshi_client - Series KXBEDOYA: 0 markets
+2026-01-15 14:08:46 [INFO] predarb.kalshi_client - Series KXPAYGO: 0 markets
+2026-01-15 14:08:47 [INFO] predarb.kalshi_client - Series KXJOINADMINLOOMER: 0 markets
+2026-01-15 14:08:48 [INFO] predarb.kalshi_client - Series KXG7LEADEROUT: 7 markets
+2026-01-15 14:08:48 [INFO] predarb.kalshi_client - Series KXVOTEMCMAHON: 0 markets
+2026-01-15 14:08:49 [INFO] predarb.kalshi_client - Series KXFBI: 0 markets
+2026-01-15 14:08:49 [INFO] predarb.kalshi_client - Series KXSENATERIR: 2 markets
+2026-01-15 14:08:50 [INFO] predarb.kalshi_client - Series KXAUSSEATSLABOR: 0 markets
+2026-01-15 14:08:51 [INFO] predarb.kalshi_client - Series SENATEMA: 2 markets
+2026-01-15 14:08:51 [INFO] predarb.kalshi_client - Series KXSETANYONELEAVEJAN26: 0 markets
+2026-01-15 14:08:52 [INFO] predarb.kalshi_client - Series KXGOVCTNOMD: 4 markets
+2026-01-15 14:08:53 [INFO] predarb.kalshi_client - Series AILEGISLATION: 0 markets
+2026-01-15 14:08:53 [INFO] predarb.kalshi_client - Series KXITALYDEPUTIES: 5 markets
+2026-01-15 14:08:54 [INFO] predarb.kalshi_client - Series KXCTC: 0 markets
+2026-01-15 14:08:55 [INFO] predarb.kalshi_client - Series KXLEAVEPOWELLGOV: 1 markets
+2026-01-15 14:08:55 [INFO] predarb.kalshi_client - Series KXPALNYT: 0 markets

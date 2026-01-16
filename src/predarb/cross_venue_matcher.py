@@ -11,6 +11,8 @@ import logging
 import re
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
+from pathlib import Path
+import yaml
 
 from predarb.models import Market
 
@@ -237,10 +239,43 @@ class CrossVenueMatcher:
         if model is None:
             return []
             
+        # Initialize verifier for classification if needed
+        # In a real app, this should be passed in via dependency injection, but we'll lazy-init here
+        from predarb.llm_verifier import LLMVerifier, LLMVerifierConfig
+        
+        # We need a config to init verifier. For now, create a default one or load from env?
+        # A bit hacky to init here, but efficient for this step.
+        # Ideally, CrossVenueMatcher should receive the verifier in __init__.
+        # Let's assume we can create one quickly.
+        config_path = Path("config_live_paper.yml")
+        verifier_config = None
+        if config_path.exists():
+            import yaml
+            with open(config_path) as f:
+                cfg = yaml.safe_load(f)
+                llm_cfg = cfg.get("llm_verification", {})
+                verifier_config = LLMVerifierConfig(**llm_cfg)
+        
+        if not verifier_config:
+            verifier_config = LLMVerifierConfig(enabled=False) # Fallback
+            
+        verifier = LLMVerifier(verifier_config)
+
         # Group Kalshi markets by category to batch process efficiently
         k_by_category: Dict[str, List[Market]] = {}
         for m in k_binary:
             cat = str(m.category) if hasattr(m, "category") and m.category else "Uncategorized"
+            
+            # Smart Categorization: If Uncategorized, ask LLM
+            if cat == "Uncategorized" or not cat:
+                if verifier.config.enabled:
+                    cat = verifier.classify_market(m)
+                    # Update the market object so it sticks for this run
+                    if hasattr(m, "category"):
+                        m.category = cat
+                    else:
+                        object.__setattr__(m, "category", cat)
+            
             if cat not in k_by_category:
                 k_by_category[cat] = []
             k_by_category[cat].append(m)

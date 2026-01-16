@@ -23,38 +23,58 @@ class PolymarketClient(MarketClient):
 
     def fetch_markets(self) -> List[Market]:
         url = f"{self.host}/markets"
-        # CRITICAL: Use active=true and closed=false to get only live tradable markets
-        # Sort by volume24hr to prioritize liquid markets for arbitrage
-        # NOTE: Unlike Kalshi, Polymarket doesn't need category filtering because:
-        # 1. It doesn't have sports markets (Kalshi's main filter reason)
-        # 2. Smart semantic matching will handle relevance
-        # 3. Polymarket tags don't align 1:1 with Kalshi categories
-        
-        # Use configured limit if available, otherwise default to 10000
         limit = getattr(self.config, 'limit', 10000)
+        chunk_size = 500  # API caps at usually 100-500
         
-        params = {
-            "active": "true",
-            "closed": "false",
-            "limit": limit,
-            "order": "volume24hr",
-            "ascending": "false"
-        }
-        try:
-            resp = requests.get(url, params=params, timeout=10)
-            resp.raise_for_status()
-            payload = resp.json()
-        except Exception as e:
-            logger.error("Failed to fetch markets: %s", e)
-            return []
-        # Gamma API returns dict with 'data' key
-        raw_markets = payload if isinstance(payload, list) else payload.get("data", [])
-        markets: List[Market] = []
-        for m in raw_markets:
-            parsed = self._parse_market(m)
-            if parsed:
-                markets.append(parsed)
-        return markets
+        all_markets: List[Market] = []
+        offset = 0
+        
+        logger.info(f"Fetching up to {limit} markets from Polymarket (chunk_size={chunk_size})")
+        
+        while len(all_markets) < limit:
+            # Calculate next batch size (don't over-fetch if close to limit)
+            current_batch_limit = min(chunk_size, limit - len(all_markets))
+            
+            params = {
+                "active": "true",
+                "closed": "false",
+                "limit": current_batch_limit,
+                "offset": offset,
+                "order": "volume24hr",
+                "ascending": "false"
+            }
+            
+            try:
+                resp = requests.get(url, params=params, timeout=10)
+                resp.raise_for_status()
+                payload = resp.json()
+                
+                raw_markets = payload if isinstance(payload, list) else payload.get("data", [])
+                
+                if not raw_markets:
+                    break
+                    
+                batch_parsed = []
+                for m in raw_markets:
+                    parsed = self._parse_market(m)
+                    if parsed:
+                        batch_parsed.append(parsed)
+                
+                all_markets.extend(batch_parsed)
+                logger.info(f"Fetched batch: {len(raw_markets)} raw -> {len(batch_parsed)} valid (Total: {len(all_markets)})")
+                
+                if len(raw_markets) < current_batch_limit:
+                    # End of data reached
+                    break
+                    
+                offset += len(raw_markets)
+                
+            except Exception as e:
+                logger.error("Failed to fetch markets batch: %s", e)
+                # Stop on error to avoid infinite loops or partial state issues
+                break
+                
+        return all_markets
 
     def _parse_market(self, data: dict) -> Optional[Market]:
         try:

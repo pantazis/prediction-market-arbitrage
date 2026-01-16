@@ -603,6 +603,59 @@ Respond with ONLY valid JSON in this exact format:
         age_hours = (time.time() - timestamp) / 3600.0
         return age_hours > self.config.ttl_hours
 
+    def classify_market(self, market: Market) -> str:
+        """
+        Classify a market into a high-level category using the LLM.
+        
+        Categories: Politics, Economics, Crypto, Sports, Science, Other.
+        """
+        if not self.config.enabled:
+            return "Uncategorized"
+
+        # Simple cache for classification (in-memory for now, could be persisted)
+        if not hasattr(self, "_category_cache"):
+            self._category_cache = {}
+        
+        if market.id in self._category_cache:
+            return self._category_cache[market.id]
+
+        prompt = (
+            f"Classify this prediction market question into exactly one of these categories: "
+            f"Politics, Economics, Crypto, Sports, Science, Other.\n\n"
+            f"Question: {market.question}\n"
+            f"Description: {market.description or ''}\n\n"
+            f"Return ONLY the category name (e.g., 'Politics'). Do not add any other text."
+        )
+
+        try:
+            # Use the provider directly to get raw text, not JSON
+            # We temporarily bypass complete_json to just get the category string
+            # But our providers are designed for JSON. Let's ask for JSON to be safe/consistent.
+            json_prompt = (
+                f"{prompt}\n\n"
+                f"Respond with JSON: {{ \"category\": \"<CategoryName>\" }}"
+            )
+            response = self.provider.complete_json(json_prompt)
+            category = response.get("category", "Uncategorized")
+            
+            # Normalize
+            valid = {"Politics", "Economics", "Crypto", "Sports", "Science", "Other"}
+            if category not in valid:
+                # Fuzzy match or fallback
+                for v in valid:
+                    if v.lower() in category.lower():
+                        category = v
+                        break
+                else:
+                    category = "Other"
+            
+            self._category_cache[market.id] = category
+            return category
+            
+        except Exception as e:
+            logger.warning(f"Classification failed for {market.id}: {e}")
+            return "Uncategorized"
+
     def verify_pair(self, market_a: Market, market_b: Market) -> VerificationResult:
         """
         Verify if two markets are the same event.

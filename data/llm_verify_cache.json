@@ -2504,5 +2504,33 @@
       }
     },
     "timestamp": 1768530491.111084
+  },
+  "a4e76fd646f65540c0d4d230478adde1": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "The first question asks for a future event that has not yet occurred, while the second assumes it will happen in the future and is more focused on the timing.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768548417.0679557
+  },
+  "4d1e37844e06988db7809e36b5a18695": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "The two questions are about different products (GPT-5 and Gemini Ultra) rather than the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768548435.532233
   }
 }

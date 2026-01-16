@@ -13,7 +13,7 @@ polymarket:
   enabled: true
   host: "https://gamma-api.polymarket.com"
   clob_host: "https://clob.polymarket.com"
-  limit: 3000  # Fetch 3000 markets for cross-venue matching
+  limit: 5000  # Fetch 5000 markets for cross-venue matching
   # Note: API credentials not required for read-only market data fetching
 
 kalshi:
@@ -84,9 +84,9 @@ telegram:
 # ==================== LLM VERIFICATION ==================== #
 llm_verification:
   enabled: true
-  provider: "gemini"
-  model: "gemini-2.5-flash-lite"
-  timeout_s: 3.0
+  provider: "ollama"
+  model: "qwen2.5:1.5b"
+  timeout_s: 300.0
   max_pairs_per_group: 10
   min_similarity_to_verify: 0.40  # Kept in sync with cross_venue_matcher.min_similarity
   fail_mode: "fail_closed"

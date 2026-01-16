@@ -23,6 +23,7 @@ class PolymarketConfig(BaseModel):
     private_key: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_PRIVATE_KEY"))
     chain_id: int = 137
     funder: Optional[str] = Field(default_factory=lambda: os.getenv("POLYMARKET_FUNDER"))
+    limit: int = 10000  # Default limit for API requests
 
 
 class KalshiConfig(BaseModel):

@@ -273,24 +273,23 @@ class KalshiClient(MarketClient):
         """
         Fetch active markets from Kalshi.
         
-        Strategy: Fetch by categories (Politics, Economics, Crypto) to avoid sports markets.
+        Strategy: Bulk fetch all open markets to ensure maximum coverage.
         
         Returns:
             List of normalized Market objects
         """
         # Categories that align with Polymarket's offerings (non-sports)
-        target_categories = ["Politics", "Economics", "Crypto"]
-        
-        logger.info(f"Fetching series for categories: {target_categories}")
-        series_tickers = self._get_series_by_categories(target_categories)
+        # target_categories = ["Politics", "Economics", "Crypto"]
+        # logger.info(f"Fetching series for categories: {target_categories}")
+        # series_tickers = self._get_series_by_categories(target_categories)
         
         # BULK FETCH: Get all open markets directly
         # Strategy: Fetch pages until we have 'limit' VALID markets (not just raw markets)
         valid_markets: List[Market] = []
         cursor = None
-        target_limit = 3000  # We want 3000 VALID markets
+        target_limit = 5000  # Increased target to match broad scan
         page_count = 0
-        max_pages = 200 # Increased to capture more valid markets (since 99% are sports)
+        max_pages = 500 # Increased depth to find rare/deep markets like Int'l Politics
         
         while len(valid_markets) < target_limit and page_count < max_pages:
             try:

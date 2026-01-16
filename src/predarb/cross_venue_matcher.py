@@ -199,17 +199,57 @@ class CrossVenueMatcher:
         # No, if we have specific tags and found nothing, it means no relevant markets exist.
         return subset
 
+    def precompute_embeddings(self, markets: List[Market]) -> Dict[str, object]:
+        """
+        Pre-compute embeddings for a list of markets.
+        
+        Args:
+            markets: List of markets to vectorize
+            
+        Returns:
+            Dictionary with 'binary_markets' list and 'embeddings' tensor
+        """
+        if not self.enabled:
+            return {}
+            
+        model = self._load_model()
+        if model is None:
+            return {}
+            
+        # Filter for binary markets
+        binary_markets = [m for m in markets if _is_binary_market(m)]
+        if not binary_markets:
+            return {}
+            
+        logger.info(f"Pre-computing embeddings for {len(binary_markets)} markets...")
+        texts = [_get_text_blob(m) for m in binary_markets]
+        
+        embeddings = model.encode(
+            texts,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+            batch_size=self.encode_batch_size,
+        )
+        
+        return {
+            "markets": binary_markets,
+            "embeddings": embeddings
+        }
+
     def find_pairs(
         self,
         kalshi_markets: List[Market],
-        poly_markets: List[Market]
+        poly_markets: List[Market],
+        precomputed_poly: Optional[Dict[str, object]] = None
     ) -> List[Tuple[Market, Market, float]]:
         """
         Find semantic matches between Kalshi and Polymarket markets.
         
         Args:
             kalshi_markets: List of Kalshi Market objects
-            poly_markets: List of Polymarket Market objects
+            poly_markets: List of Polymarket Market objects (ignored if precomputed_poly is matched)
+            precomputed_poly: Optional dict from precompute_embeddings(poly_markets)
         
         Returns:
             List of (kalshi_market, poly_market, similarity_score) tuples
@@ -261,9 +301,33 @@ class CrossVenueMatcher:
             
         verifier = LLMVerifier(verifier_config)
 
+        # Prepare Polymarket data (use cache if available)
+        p_subset_all: List[Market] = []
+        p_emb_all = None
+        
+        if precomputed_poly and "markets" in precomputed_poly and "embeddings" in precomputed_poly:
+            p_subset_all = precomputed_poly["markets"]  # type: ignore
+            p_emb_all = precomputed_poly["embeddings"]
+            logger.debug(f"Using pre-computed Polymarket embeddings for {len(p_subset_all)} items")
+        else:
+            # Fallback to standard flow
+            p_subset_all = p_binary
+            # We will compute embeddings on demand or all at once?
+            # To match original logic, we filter by category then embed.
+            # But duplicate embedding is what we want to avoid.
+            pass
+
         # Group Kalshi markets by category to batch process efficiently
         k_by_category: Dict[str, List[Market]] = {}
-        for m in k_binary:
+        total_k = len(k_binary)
+        logger.info(f"Categorizing {total_k} Kalshi markets (AI Phase)...")
+        
+        for idx, m in enumerate(k_binary, 1):
+            # Log progress every 10% or every 50 items
+            if idx % 50 == 0 or idx == total_k:
+                pct = (idx / total_k) * 100
+                logger.info(f"Categorizing: {idx}/{total_k} ({pct:.1f}%) complete...")
+
             cat = str(m.category) if hasattr(m, "category") and m.category else "Uncategorized"
             
             # Smart Categorization: If Uncategorized, ask LLM
@@ -284,7 +348,8 @@ class CrossVenueMatcher:
         
         try:
             # Process each category
-            for category, k_list in k_by_category.items():
+            total_cats = len(k_by_category)
+            for cat_idx, (category, k_list) in enumerate(k_by_category.items(), 1):
                 # 1. Get relevant Polymarket subset
                 p_subset = self._get_polymarket_subset(category, p_binary)
                 
@@ -292,21 +357,63 @@ class CrossVenueMatcher:
                     logger.debug(f"No Polymarket candidates for Kalshi category '{category}'")
                     continue
                     
-                logger.info(f"Category '{category}': Matching {len(k_list)} Kalshi mkts vs {len(p_subset)} Poly candidates")
+                logger.info(f"Matching Category '{category}' ({cat_idx}/{total_cats}): {len(k_list)} Kalshi vs {len(p_subset)} Poly")
                 
                 # 2. Encode Polymarket subset
-                # Note: In a production system we'd cache these embeddings globally to avoid re-encoding 
-                # overlaps between categories, but simpler here for now.
-                p_texts = [_get_text_blob(m) for m in p_subset]
-                p_emb = model.encode(
-                    p_texts,
-                    convert_to_tensor=True,
-                    normalize_embeddings=True,
-                    show_progress_bar=False,
-                    batch_size=self.encode_batch_size,
-                )
+                if p_emb_all is not None:
+                     # Filter embeddings from precomputed tensor
+                     # This requires mapping indices, which is complex if we filtered by category.
+                     # SIMPLIFICATION: If we use pre-computed, we engage "Global Search" or we still filter?
+                     # Better Plan: Even with pre-computed, we can filter using the market objects.
+                     # But current CATEGORY_MAP logic filters markets first.
+                     
+                     # If we have pre-computed ALL Polymarket embeddings, we should rely on their indices.
+                     # Let's subset the embeddings based on the category filter.
+                     
+                     # Get indices of p_subset within p_subset_all
+                     # This is slow if O(N^2).
+                     # Optimization: For Batch Mode, we assume we want to match against ALL relevant Polymarkets.
+                     # Actually, reusing the 'category filter' is good, but requires subsets.
+                     
+                     # Simple approach for Batch Mode:
+                     # If we have precomputed embeddings, skipping the category textual filter might be faster?
+                     # No, filtering is 1000x faster than vector search.
+                     
+                     # Efficient Subsetting:
+                     # Create a map of ID -> Index from p_subset_all
+                     p_id_to_idx = {m.id: i for i, m in enumerate(p_subset_all)}
+                     
+                     # Find indices for p_subset (polymarkets matching category)
+                     valid_indices = []
+                     final_p_subset = []
+                     for pm in p_subset:
+                         if pm.id in p_id_to_idx:
+                             valid_indices.append(p_id_to_idx[pm.id])
+                             final_p_subset.append(pm)
+                             
+                     if not valid_indices:
+                         continue
+                         
+                     # Sub-select embeddings
+                     # p_emb is a Tensor
+                     import torch
+                     p_emb = p_emb_all[valid_indices]
+                     p_subset = final_p_subset # Update to ensure alignment
+                     
+                else:
+                    # Fallback: Compute fresh
+                    logger.info(f"  Vectorizing {len(p_subset)} Polymarket items...")
+                    p_texts = [_get_text_blob(m) for m in p_subset]
+                    p_emb = model.encode(
+                        p_texts,
+                        convert_to_tensor=True,
+                        normalize_embeddings=True,
+                        show_progress_bar=False,
+                        batch_size=self.encode_batch_size,
+                    )
                 
                 # 3. Process Kalshi markets in this category
+                logger.info(f"  Vectorizing {len(k_list)} Kalshi items...")
                 k_texts = [_get_text_blob(m) for m in k_list]
                 k_emb = model.encode(
                     k_texts,
@@ -317,6 +424,7 @@ class CrossVenueMatcher:
                 )
                 
                 # 4. Search
+                logger.info("  Computing vector similarities (Semantic Search)...")
                 top_k = min(self.top_k, len(p_subset))
                 hits = util.semantic_search(k_emb, p_emb, top_k=top_k)
                 

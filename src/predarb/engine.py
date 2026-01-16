@@ -5,9 +5,19 @@ import hashlib
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+def _isoformat(dt: Optional[datetime]) -> str:
+    if not dt:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.isoformat()
 
 from predarb.broker import PaperBroker
 from predarb.config import AppConfig
@@ -347,198 +357,145 @@ class Engine:
             logger.warning(f"Failed to save market snapshot: {e}")
         
         # Apply cross-venue semantic matching if enabled
+        # Apply cross-venue semantic matching if enabled
         if self.cross_venue_matcher.enabled and kalshi_markets and poly_markets:
             try:
-                pairs = self.cross_venue_matcher.find_pairs(kalshi_markets, poly_markets)
-                if pairs:
-                    logger.info(f"Cross-venue matcher found {len(pairs)} semantic pairs")
-                    # Log top matches
-                    for k, p, score in pairs[:3]:
-                        logger.debug(
-                            f"Pair: {k.question[:50]} <-> {p.question[:50]} "
-                            f"(similarity={score:.2f})"
-                        )
-                    if self.notifier and hasattr(self.notifier, "notify_cross_venue_matches"):
-                        signature = "|".join(
-                            f"{k.id}:{p.id}:{score:.4f}" for k, p, score in pairs
-                        )
-                        match_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
-                        if match_hash != self._last_cross_venue_match_hash:
-                            self._last_cross_venue_match_hash = match_hash
-                            try:
-                                self.notifier.notify_cross_venue_matches(pairs)
-                            except Exception as e:
-                                logger.warning("Notifier match alert failed: %s", e)
+                # --- START BATCH PRUNING ---
+                # Prune watchlist AT THE START to ensure clean state
+                watch_cfg = getattr(self.config, "watchlist", None)
+                if watch_cfg and getattr(watch_cfg, "enabled", False):
+                    try:
+                        # Ensure we can import locally if top-level failed or just for safety
+                        from predarb.watchlist import load_watchlist_csv, prune_watchlist, write_watchlist_csv
+                        rows = load_watchlist_csv(watch_cfg.csv_path)
+                        pruned = prune_watchlist(rows)
+                        if len(pruned) != len(rows):
+                            removed = len(rows) - len(pruned)
+                            logger.info(f"Pruned {removed} expired pairs from watchlist (Start of Loop)")
+                            write_watchlist_csv(watch_cfg.csv_path, pruned)
+                    except Exception as e:
+                        logger.warning(f"Watchlist prune failed: {e}")
+                # --- END BATCH PRUNING ---
 
-                    verification_results = self._verify_cross_venue_pairs(pairs)
-                    if verification_results:
-                        arbitrage_results = []
-                        filter_reports = []
-                        cost_bps = float(self.config.broker.fee_bps + self.config.broker.slippage_bps)
-                        depth_fraction = float(self.config.broker.depth_fraction)
-                        ab_filter_cfg = ABFilterConfig()
-                        for k_market, p_market, score, result in verification_results:
-                            verdict = "PASS" if result.same_event else "FAIL"
-                            logger.info(
-                                "LLM verify %s sim=%.2f conf=%.2f | K=%s | P=%s | reason=%s",
-                                verdict,
-                                score,
-                                result.confidence,
-                                k_market.question,
-                                p_market.question,
-                                result.reason,
-                            )
-                            # AUTO-WATCHLIST: If verified, add to watchlist for high-freq scanning
-                            if result.same_event:
+                # Pre-compute Polymarket embeddings ONCE
+                poly_emb_data = None
+                if hasattr(self.cross_venue_matcher, "precompute_embeddings"):
+                    try:
+                        poly_emb_data = self.cross_venue_matcher.precompute_embeddings(poly_markets)
+                    except Exception as e:
+                        logger.error(f"Failed to precompute embeddings: {e}")
+
+                # Process in Batches
+                chunk_size = 50
+                total_kalshi = len(kalshi_markets)
+                
+                logger.info(f"Starting Batch Processing: {total_kalshi} Kalshi markets in chunks of {chunk_size}")
+
+                for i in range(0, total_kalshi, chunk_size):
+                    chunk = kalshi_markets[i : i + chunk_size]
+                    batch_num = (i // chunk_size) + 1
+                    total_batches = (total_kalshi + chunk_size - 1) // chunk_size
+                    
+                    logger.info(f"--- Processing Batch {batch_num}/{total_batches} ({len(chunk)} items) ---")
+                    
+                    # Match Batch
+                    pairs = []
+                    if poly_emb_data:
+                         pairs = self.cross_venue_matcher.find_pairs(chunk, poly_markets, precomputed_poly=poly_emb_data)
+                    else:
+                         pairs = self.cross_venue_matcher.find_pairs(chunk, poly_markets)
+
+                    if not pairs:
+                        continue
+
+                    # Verify Batch
+                    batch_verification_results = []
+                    for k, p, score in pairs:
+                        # Default result
+                        is_match, reason = True, "Semantic match"
+                        
+                        # LLM Verification
+                        if self.llm_verifier:
+                             # The verifier checks if they are the Same Event
+                             # Returns a VerificationResult object
+                             v_result = self.llm_verifier.verify_pair(k, p)
+                             # Use the returned object directly
+                             batch_verification_results.append((k, p, score, v_result))
+                        else:
+                             # Fallback for no verifier (create manual result)
+                             # VerificationResult requires: same_event, confidence, reason
+                             # We must import VerificationResult if not available, or use a dummy
+                             pass
+                             # If llm_verifier is None, we default to True? 
+                             # The original code: is_match, reason = True, "Semantic match"
+                             # But we need a VerificationResult object matching the signature.
+                             # Let's check imports. Yes, VerificationResult is imported.
+                             # We need to construct it properly.
+                             res = VerificationResult(
+                                 same_event=True,
+                                 confidence=1.0,
+                                 reason="Semantic match (No LLM)"
+                             )
+                             batch_verification_results.append((k, p, score, res))
+                    
+                    # Filter & Write Batch
+                    pairs_to_add = []
+                    for k, p, score, result in batch_verification_results:
+                        if result.same_event:
+                            # Add to watchlist IMMEDIATELY
+                            if watch_cfg and getattr(watch_cfg, "enabled", False):
                                 try:
-                                    w_cfg = getattr(self.config, "watchlist", None)
-                                    if w_cfg and w_cfg.enabled:
-                                        new_row = build_watchlist_row(
-                                            kalshi_market=k_market,
-                                            polymarket_market=p_market,
-                                            min_edge=float(getattr(w_cfg, "min_edge", 0.005)),
-                                            min_depth_usd=float(getattr(w_cfg, "min_depth_usd", 50.0)),
-                                            max_age_sec=int(getattr(w_cfg, "max_age_sec", 15)),
-                                            polarity="normal",  # Default assumption for semantic match
-                                        )
-                                        upsert_watchlist_rows(w_cfg.csv_path, [new_row])
-                                        logger.info(f"Auto-added verified pair to watchlist: {new_row.pair_id}")
-                                except Exception as e:
-                                    logger.warning(f"Failed to auto-add to watchlist: {e}")
+                                    from predarb.watchlist import WatchlistRow, upsert_watchlist_rows
+                                    
+                                    # Setup default polarity
+                                    polarity = "normal"
+                                    
+                                    # Simple ID generation
+                                    pair_id = hashlib.sha256(f"{k.id}|{p.id}|{polarity}".encode()).hexdigest()[:16]
 
-                            if result.same_event and self.llm_verifier:
-                                cases = self.llm_verifier.evaluate_arbitrage_cases(
-                                    k_market,
-                                    p_market,
-                                    cost_bps=cost_bps,
-                                    depth_fraction=depth_fraction,
-                                )
-                                if cases:
-                                    best_case = max(cases, key=lambda c: float(c.edge_net))
-                                    cases = [best_case]
-                                    arbitrage_results.append((k_market, p_market, score, cases))
-                                    now_ts = time.time()
-                                    for case in cases:
-                                        action_a = str(case.kalshi_action or "").upper()
-                                        action_b = str(case.polymarket_action or "").upper()
-                                        outcome_a = "yes" if "YES" in action_a else "no" if "NO" in action_a else None
-                                        outcome_b = "yes" if "YES" in action_b else "no" if "NO" in action_b else None
-                                        side_a = "SELL" if ("SHORT" in action_a or "SELL" in action_a) else "BUY"
-                                        side_b = "SELL" if ("SHORT" in action_b or "SELL" in action_b) else "BUY"
-
-                                        trade_price_a = None
-                                        trade_price_b = None
-                                        if outcome_a:
-                                            key_a = f"kalshi_{outcome_a}_{'bid' if side_a == 'SELL' else 'ask'}"
-                                            trade_price_a = case.prices_used.get(key_a)
-                                        if outcome_b:
-                                            key_b = f"polymarket_{outcome_b}_{'bid' if side_b == 'SELL' else 'ask'}"
-                                            trade_price_b = case.prices_used.get(key_b)
-
-                                        quote_a = quote_from_market(k_market, outcome_a or "", depth_fraction)
-                                        quote_b = quote_from_market(p_market, outcome_b or "", depth_fraction)
-
-                                        report = evaluate_ab_filters(
-                                            now_ts=now_ts,
-                                            kalshi_leg=quote_a,
-                                            polymarket_leg=quote_b,
-                                            trade_price_a=trade_price_a,
-                                            trade_price_b=trade_price_b,
-                                            edge_gross=case.edge_gross,
-                                            config=ab_filter_cfg,
-                                        )
-                                        filter_reports.append(
-                                            {
-                                                "kalshi_title": k_market.question,
-                                                "polymarket_title": p_market.question,
-                                                "case": case.model_dump(),
-                                                "filter_report": {
-                                                    "passed": report.passed,
-                                                    "fail_filter": report.fail_filter,
-                                                    "fail_reason": report.fail_reason,
-                                                    "edge_gross": report.edge_gross,
-                                                    "edge_net": report.edge_net,
-                                                    "executable_size_usd": report.executable_size_usd,
-                                                    "items": [
-                                                        {
-                                                            "code": item.code,
-                                                            "passed": item.passed,
-                                                            "value": item.value,
-                                                            "threshold": item.threshold,
-                                                            "detail": item.detail,
-                                                        }
-                                                        for item in report.items
-                                                    ],
-                                                },
-                                            }
-                                        )
-                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_verification"):
-                            signature = "|".join(
-                                f"{k.id}:{p.id}:{score:.4f}:{int(result.same_event)}:{result.reason}"
-                                for k, p, score, result in verification_results
-                            )
-                            verify_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
-                            if verify_hash != self._last_cross_venue_verify_hash:
-                                self._last_cross_venue_verify_hash = verify_hash
-                                try:
-                                    self.notifier.notify_cross_venue_verification(
-                                        verification_results
+                                    # Get token IDs
+                                    p_yes = ""
+                                    p_no = ""
+                                    if p.outcomes and len(p.outcomes) >= 2:
+                                        p_yes = str(p.outcomes[0].id)
+                                        p_no = str(p.outcomes[1].id)
+                                    
+                                    # Create row
+                                    new_row = WatchlistRow(
+                                        pair_id=pair_id,
+                                        k_ticker=k.id.split(":")[-1] if ":" in k.id else k.id,
+                                        p_market_id=p.id,
+                                        p_yes_token_id=p_yes,
+                                        p_no_token_id=p_no,
+                                        polarity=polarity,
+                                        k_expiration_time=_isoformat(k.end_date),
+                                        p_endDate=_isoformat(p.end_date),
+                                        min_edge=float(getattr(watch_cfg, "min_edge", 0.01)),
+                                        min_depth_usd=float(getattr(watch_cfg, "min_depth_usd", 50.0)),
+                                        max_age_sec=int(getattr(watch_cfg, "max_age_sec", 15)),
+                                        status="active",
+                                        last_verified_at=_isoformat(_utc_now()),
                                     )
+                                    pairs_to_add.append(new_row)
                                 except Exception as e:
-                                    logger.warning("Notifier verify alert failed: %s", e)
-                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
-                            if arbitrage_results:
-                                signature = "|".join(
-                                    f"{k.id}:{p.id}:{score:.4f}:{case.case_name}:{case.edge_net:.6f}"
-                                    for k, p, score, cases in arbitrage_results
-                                    for case in cases
-                                )
-                            else:
-                                signature = "no_arbitrage"
-                            arbitrage_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
-                            if arbitrage_hash != self._last_cross_venue_arb_hash:
-                                self._last_cross_venue_arb_hash = arbitrage_hash
-                                try:
-                                    self.notifier.notify_cross_venue_arbitrage(arbitrage_results)
-                                except Exception as e:
-                                    logger.warning("Notifier arbitrage alert failed: %s", e)
-                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
-                            if filter_reports:
-                                signature = "|".join(
-                                    f"{entry['case']['case_name']}:{entry['filter_report']['passed']}"
-                                    for entry in filter_reports
-                                )
-                            else:
-                                signature = "no_filters"
-                            filter_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
-                            if filter_hash != self._last_cross_venue_filter_hash:
-                                self._last_cross_venue_filter_hash = filter_hash
-                                try:
-                                    self.notifier.notify_cross_venue_filters(filter_reports)
-                                except Exception as e:
-                                    logger.warning("Notifier filter alert failed: %s", e)
-                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_risk"):
-                            try:
-                                self.notifier.notify_cross_venue_risk(filter_reports)
-                            except Exception as e:
-                                logger.warning("Notifier risk alert failed: %s", e)
-                        if self.notifier and hasattr(self.notifier, "notify_cross_venue_trade"):
-                            try:
-                                self.notifier.notify_cross_venue_trade(filter_reports)
-                            except Exception as e:
-                                logger.warning("Notifier trade alert failed: %s", e)
+                                    logger.warning(f"Failed to prepare watchlist row: {e}")
+
+                    # Write Batch to Disk
+                    if pairs_to_add and watch_cfg:
+                        try:
+                            from predarb.watchlist import upsert_watchlist_rows
+                            upsert_watchlist_rows(watch_cfg.csv_path, pairs_to_add)
+                            logger.info(f"Batch {batch_num}: Added {len(pairs_to_add)} pairs to watchlist")
+                        except Exception as e:
+                            logger.error(f"Failed to write batch to CSV: {e}")
+
             except Exception as e:
-                logger.error(f"Cross-venue matching failed: {e}")
+                logger.error(f"Cross-venue matching/batching failed: {e}")
 
         # Always scan watchlist (independent of semantic matching / LLM).
-        watch_cfg = getattr(self.config, "watchlist", None)
         if watch_cfg and getattr(watch_cfg, "enabled", False):
-            rows = load_watchlist_csv(watch_cfg.csv_path)
-            pruned = prune_watchlist(rows)
-            if len(pruned) != len(rows):
-                removed_count = len(rows) - len(pruned)
-                logger.info(f"Pruned {removed_count} expired/inactive pairs from watchlist")
-                write_watchlist_csv(watch_cfg.csv_path, pruned)
+            # Pruning already done at start of loop
+            pass
 
             orderbook_fetcher = None
             if getattr(watch_cfg, "orderbook_enabled", False):

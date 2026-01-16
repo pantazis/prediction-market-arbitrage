@@ -1,0 +1,86 @@
+{
+  "494a33c64c5e417ffccac94ffb0ce001": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both markets reference the same event (the outcome of a tennis match and the result of a specific tennis tournament). The criteria for resolution in both cases is based on the outcome of a professional tennis match.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573125.4878228
+  },
+  "74ffaf943a1c8408027eb4c3eee5d9c7": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A and Market B do not relate to the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573152.3832731
+  },
+  "7dc3f676123f601af2fc5c5b5f103cdc": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both markets are based on the outcome of a tennis match and focus on the winners of specific tournaments.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573180.642978
+  },
+  "d555a31d0af311a02027bbae15ec393e": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.67,
+      "reason": "Market A resolves based on the outcome of a tennis match, while Market B resolves based on the winner of an upcoming women's singles tournament at the Australian Open.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573216.574032
+  },
+  "43863458c3ca7e95cf8fd5f2c4a8f945": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A and Market B do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573647.2876122
+  },
+  "57d9a91f9b0bd33c810d560eaf485d67": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A resolves to Yes based on the announcers' comments during a specific event in College Football Playoff National Championship, while Market B concerns an entire season of college football.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768573672.0195057
+  }
+}

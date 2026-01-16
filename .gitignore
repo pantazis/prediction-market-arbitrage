@@ -13,3 +13,4 @@ reports/
 # Runtime artifacts
 bot.pid
 bot.out
+*.out

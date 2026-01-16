@@ -2378,5 +2378,131 @@
       }
     },
     "timestamp": 1768481944.1968267
+  },
+  "9a339fbed0ab229b53acc071597e6f4a": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets are asking about different assets (EUR/USD vs. Bitcoin) and therefore will not resolve on the same real-world event. Market A is about an exchange rate, while Market B is about the price of a cryptocurrency.",
+      "resolution_source": null,
+      "resolution_date": "2026-01-16",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-01-16"
+      }
+    },
+    "timestamp": 1768496575.161476
+  },
+  "66c42801d6ff78fde9ab3a69c9fe03dc": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves on the USD/JPY exchange rate, while Market B resolves on the Bitcoin price. These are two distinct and unrelated assets.",
+      "resolution_source": null,
+      "resolution_date": "2026-01-16",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-01-16"
+      }
+    },
+    "timestamp": 1768508228.2037408
+  },
+  "df78e915eb771383a6282fe376851238": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets are for different assets (EUR/USD vs. Bitcoin) and reference different resolution sources (Kalshi Official vs. Binance). Although they share the same date, the underlying events are entirely distinct.",
+      "resolution_source": null,
+      "resolution_date": "2026-01-16",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-01-16"
+      }
+    },
+    "timestamp": 1768508708.1605697
+  },
+  "768471e2f7c87c50c2d9cb7c5d7917dc": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The two markets are fundamentally different as they are based on entirely different underlying assets (USD/JPY currency pair vs. Bitcoin price) and use distinct resolution sources (Kalshi Official vs. Binance). The time of resolution is also specified differently (10am EST vs. 12:00 ET).",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768514148.2527268
+  },
+  "2325dd56b07df16aac6fa7ff0711f9b0": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "The markets are asking about two completely different underlying assets (USD/JPY currency pair vs. Bitcoin price) and are using different resolution mechanisms and data sources, even though they share a resolution date.",
+      "resolution_source": null,
+      "resolution_date": "2026-01-16",
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": "2026-01-16"
+      }
+    },
+    "timestamp": 1768519529.1431563
+  },
+  "f7719e03cf8431b378e7a42859e14752": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A asks about XRP's 'trimmed mean' price against USD on a specific date and resolution is tied to Kalshi. Market B asks about Ethereum's (ETH) 'High' price against USDT on a specific month, resolving based on Binance 1-minute candles. These are entirely different cryptocurrencies, different price metrics, and different resolution sources/methodologies.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768525077.1341808
+  },
+  "af0de2aa162cd0afe6757ef06b8c9055": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A concerns the price of XRP, while Market B concerns the price of Ethereum. These are two distinct cryptocurrencies and therefore do not resolve on the same real-world event. The resolution criteria and specific price thresholds are also different.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768527248.3193505
+  },
+  "f8c99f36789ae3e4c4895503f9de2284": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A resolves based on XRP's 'trimmed mean' price from Kalshi, while Market B resolves based on Ethereum's (ETH) 'High' price from Binance 1-minute candles. These are fundamentally different assets, price metrics, and resolution sources.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768527773.853584
+  },
+  "f7137222b1cfaf7a994a87da6a1d9016": {
+    "result": {
+      "same_event": false,
+      "confidence": 1.0,
+      "reason": "Market A is about the price of XRP, while Market B is about the price of Ethereum. These are two different cryptocurrencies and therefore do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768530491.111084
   }
 }

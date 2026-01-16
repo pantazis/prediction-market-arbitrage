@@ -13,7 +13,7 @@ polymarket:
   enabled: true
   host: "https://gamma-api.polymarket.com"
   clob_host: "https://clob.polymarket.com"
-  limit: 1000  # Fetch 1000 markets for cross-venue matching
+  limit: 3000  # Fetch 3000 markets for cross-venue matching
   # Note: API credentials not required for read-only market data fetching
 
 kalshi:
@@ -88,14 +88,14 @@ llm_verification:
   model: "gemini-2.5-flash-lite"
   timeout_s: 3.0
   max_pairs_per_group: 10
-  min_similarity_to_verify: 0.10  # Kept in sync with cross_venue_matcher.min_similarity
-  fail_mode: "fail_open"
+  min_similarity_to_verify: 0.40  # Kept in sync with cross_venue_matcher.min_similarity
+  fail_mode: "fail_closed"
 
 # ==================== CROSS-VENUE SEMANTIC MATCHING ==================== #
 cross_venue_matcher:
   enabled: true                    # Enable semantic matching between Kalshi and Polymarket
-  model_name: "all-MiniLM-L6-v2"   # Sentence-BERT model (80MB, fast)
-  min_similarity: 0.10             # 0.50-0.80 range (higher = stricter matching)
+  model_name: "all-mpnet-base-v2"   # Sentence-BERT model (improved accuracy)
+  min_similarity: 0.40             # 0.50-0.80 range (higher = stricter matching)
   max_hours_diff: 24               # Maximum hours between market expiry dates
   batch_size: 50                   # Process in batches to avoid memory issues
 

@@ -191,7 +191,7 @@ class OpenAIChatProvider(LLMProvider):
                 except (ValueError, SyntaxError):
                     pass
 
-        logger.warning(f"Failed to parse JSON from response: {text[:200]}...")
+        logger.warning(f"Failed to parse JSON from response. Raw output: {text}")
         return {}
 
 
@@ -651,7 +651,11 @@ Respond with ONLY valid JSON in this exact format:
 
         if not response_json:
             logger.warning(f"Empty verification response for markets {market_a.id}, {market_b.id}")
-            return self._handle_parse_error()
+            return VerificationResult(
+                same_event=True if self.config.fail_mode == "fail_open" else False,
+                confidence=0.0,
+                reason="Verification failed: API Error or Empty Response",
+            )
 
         # Parse response
         try:

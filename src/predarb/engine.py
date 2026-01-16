@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import logging
 import time
 from datetime import datetime
@@ -332,6 +333,18 @@ class Engine:
                 logger.error(f"Failed to fetch markets from {client.get_exchange_name()}: {e}")
         
         logger.info(f"Total markets across all exchanges: {len(all_markets)}")
+
+        # SNAPSHOT: Save all markets to JSON for inspection (User Request)
+        try:
+            snapshot_path = Path("data/markets_snapshot.json")
+            snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+            # Use model_dump to serialize Pydantic models
+            snapshot_data = [m.model_dump(mode="json") for m in all_markets]
+            with snapshot_path.open("w", encoding="utf-8") as f:
+                json.dump(snapshot_data, f, indent=2)
+            logger.info(f"Saved snapshot of {len(all_markets)} markets to {snapshot_path}")
+        except Exception as e:
+            logger.warning(f"Failed to save market snapshot: {e}")
         
         # Apply cross-venue semantic matching if enabled
         if self.cross_venue_matcher.enabled and kalshi_markets and poly_markets:
@@ -375,6 +388,24 @@ class Engine:
                                 p_market.question,
                                 result.reason,
                             )
+                            # AUTO-WATCHLIST: If verified, add to watchlist for high-freq scanning
+                            if result.same_event:
+                                try:
+                                    w_cfg = getattr(self.config, "watchlist", None)
+                                    if w_cfg and w_cfg.enabled:
+                                        new_row = build_watchlist_row(
+                                            kalshi_market=k_market,
+                                            polymarket_market=p_market,
+                                            min_edge=float(getattr(w_cfg, "min_edge", 0.005)),
+                                            min_depth_usd=float(getattr(w_cfg, "min_depth_usd", 50.0)),
+                                            max_age_sec=int(getattr(w_cfg, "max_age_sec", 15)),
+                                            polarity="normal",  # Default assumption for semantic match
+                                        )
+                                        upsert_watchlist_rows(w_cfg.csv_path, [new_row])
+                                        logger.info(f"Auto-added verified pair to watchlist: {new_row.pair_id}")
+                                except Exception as e:
+                                    logger.warning(f"Failed to auto-add to watchlist: {e}")
+
                             if result.same_event and self.llm_verifier:
                                 cases = self.llm_verifier.evaluate_arbitrage_cases(
                                     k_market,
@@ -505,6 +536,8 @@ class Engine:
             rows = load_watchlist_csv(watch_cfg.csv_path)
             pruned = prune_watchlist(rows)
             if len(pruned) != len(rows):
+                removed_count = len(rows) - len(pruned)
+                logger.info(f"Pruned {removed_count} expired/inactive pairs from watchlist")
                 write_watchlist_csv(watch_cfg.csv_path, pruned)
 
             orderbook_fetcher = None

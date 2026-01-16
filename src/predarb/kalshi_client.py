@@ -284,50 +284,61 @@ class KalshiClient(MarketClient):
         logger.info(f"Fetching series for categories: {target_categories}")
         series_tickers = self._get_series_by_categories(target_categories)
         
-        if not series_tickers:
-            logger.warning("No series found for target categories")
-            return []
+        # BULK FETCH: Get all open markets directly
+        # Strategy: Fetch pages until we have 'limit' VALID markets (not just raw markets)
+        valid_markets: List[Market] = []
+        cursor = None
+        target_limit = 3000  # We want 3000 VALID markets
+        page_count = 0
+        max_pages = 200 # Increased to capture more valid markets (since 99% are sports)
         
-        all_markets = []
-        
-        # Fetch markets for each series (limit to first 100 series to get more markets)
-        logger.info(f"Fetching markets for first 100 series (out of {len(series_tickers)})...")
-        for i, series_ticker in enumerate(series_tickers[:100]):
-            if i > 0:
-                time.sleep(0.5)  # 500ms delay between requests to avoid rate limiting
+        while len(valid_markets) < target_limit and page_count < max_pages:
+            try:
+                endpoint = "/trade-api/v2/markets"
+                params = {"limit": 1000, "status": "open"}
+                if cursor:
+                    params["cursor"] = cursor
                 
-            endpoint = "/trade-api/v2/markets"
-            params = {
-                "series_ticker": series_ticker,
-                "status": "open",
-                "limit": 200,
-            }
-            
-            response = self._make_request("GET", endpoint, params=params)
-            if response and "markets" in response:
-                all_markets.extend(response["markets"])
-                logger.info(f"Series {series_ticker}: {len(response['markets'])} markets")
+                response = self._make_request("GET", endpoint, params=params)
+                
+                if not response:
+                    break
+                    
+                batch = response.get("markets", [])
+                if not batch:
+                    break
+                
+                # Normalize and filter IMMEDIATELY
+                for raw in batch:
+                    market = self._normalize_market(raw)
+                    if market and self._passes_filters(market):
+                        valid_markets.append(market)
+                
+                logger.info(f"Page {page_count+1}: Fetched {len(batch)} raw -> {len(valid_markets)} valid total")
+                
+                cursor = response.get("cursor")
+                if not cursor:
+                    break
+                    
+                page_count += 1
+                time.sleep(0.1) # Small delay to be polite
+                
+            except Exception as e:
+                logger.error(f"Error during bulk fetch: {e}")
+                break
+                
+        logger.info(f"Bulk fetch complete. Collected {len(valid_markets)} valid markets from {page_count} pages.")
         
-        # Deduplicate by ticker
+        # Deduplicate by ID just in case
         seen = set()
         unique_markets = []
-        for m in all_markets:
-            ticker = m.get("ticker")
-            if ticker and ticker not in seen:
-                seen.add(ticker)
+        for m in valid_markets:
+            if m.id not in seen:
+                seen.add(m.id)
                 unique_markets.append(m)
         
-        logger.info(f"Fetched {len(unique_markets)} unique markets from Kalshi")
-        
-        # Normalize markets
-        normalized: List[Market] = []
-        for raw in unique_markets:
-            market = self._normalize_market(raw)
-            if market and self._passes_filters(market):
-                normalized.append(market)
-        
-        logger.info(f"After filtering: {len(normalized)} Kalshi markets")
-        return normalized
+        logger.info(f"Final count: {len(unique_markets)} Kalshi markets")
+        return unique_markets
     
     def _normalize_market(self, data: Dict[str, Any]) -> Optional[Market]:
         """
@@ -358,12 +369,17 @@ class KalshiClient(MarketClient):
             event_ticker = data.get("event_ticker", "")
             title = data.get("title", "Unknown")
             
+            # DEBUG: Log keys for first failure/success to check structure
+            # logger.warning(f"Market keys: {list(data.keys())}")
+
             if not ticker:
+                # logger.warning(f"Normalization failed: Missing ticker. Keys: {list(data.keys())}")
                 return None
             
             # Filter out sports markets (not present in Polymarket)
             for prefix in self.excluded_sports_prefixes:
                 if event_ticker.startswith(prefix):
+                    # logger.debug(f"Normalization skipped: Sports prefix {prefix} for {event_ticker}")
                     return None
             
             # Parse prices (Kalshi uses cents, need to convert to probability)

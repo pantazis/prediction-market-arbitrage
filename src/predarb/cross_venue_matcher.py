@@ -30,6 +30,18 @@ _semantic_model: Optional[SentenceTransformer] = None
 
 
 
+# Category Mapping: Kalshi Category -> Relevant Polymarket Tags
+# Markets will be matched if they map to the same conceptual bucket.
+CATEGORY_MAP = {
+    "Politics": ["Politics", "US Politics", "Elections", "Government", "White House"],
+    "Economics": ["Economics", "Economy", "Fed", "Interest Rates", "Inflation"],
+    "Crypto": ["Crypto", "Bitcoin", "Ethereum", "Currencies"],
+}
+
+# --------------------------
+# 1. Cleaning & Filters
+# --------------------------
+
 def _norm_text(s: str) -> str:
     """Normalize text for embedding clarity."""
     if not s:
@@ -158,6 +170,33 @@ class CrossVenueMatcher:
         
         return _semantic_model
     
+    def _get_polymarket_subset(self, k_category: str, poly_markets: List[Market]) -> List[Market]:
+        """
+        Filter Polymarket candidates by relevance to Kalshi category.
+        
+        Uses CATEGORY_MAP to match Kalshi category against Polymarket tags.
+        If no mapping exists or category is unknown, returns ALL Polymarket markets (safe fallback).
+        """
+        if not k_category:
+            return poly_markets
+            
+        target_tags = CATEGORY_MAP.get(k_category)
+        if not target_tags:
+            # Safe fallback: if Kalshi category isn't mapped, search everything
+            return poly_markets
+            
+        subset = []
+        target_tags_lower = {t.lower() for t in target_tags}
+        for pm in poly_markets:
+            # Check if any of the market's tags match our target tags
+            p_tags = {str(t).lower() for t in (pm.tags or [])}
+            if not p_tags.isdisjoint(target_tags_lower):
+                subset.append(pm)
+                
+        # If filtering removed everything (unlikely but possible), safe fallback? 
+        # No, if we have specific tags and found nothing, it means no relevant markets exist.
+        return subset
+
     def find_pairs(
         self,
         kalshi_markets: List[Market],
@@ -197,52 +236,57 @@ class CrossVenueMatcher:
         model = self._load_model()
         if model is None:
             return []
-        
-        # Extract text representations
-        k_texts = [_get_text_blob(m) for m in k_binary]
-        p_texts = [_get_text_blob(m) for m in p_binary]
-        
-        # Process in batches to avoid memory issues
+            
+        # Group Kalshi markets by category to batch process efficiently
+        k_by_category: Dict[str, List[Market]] = {}
+        for m in k_binary:
+            cat = str(m.category) if hasattr(m, "category") and m.category else "Uncategorized"
+            if cat not in k_by_category:
+                k_by_category[cat] = []
+            k_by_category[cat].append(m)
+            
         pairs: List[Tuple[Market, Market, float]] = []
         
         try:
-            # Encode Polymarket markets once (corpus)
-            logger.info(f"Encoding {len(p_binary)} Polymarket markets...")
-            p_emb = model.encode(
-                p_texts,
-                convert_to_tensor=True,
-                normalize_embeddings=True,
-                show_progress_bar=False,
-                batch_size=self.encode_batch_size,
-            )
-            
-            # Process Kalshi markets in batches
-            total_batches = (len(k_binary) + self.batch_size - 1) // self.batch_size
-            logger.info(f"Processing {len(k_binary)} Kalshi markets in {total_batches} batches of {self.batch_size}...")
-            
-            top_k = min(self.top_k, len(p_binary))
-            for batch_idx in range(0, len(k_binary), self.batch_size):
-                batch_end = min(batch_idx + self.batch_size, len(k_binary))
-                batch_markets = k_binary[batch_idx:batch_end]
-                batch_texts = k_texts[batch_idx:batch_end]
+            # Process each category
+            for category, k_list in k_by_category.items():
+                # 1. Get relevant Polymarket subset
+                p_subset = self._get_polymarket_subset(category, p_binary)
                 
-                logger.info(f"Batch {batch_idx // self.batch_size + 1}/{total_batches}: Processing markets {batch_idx+1}-{batch_end}...")
+                if not p_subset:
+                    logger.debug(f"No Polymarket candidates for Kalshi category '{category}'")
+                    continue
+                    
+                logger.info(f"Category '{category}': Matching {len(k_list)} Kalshi mkts vs {len(p_subset)} Poly candidates")
                 
-                # Encode batch
-                k_batch_emb = model.encode(
-                    batch_texts,
+                # 2. Encode Polymarket subset
+                # Note: In a production system we'd cache these embeddings globally to avoid re-encoding 
+                # overlaps between categories, but simpler here for now.
+                p_texts = [_get_text_blob(m) for m in p_subset]
+                p_emb = model.encode(
+                    p_texts,
                     convert_to_tensor=True,
                     normalize_embeddings=True,
                     show_progress_bar=False,
                     batch_size=self.encode_batch_size,
                 )
                 
-                # Search for matches
-                hits = util.semantic_search(k_batch_emb, p_emb, top_k=top_k)
+                # 3. Process Kalshi markets in this category
+                k_texts = [_get_text_blob(m) for m in k_list]
+                k_emb = model.encode(
+                    k_texts,
+                    convert_to_tensor=True,
+                    normalize_embeddings=True,
+                    show_progress_bar=False,
+                    batch_size=self.encode_batch_size,
+                )
                 
-                # Filter by similarity and date proximity
+                # 4. Search
+                top_k = min(self.top_k, len(p_subset))
+                hits = util.semantic_search(k_emb, p_emb, top_k=top_k)
+                
                 for k_local_idx, hit_list in enumerate(hits):
-                    k_market = batch_markets[k_local_idx]
+                    k_market = k_list[k_local_idx]
                     
                     for hit in hit_list:
                         score = hit['score']
@@ -250,7 +294,7 @@ class CrossVenueMatcher:
                             continue
                         
                         p_idx = hit['corpus_id']
-                        p_market = p_binary[p_idx]
+                        p_market = p_subset[p_idx]
                         
                         # Date proximity check
                         time_diff = _time_diff_hours(k_market, p_market)
@@ -258,12 +302,13 @@ class CrossVenueMatcher:
                             continue
                         
                         pairs.append((k_market, p_market, float(score)))
-                
-                logger.info(f"Batch {batch_idx // self.batch_size + 1}/{total_batches}: Found {len(pairs)} matches so far")
+
+            logger.info(f"Batch processing complete. Found {len(pairs)} matches total.")
                 
         except Exception as e:
             logger.error(f"Embedding/search failed: {e}")
             return []
+
         
         # Sort by similarity descending
         pairs.sort(key=lambda x: x[2], reverse=True)

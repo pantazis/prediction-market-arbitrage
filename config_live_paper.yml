@@ -49,7 +49,7 @@ broker:
 
 # ==================== ENGINE (LIVE CONTINUOUS MODE) ==================== #
 engine:
-  refresh_seconds: 5.0                 # Scan every 5 seconds
+  refresh_seconds: 900.0               # Scan every 15 minutes (900s)
   iterations: 5760                     # 8 hours at 5s refresh = 5760 iterations
   report_path: "reports/live_paper_trades.csv"
 

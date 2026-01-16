@@ -433,11 +433,15 @@ Stop Conditions:
     )
     
     # Validate config file exists
+    # Validate config file exists
     config_path = Path(args.config)
     if not config_path.exists():
         print(f"❌ Config file not found: {config_path}")
         print(f"   Expected: {config_path.absolute()}")
         sys.exit(1)
+        
+    # Cleanup data directory (except fixtures)
+    cleanup_data_directory()
     
     # Create and run
     runner = LivePaperTradingRunner(
@@ -446,6 +450,45 @@ Stop Conditions:
         initial_capital=args.capital
     )
     runner.run()
+
+def cleanup_data_directory():
+    """
+    Delete all runtime files in data/ directory to ensure a fresh start.
+    Preserves 'fixtures/' directory.
+    """
+    data_dir = Path(__file__).parent / "data"
+    if not data_dir.exists():
+        return
+        
+    logger.info(f"Cleaning data directory: {data_dir}")
+    print(f"\n🧹 Cleaning data directory: {data_dir}")
+    
+    count = 0
+    for item in data_dir.iterdir():
+        if item.name == "fixtures":
+            continue
+            
+        try:
+            if item.is_file():
+                item.unlink()
+                count += 1
+            elif item.is_dir():
+                import shutil
+                shutil.rmtree(item)
+                count += 1
+        except Exception as e:
+            logger.warning(f"Failed to delete {item.name}: {e}")
+            
+    if count > 0:
+        logger.info(f"Deleted {count} old data files/dirs")
+        print(f"   Deleted {count} files/dirs")
+    else:
+        print("   Directory already clean")
+    if count > 0:
+        logger.info(f"Deleted {count} old data files/dirs")
+        print(f"   Deleted {count} files/dirs")
+    else:
+        print("   Directory already clean")
 
 
 if __name__ == "__main__":

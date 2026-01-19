@@ -385,6 +385,47 @@ class Engine:
                     except Exception as e:
                         logger.error(f"Failed to precompute embeddings: {e}")
 
+                # Setup Orderbook Fetcher (Reusable)
+                orderbook_fetcher = None
+                if watch_cfg and getattr(watch_cfg, "enabled", False):
+                    orderbook_fetcher = None
+                    if getattr(watch_cfg, "orderbook_enabled", False):
+                        kalshi_client = self._get_client_by_exchange("kalshi")
+                        poly_client = self._get_client_by_exchange("polymarket")
+                        kalshi_cache: Dict[str, Dict[str, object]] = {}
+                        poly_cache: Dict[str, Dict[str, object]] = {}
+                        
+                        def _extract_kalshi_book(raw: Dict[str, object], outcome_label: str) -> Optional[Dict[str, object]]:
+                            if not raw: return None
+                            if "orderbook" in raw and isinstance(raw.get("orderbook"), dict): raw = raw["orderbook"]
+                            key = outcome_label.lower()
+                            for candidate in (key, key.upper(), key.capitalize()):
+                                if isinstance(raw.get(candidate), dict): return raw[candidate]
+                            if "yes" in raw or "no" in raw:
+                                block = raw.get("yes" if key == "yes" else "no")
+                                if isinstance(block, dict): return block
+                            if "bids" in raw or "asks" in raw: return raw
+                            return None
+
+                        def _fetch_orderbook(venue: str, market: Market, outcome_label: str):
+                            if venue == "kalshi" and kalshi_client and hasattr(kalshi_client, "fetch_orderbook"):
+                                ticker = market.id.split(":")[-1]
+                                if ticker not in kalshi_cache:
+                                    raw = kalshi_client.fetch_orderbook(ticker, timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)))
+                                    kalshi_cache[ticker] = raw or {}
+                                return _extract_kalshi_book(kalshi_cache.get(ticker, {}), outcome_label)
+                            if venue == "polymarket" and poly_client and hasattr(poly_client, "fetch_orderbook"):
+                                outcome = market.outcome_by_label(outcome_label)
+                                if not outcome: return None
+                                token_id = str(outcome.id)
+                                if token_id not in poly_cache:
+                                    raw = poly_client.fetch_orderbook(token_id, timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)))
+                                    poly_cache[token_id] = raw or {}
+                                return poly_cache.get(token_id)
+                            return None
+                        
+                        orderbook_fetcher = _fetch_orderbook
+
                 # Process in Batches
                 chunk_size = 50
                 total_kalshi = len(kalshi_markets)
@@ -468,6 +509,8 @@ class Engine:
                                         p_yes_token_id=p_yes,
                                         p_no_token_id=p_no,
                                         polarity=polarity,
+                                        k_question=str(getattr(k, "question", "")).strip(),
+                                        p_question=str(getattr(p, "question", "")).strip(),
                                         k_expiration_time=_isoformat(k.end_date),
                                         p_endDate=_isoformat(p.end_date),
                                         min_edge=float(getattr(watch_cfg, "min_edge", 0.01)),
@@ -486,191 +529,63 @@ class Engine:
                             from predarb.watchlist import upsert_watchlist_rows
                             upsert_watchlist_rows(watch_cfg.csv_path, pairs_to_add)
                             logger.info(f"Batch {batch_num}: Added {len(pairs_to_add)} pairs to watchlist")
+                            
+                            # FAST LOOP: Scan Watchlist IMMEDIATELY
+                            if watch_cfg and getattr(watch_cfg, "enabled", False):
+                                logger.info(f"Batch {batch_num}: Scanning watchlist for arb (Fast Loop)...")
+                                try:
+                                    from predarb.watchlist import load_watchlist_csv, scan_watchlist, append_jsonl
+                                    # Reload full watchlist to include new items
+                                    current_list = load_watchlist_csv(watch_cfg.csv_path)
+                                    
+                                    scan_output = scan_watchlist(
+                                        current_list,
+                                        kalshi_markets=kalshi_markets,
+                                        polymarket_markets=poly_markets,
+                                        fee_bps_kalshi=self._fee_bps_for_exchange("kalshi"),
+                                        fee_bps_polymarket=self._fee_bps_for_exchange("polymarket"),
+                                        slippage_bps=float(self.config.broker.slippage_bps),
+                                        depth_fraction=float(watch_cfg.depth_fraction),
+                                        orderbook_fetcher=orderbook_fetcher,
+                                    )
+                                    if scan_output.scan_log: append_jsonl(watch_cfg.scan_log_path, [scan_output.scan_log])
+                                    if scan_output.rejects: append_jsonl(watch_cfg.reject_log_path, scan_output.rejects)
+                                    if scan_output.approve_packets: append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
+                                    
+                                    # Execute Paper Trades
+                                    if getattr(watch_cfg, "execute_paper_trades", False) and scan_output.approve_packets:
+                                        max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
+                                        market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
+                                        executed_count = 0
+                                        for packet in scan_output.approve_packets:
+                                            if executed_count >= max_trades: break
+                                            opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
+                                            if not opp: continue
+                                            if not self.risk.approve(market_lookup_all, opp): continue
+                                            trades = self.broker.execute(market_lookup_all, opp)
+                                            # Update metadata with trade results
+                                            opp.metadata["trades"] = [{"market_id": t.market_id, "side": t.side, "amount": t.amount, "price": t.price, "realized_pnl": t.realized_pnl} for t in trades]
+                                            executed_count += 1
+                                            if self.notifier and hasattr(self.notifier, "notify_opportunity"):
+                                                try: self.notifier.notify_opportunity(opp)
+                                                except Exception as e: logger.warning(f"Notifier failed: {e}")
+                                    
+                                    if scan_output.quote_snapshots:
+                                        # (Optional) Quote snapshot logic if needed inside loop
+                                        pass
+
+                                except Exception as e:
+                                    logger.error(f"Fast Loop Scan failed: {e}")
+
                         except Exception as e:
                             logger.error(f"Failed to write batch to CSV: {e}")
 
             except Exception as e:
                 logger.error(f"Cross-venue matching/batching failed: {e}")
 
-        # Always scan watchlist (independent of semantic matching / LLM).
-        if watch_cfg and getattr(watch_cfg, "enabled", False):
-            # Pruning already done at start of loop
-            pass
+        # End of Loop
+        logger.info("Batch processing complete.")
 
-            orderbook_fetcher = None
-            if getattr(watch_cfg, "orderbook_enabled", False):
-                kalshi_client = self._get_client_by_exchange("kalshi")
-                poly_client = self._get_client_by_exchange("polymarket")
-                kalshi_cache: Dict[str, Dict[str, object]] = {}
-                poly_cache: Dict[str, Dict[str, object]] = {}
-
-                def _extract_kalshi_book(raw: Dict[str, object], outcome_label: str) -> Optional[Dict[str, object]]:
-                    if not raw:
-                        return None
-                    if "orderbook" in raw and isinstance(raw.get("orderbook"), dict):
-                        raw = raw["orderbook"]  # type: ignore[assignment]
-                    key = outcome_label.lower()
-                    for candidate in (key, key.upper(), key.capitalize()):
-                        if isinstance(raw.get(candidate), dict):
-                            return raw[candidate]  # type: ignore[index]
-                    if "yes" in raw or "no" in raw:
-                        block = raw.get("yes" if key == "yes" else "no")
-                        if isinstance(block, dict):
-                            return block
-                    if "bids" in raw or "asks" in raw:
-                        return raw
-                    return None
-
-                def _fetch_orderbook(venue: str, market: Market, outcome_label: str):
-                    if venue == "kalshi" and kalshi_client and hasattr(kalshi_client, "fetch_orderbook"):
-                        ticker = market.id.split(":")[-1]
-                        if ticker not in kalshi_cache:
-                            raw = kalshi_client.fetch_orderbook(
-                                ticker,
-                                timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)),
-                            )
-                            kalshi_cache[ticker] = raw or {}
-                        return _extract_kalshi_book(kalshi_cache.get(ticker, {}), outcome_label)
-                    if venue == "polymarket" and poly_client and hasattr(poly_client, "fetch_orderbook"):
-                        outcome = market.outcome_by_label(outcome_label)
-                        if not outcome:
-                            return None
-                        token_id = str(outcome.id)
-                        if token_id not in poly_cache:
-                            raw = poly_client.fetch_orderbook(
-                                token_id,
-                                timeout_s=float(getattr(watch_cfg, "orderbook_timeout_s", 2.5)),
-                            )
-                            poly_cache[token_id] = raw or {}
-                        return poly_cache.get(token_id)
-                    return None
-
-                orderbook_fetcher = _fetch_orderbook
-
-            scan_output = scan_watchlist(
-                pruned,
-                kalshi_markets=kalshi_markets,
-                polymarket_markets=poly_markets,
-                fee_bps_kalshi=self._fee_bps_for_exchange("kalshi"),
-                fee_bps_polymarket=self._fee_bps_for_exchange("polymarket"),
-                slippage_bps=float(self.config.broker.slippage_bps),
-                depth_fraction=float(watch_cfg.depth_fraction),
-                orderbook_fetcher=orderbook_fetcher,
-            )
-            append_jsonl(watch_cfg.scan_log_path, [scan_output.scan_log])
-            if scan_output.rejects:
-                append_jsonl(watch_cfg.reject_log_path, scan_output.rejects)
-            if scan_output.approve_packets:
-                append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
-
-            if getattr(watch_cfg, "execute_paper_trades", False) and scan_output.approve_packets:
-                max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
-                market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
-                executed_count = 0
-                for packet in scan_output.approve_packets:
-                    if executed_count >= max_trades:
-                        break
-                    opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
-                    if not opp:
-                        continue
-                    if not self.risk.approve(market_lookup_all, opp):
-                        continue
-                    trades = self.broker.execute(market_lookup_all, opp)
-                    opp.metadata["trades"] = [
-                        {
-                            "market_id": t.market_id,
-                            "outcome_id": t.outcome_id,
-                            "side": t.side,
-                            "amount": t.amount,
-                            "price": t.price,
-                            "fees": t.fees,
-                            "slippage": t.slippage,
-                            "realized_pnl": t.realized_pnl,
-                        }
-                        for t in trades
-                    ]
-                    executed_count += 1
-                    if self.notifier and hasattr(self.notifier, "notify_opportunity"):
-                        try:
-                            self.notifier.notify_opportunity(opp)
-                        except Exception as e:
-                            logger.warning("Notifier watchlist opportunity failed: %s", e)
-
-            if scan_output.quote_snapshots:
-                threshold = float(getattr(watch_cfg, "price_change_threshold_pct", 0.0))
-                alerts = []
-                for snap in scan_output.quote_snapshots:
-                    key = f"{snap['pair_id']}:{snap['outcome']}"
-                    prev = self._last_watchlist_quotes.get(key, {})
-                    changes = {}
-                    for field in ("kalshi_bid", "kalshi_ask", "polymarket_bid", "polymarket_ask"):
-                        new_val = snap.get(field)
-                        old_val = prev.get(field)
-                        if new_val is None or old_val is None:
-                            continue
-                        if old_val == 0:
-                            continue
-                        delta_pct = abs(float(new_val) - float(old_val)) / float(old_val)
-                        if delta_pct >= threshold:
-                            changes[field] = {
-                                "old": old_val,
-                                "new": new_val,
-                                "delta_pct": delta_pct,
-                            }
-                    if changes:
-                        alerts.append(
-                            {
-                                "pair_id": snap["pair_id"],
-                                "outcome": snap["outcome"],
-                                "polarity": snap["polarity"],
-                                "kalshi_market_id": snap["kalshi_market_id"],
-                                "polymarket_market_id": snap["polymarket_market_id"],
-                                "changes": changes,
-                            }
-                        )
-                    self._last_watchlist_quotes[key] = {
-                        "kalshi_bid": snap.get("kalshi_bid"),
-                        "kalshi_ask": snap.get("kalshi_ask"),
-                        "polymarket_bid": snap.get("polymarket_bid"),
-                        "polymarket_ask": snap.get("polymarket_ask"),
-                    }
-                if alerts and self.notifier and hasattr(self.notifier, "notify_price_alerts"):
-                    try:
-                        self.notifier.notify_price_alerts(alerts)
-                    except Exception as e:
-                        logger.warning("Notifier price alert failed: %s", e)
-
-            signature = "|".join(
-                f"{p['pair_id']}:{p['side']}:{p.get('edge_net', 0.0):.6f}"
-                for p in scan_output.approve_packets
-            ) or "no_candidates"
-            watch_hash = hashlib.sha256(signature.encode("utf-8")).hexdigest()
-            if watch_hash != self._last_watchlist_hash:
-                self._last_watchlist_hash = watch_hash
-                if self.notifier and hasattr(self.notifier, "notify_cross_venue_arbitrage"):
-                    if scan_output.arbitrage_cases:
-                        results = [(None, None, 0.0, scan_output.arbitrage_cases)]
-                    else:
-                        results = []
-                    try:
-                        self.notifier.notify_cross_venue_arbitrage(results)
-                    except Exception as e:
-                        logger.warning("Notifier watchlist arbitrage alert failed: %s", e)
-                if self.notifier and hasattr(self.notifier, "notify_cross_venue_filters"):
-                    try:
-                        self.notifier.notify_cross_venue_filters(scan_output.filter_reports)
-                    except Exception as e:
-                        logger.warning("Notifier watchlist filter alert failed: %s", e)
-                if self.notifier and hasattr(self.notifier, "notify_cross_venue_risk"):
-                    try:
-                        self.notifier.notify_cross_venue_risk(scan_output.filter_reports)
-                    except Exception as e:
-                        logger.warning("Notifier watchlist risk alert failed: %s", e)
-                if self.notifier and hasattr(self.notifier, "notify_cross_venue_trade"):
-                    try:
-                        self.notifier.notify_cross_venue_trade(scan_output.filter_reports)
-                    except Exception as e:
-                        logger.warning("Notifier watchlist trade alert failed: %s", e)
         
         # Scan ALL markets for opportunities (no pre-filtering)
         # Risk manager will validate if each opportunity is viable

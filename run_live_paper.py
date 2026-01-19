@@ -467,6 +467,9 @@ def cleanup_data_directory():
     for item in data_dir.iterdir():
         if item.name == "fixtures":
             continue
+        if item.name == "watchlist_pairs.csv":
+            logger.info("Preserving watchlist_pairs.csv")
+            continue
             
         try:
             if item.is_file():

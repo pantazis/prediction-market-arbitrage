@@ -1,37 +1,9 @@
 {
-  "494a33c64c5e417ffccac94ffb0ce001": {
-    "result": {
-      "same_event": true,
-      "confidence": 1.0,
-      "reason": "Both markets reference the same event (the outcome of a tennis match and the result of a specific tennis tournament). The criteria for resolution in both cases is based on the outcome of a professional tennis match.",
-      "resolution_source": null,
-      "resolution_date": null,
-      "key_fields": {
-        "resolution_source": null,
-        "resolution_date": null
-      }
-    },
-    "timestamp": 1768573125.4878228
-  },
-  "74ffaf943a1c8408027eb4c3eee5d9c7": {
-    "result": {
-      "same_event": false,
-      "confidence": 0.5,
-      "reason": "Market A and Market B do not relate to the same real-world event.",
-      "resolution_source": null,
-      "resolution_date": null,
-      "key_fields": {
-        "resolution_source": null,
-        "resolution_date": null
-      }
-    },
-    "timestamp": 1768573152.3832731
-  },
-  "7dc3f676123f601af2fc5c5b5f103cdc": {
+  "7ed17f32f7d810e2545c0024145b6809": {
     "result": {
       "same_event": true,
       "confidence": 0.95,
-      "reason": "Both markets are based on the outcome of a tennis match and focus on the winners of specific tournaments.",
+      "reason": "Both markets are about Donald Trump's speech at a specific event in January 2026, and both events have identical criteria for resolution.",
       "resolution_source": "Kalshi Official",
       "resolution_date": null,
       "key_fields": {
@@ -39,13 +11,13 @@
         "resolution_date": null
       }
     },
-    "timestamp": 1768573180.642978
+    "timestamp": 1768808715.242467
   },
-  "d555a31d0af311a02027bbae15ec393e": {
+  "0f6d5521e918a87fd6d216be917fd5b7": {
     "result": {
       "same_event": false,
-      "confidence": 0.67,
-      "reason": "Market A resolves based on the outcome of a tennis match, while Market B resolves based on the winner of an upcoming women's singles tournament at the Australian Open.",
+      "confidence": 0.75,
+      "reason": "The events in the two markets are not identical; Market A refers to a specific segment of Katie Pavlich Tonight, while Market B is about Donald Trump delivering a special address at an unspecified event.",
       "resolution_source": null,
       "resolution_date": null,
       "key_fields": {
@@ -53,13 +25,13 @@
         "resolution_date": null
       }
     },
-    "timestamp": 1768573216.574032
+    "timestamp": 1768808763.8669872
   },
-  "43863458c3ca7e95cf8fd5f2c4a8f945": {
+  "d61e030ad82439fc0f0d249f7e03eb8b": {
     "result": {
-      "same_event": false,
-      "confidence": 0.5,
-      "reason": "Market A and Market B do not resolve on the same real-world event.",
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both questions reference a scheduled event (Katie Pavlich Tonight for Market A and the WEF Address on January 21, 2026 for Market B) that Donald Trump is scheduled to participate in. The terms 'Iran' and 'Nuclear' are part of this specific event's content.",
       "resolution_source": null,
       "resolution_date": null,
       "key_fields": {
@@ -67,13 +39,83 @@
         "resolution_date": null
       }
     },
-    "timestamp": 1768573647.2876122
+    "timestamp": 1768808816.5761943
   },
-  "57d9a91f9b0bd33c810d560eaf485d67": {
+  "400332245c6211c2aa414d03008d6900": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "The events in Market A and Market B are different. Market A is about a specific event with a known resolution source (Kalshi Official), while Market B is about an unspecified future event at the WEF.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768808865.4950943
+  },
+  "717e924132b44472537936f93ad99e5c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.675,
+      "reason": "Market A resolves to 'Yes' based on a specific statement during Katie Pavlich Tonight related to Affordable / Affordability, while Market B is about Donald Trump making the term 'Mortgage' in his speech at WEF. The events and resolutions are different.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768808915.6478856
+  },
+  "a6b13087ec3ba45910dd91c89fbecb9a": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.75,
+      "reason": "Market A resolves based on a specific event (Katie Pavlich Tonight), while Market B is about an unspecified address at the WEF 2026 meeting. The resolution criteria and events are not the same.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768808964.5050428
+  },
+  "e5d4c6dd1452f4355bd93f3e8b4dafa4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.98,
+      "reason": "The markets are about different events with conflicting information.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809007.8349912
+  },
+  "0a08289c9f83ff9ab8a0d502f8a46487": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both markets reference the specific event of Donald Trump delivering a special address at the WEF Annual Meeting in Davos on January 21, 2026.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809055.6259594
+  },
+  "14996279a43b3d5dbdeb9892794b1039": {
     "result": {
       "same_event": false,
       "confidence": 0.95,
-      "reason": "Market A resolves to Yes based on the announcers' comments during a specific event in College Football Playoff National Championship, while Market B concerns an entire season of college football.",
+      "reason": "Market A focuses on Donald Trump during a specific broadcast event and resolution from Kalshi Official, while Market B refers to an unspecified event at WEF with no explicit source specified.",
       "resolution_source": null,
       "resolution_date": null,
       "key_fields": {
@@ -81,6 +123,90 @@
         "resolution_date": null
       }
     },
-    "timestamp": 1768573672.0195057
+    "timestamp": 1768809104.409891
+  },
+  "de1057300a670179c4f5b61149f872bf": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A is about a specific event (The Late Show with Stephen Colbert) involving Bernie Sanders, while Market B discusses Donald Trump's speech at the WEF in Davos. The events are different and occur on different dates.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809157.15942
+  },
+  "1dc52b1f1fb5a70c03bb9a33c3a3524b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A resolves based on a hypothetical event involving Donald Trump during Katie Pavlich Tonight, while Market B focuses on whether Donald Trump will mention the word 'Hell' in his speech at World Economic Forum (WEF) events. The resolutions are triggered by different criteria and could potentially resolve to different outcomes due to varying contexts.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809212.2977147
+  },
+  "83883e8296a736c0d656a58e8707162a": {
+    "result": {
+      "same_event": true,
+      "confidence": 1.0,
+      "reason": "Both questions are resolved based on the outcome of specific events that Donald Trump will be participating in, with no additional requirements for names or mentions.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809258.8969243
+  },
+  "64eb5a0c165b77708a874e8561c982e5": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A is about a specific topic (Katie Pavlich Tonight) while Market B is specifically about the WEF address on January 21, 2026.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809306.7444937
+  },
+  "7532b21fba27edef76e11907a15c32b0": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A resolves based on Donald Trump's statements during a specific event with Kalshi Official as the resolution source, while Market B resolves based on Donald Trump's comments at an unspecified event related to WEF meetings.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809355.6199954
+  },
+  "870697a8b28c5196c491ae279b6b8e45": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.8563,
+      "reason": "Market A and Market B both reference the appearance of Donald Trump at a specific event (The Late Show with Stephen Colbert and the World Economic Forum), but they use different criteria for resolution.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809407.2286658
   }
 }

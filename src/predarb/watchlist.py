@@ -23,6 +23,8 @@ WATCHLIST_COLUMNS = [
     "p_yes_token_id",
     "p_no_token_id",
     "polarity",
+    "k_question",
+    "p_question",
     "k_expiration_time",
     "p_endDate",
     "min_edge",
@@ -41,6 +43,8 @@ class WatchlistRow:
     p_yes_token_id: str
     p_no_token_id: str
     polarity: str
+    k_question: str
+    p_question: str
     k_expiration_time: str
     p_endDate: str
     min_edge: float
@@ -116,6 +120,8 @@ def load_watchlist_csv(path: str | Path) -> List[WatchlistRow]:
                     p_yes_token_id=str(raw.get("p_yes_token_id", "")).strip(),
                     p_no_token_id=str(raw.get("p_no_token_id", "")).strip(),
                     polarity=str(raw.get("polarity", "normal")).strip() or "normal",
+                    k_question=str(raw.get("k_question", "")).strip(),
+                    p_question=str(raw.get("p_question", "")).strip(),
                     k_expiration_time=str(raw.get("k_expiration_time", "")).strip(),
                     p_endDate=str(raw.get("p_endDate", "")).strip(),
                     min_edge=_parse_float(raw.get("min_edge"), 0.0),

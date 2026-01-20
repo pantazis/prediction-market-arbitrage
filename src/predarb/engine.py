@@ -552,23 +552,128 @@ class Engine:
                                     if scan_output.rejects: append_jsonl(watch_cfg.reject_log_path, scan_output.rejects)
                                     if scan_output.approve_packets: append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
                                     
-                                    # Execute Paper Trades
-                                    if getattr(watch_cfg, "execute_paper_trades", False) and scan_output.approve_packets:
-                                        max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
-                                        market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
-                                        executed_count = 0
-                                        for packet in scan_output.approve_packets:
-                                            if executed_count >= max_trades: break
-                                            opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
-                                            if not opp: continue
-                                            if not self.risk.approve(market_lookup_all, opp): continue
-                                            trades = self.broker.execute(market_lookup_all, opp)
-                                            # Update metadata with trade results
-                                            opp.metadata["trades"] = [{"market_id": t.market_id, "side": t.side, "amount": t.amount, "price": t.price, "realized_pnl": t.realized_pnl} for t in trades]
-                                            executed_count += 1
-                                            if self.notifier and hasattr(self.notifier, "notify_opportunity"):
-                                                try: self.notifier.notify_opportunity(opp)
-                                                except Exception as e: logger.warning(f"Notifier failed: {e}")
+                                    if scan_output.approve_packets: append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
+                                    
+                                    # --- STATEFUL NOTIFICATION LOGIC ---
+                                    current_ts = _utc_now().timestamp()
+                                    
+                                    # 1. Process REJECTS (Failed at Step 4: Filters)
+                                    for reject in scan_output.rejects:
+                                        pair_id = reject.get("pair_id")
+                                        if not pair_id: continue
+                                        
+                                        reason = reject.get("reason", "unknown")
+                                        detail = reject.get("detail", {})
+                                        
+                                        # Construct state: Step 4 (Filter) -> FAIL
+                                        new_state = {
+                                            "step": 4,
+                                            "status": "FAIL",
+                                            "reason": f"{reason} {detail}",
+                                            "edge": 0.0, # Usually 0 if rejected early
+                                            "ts": current_ts
+                                        }
+                                        
+                                        old_state = self.opportunity_states.get(pair_id, {})
+                                        # Notify if state changed OR if it's the first time seeing it (optional, maybe too noisy? User said "on change")
+                                        # Let's notify if status/step changed.
+                                        if old_state.get("status") != "FAIL" or old_state.get("step") != 4:
+                                            if self.notifier and hasattr(self.notifier, "notify_state_change"):
+                                                 self.notifier.notify_state_change(
+                                                     pair_id, old_state, new_state, 
+                                                     {"side": "CHECK", "k_ticker": "?", "p_market_id": "?"}
+                                                 )
+                                        self.opportunity_states[pair_id] = new_state
+
+                                    # 2. Process APPROVALS (Passed Step 4, moving to 5 & 6)
+                                    market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
+                                    max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
+                                    executed_count = 0
+
+                                    for packet in scan_output.approve_packets:
+                                        pair_id = packet.get("pair_id")
+                                        edge_net = packet.get("edge_net", 0.0)
+                                        metadata = {
+                                            "side": packet.get("side", "ARB"),
+                                            "k_ticker": packet.get("kalshi", {}).get("ticker", ""),
+                                            "p_market_id": packet.get("polymarket", {}).get("market_id", "")
+                                        }
+
+                                        # Current State Candidate: Step 4 -> PASS
+                                        # But we immediately check Risk (Step 5)
+                                        
+                                        opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
+                                        if not opp:
+                                             # Failed to build? Should match logic above
+                                             continue
+                                        
+                                        # Check RISK (Step 5)
+                                        risk_passed = self.risk.approve(market_lookup_all, opp)
+                                        if not risk_passed:
+                                            new_state = {
+                                                "step": 5,
+                                                "status": "FAIL",
+                                                "reason": "Risk Rejected",
+                                                "edge": edge_net,
+                                                "ts": current_ts
+                                            }
+                                        else:
+                                            # Risk PASSED
+                                            # Check EXECUTION (Step 6)
+                                            # Trigger paper trade if configured
+                                            was_traded = False
+                                            trades = []
+                                            if getattr(watch_cfg, "execute_paper_trades", False) and executed_count < max_trades:
+                                                trades = self.broker.execute(market_lookup_all, opp)
+                                                was_traded = True
+                                                executed_count += 1
+                                                # Update metadata
+                                                opp.metadata["trades"] = [{"market_id": t.market_id, "side": t.side, "amount": t.amount, "price": t.price, "realized_pnl": t.realized_pnl} for t in trades]
+                                            
+                                            if was_traded:
+                                                new_state = {
+                                                    "step": 6,
+                                                    "status": "PASS",
+                                                    "reason": "Executed",
+                                                    "edge": edge_net,
+                                                    "ts": current_ts
+                                                }
+                                                metadata["trade_details"] = f"{len(trades)} legs"
+                                            else:
+                                                # Just Risk Approved (Ready / Paper trade disabled or limit reached)
+                                                new_state = {
+                                                    "step": 5,
+                                                    "status": "PASS",
+                                                    "reason": "Risk Approved (Pending Trade)",
+                                                    "edge": edge_net,
+                                                    "ts": current_ts
+                                                }
+
+                                        # Compare and Notify
+                                        old_state = self.opportunity_states.get(pair_id, {})
+                                        
+                                        # Logic: Notify if Step changed (4->5->6) OR Status changed (Pass<->Fail) OR Edge Check
+                                        should_notify = (
+                                            old_state.get("step") != new_state["step"] or 
+                                            old_state.get("status") != new_state["status"] or
+                                            abs(old_state.get("edge", 0) - new_state["edge"]) > 0.005 # Notify on 0.5% edge moves
+                                        )
+                                        
+                                        # Always notify on TRADES (Step 6 PASS)
+                                        if new_state["step"] == 6 and new_state["status"] == "PASS":
+                                            should_notify = True
+
+                                        if should_notify:
+                                            if self.notifier and hasattr(self.notifier, "notify_state_change"):
+                                                self.notifier.notify_state_change(pair_id, old_state, new_state, metadata)
+                                        
+                                        # Update State
+                                        self.opportunity_states[pair_id] = new_state
+
+                                    # Remove old states? (Optional cleanup, maybe later)
+                                    
+                                    # Execute Paper Trades (Legacy block removed as it's integrated above)
+                                    # We integrated execution into the loop above to capture state correctly.
                                     
                                     if scan_output.quote_snapshots:
                                         # (Optional) Quote snapshot logic if needed inside loop
@@ -576,6 +681,7 @@ class Engine:
 
                                 except Exception as e:
                                     logger.error(f"Fast Loop Scan failed: {e}")
+                                    logger.exception("Traceback:")
 
                         except Exception as e:
                             logger.error(f"Failed to write batch to CSV: {e}")

@@ -6,9 +6,13 @@ bot.log
 
 # Local Python virtual environment
 .venv/
+venv/
 
 # Generated reports and artifacts
 reports/
+data/*.jsonl
+*.log
+kalshi_private_key.pem
 
 # Runtime artifacts
 bot.pid

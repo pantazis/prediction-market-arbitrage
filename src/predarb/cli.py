@@ -9,9 +9,11 @@ from predarb.polymarket_client import PolymarketClient
 
 def main():
     parser = argparse.ArgumentParser(description="Predarb Polymarket paper bot")
-    parser.add_argument("command", choices=["run", "once", "selftest", "stress", "dual-stress", "validate-ab"], help="run loop, single pass, self-test with fixtures, stress test, dual-venue stress test, or strict A+B validation")
+    parser.add_argument("command", choices=["run", "once", "selftest", "stress", "dual-stress", "validate-ab", "serve"], help="run loop, single pass, self-test with fixtures, stress test, dual-venue stress test, strict A+B validation, or serve API")
     parser.add_argument("--config", default="config.yml", help="Path to config file")
     parser.add_argument("--iterations", type=int, default=None, help="Override iterations from config for run mode")
+    parser.add_argument("--host", default="0.0.0.0", help="Host for API server")
+    parser.add_argument("--port", type=int, default=8000, help="Port for API server")
     parser.add_argument("--fixtures", default="tests/fixtures/markets.json", help="Path to fixture markets for selftest")
     
     # Stress test arguments
@@ -301,6 +303,11 @@ def main():
         print("=" * 80)
         
         sys.exit(0)
+    elif args.command == "serve":
+        import uvicorn
+        from predarb.api import app
+        print(f"Starting API server on {args.host}:{args.port}")
+        uvicorn.run(app, host=args.host, port=args.port)
     else:
         engine.run()
 

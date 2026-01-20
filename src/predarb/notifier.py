@@ -290,3 +290,56 @@ class TelegramNotifier:
                 reason = report.get("fail_reason") or report.get("fail_filter") or "filtered"
             lines.append(f"{idx}. {case.get('case_name','')} | {status} | {reason}")
         self._post("\n".join(lines))
+    def notify_state_change(self, pair_id: str, old_state: dict, new_state: dict, metadata: dict):
+        """
+        Notify when an opportunity's state changes (e.g. Filter Pass/Fail, Risk Pass/Fail).
+        
+        State dict structure:
+        {
+            "step": 3|4|5|6,  # 3=ArbGen, 4=Filter, 5=Risk, 6=Trade
+            "status": "PASS"|"FAIL",
+            "reason": "...",
+            "edge": 0.05,
+            "details": "..."
+        }
+        """
+        # Determine what changed
+        old_step = old_state.get("step", 0)
+        new_step = new_state.get("step", 0)
+        old_status = old_state.get("status", "UNKNOWN")
+        new_status = new_state.get("status", "UNKNOWN")
+        
+        # Icons for steps
+        steps = {
+            3: "🧮 3. Arb Case",
+            4: "🧪 4. Filter",
+            5: "✅ 5. Risk",
+            6: "🧾 6. Trade"
+        }
+        
+        lines = [f"🔄 {metadata.get('side', 'ARB')} Update: {pair_id[:8]}..."]
+        
+        if new_step != old_step or new_status != old_status:
+            # Major status change
+            step_name = steps.get(new_step, f"Step {new_step}")
+            icon = "🟢" if new_status == "PASS" else "🔴"
+            lines.append(f"{icon} {step_name} | {new_status}")
+            if new_state.get("reason"):
+                lines.append(f"   Reason: {new_state.get('reason')}")
+        
+        # Edge change (if significant)
+        old_edge = old_state.get("edge", 0.0)
+        new_edge = new_state.get("edge", 0.0)
+        if abs(new_edge - old_edge) > 0.001: # 0.1% change
+            lines.append(f"📉 Edge: {old_edge:.2%} -> {new_edge:.2%}")
+
+        # If it's a trade, add details
+        if new_step == 6 and new_status == "PASS":
+             lines.append(f"💵 TRADE EXECUTED: {metadata.get('trade_details', '')}")
+
+        # Add market context
+        k_ticker = metadata.get("k_ticker", "N/A")
+        p_id = metadata.get("p_market_id", "N/A")[:10]
+        lines.append(f"K: {k_ticker} | P: {p_id}")
+
+        self._post("\n".join(lines))

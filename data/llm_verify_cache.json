@@ -334,5 +334,607 @@
       }
     },
     "timestamp": 1768809870.5289247
+  },
+  "c77bf97771647259d8997c9d6d86a7a4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.67,
+      "reason": "Market A is about Donald Trump potentially mentioning Russia/Ukraine during an interview with Katie Pavlich, while Market B is about Donald Trump possibly using the terms 'Crypto' or 'Bitcoin' during a speech at the World Economic Forum (WEF). These events are not related and occur on different dates. Therefore, they do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809927.445474
+  },
+  "d5da272a00c147ab5e9207f8268ab554": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A resolves based on a specific statement by Katie Pavlich, while Market B is about Donald Trump's speech at the World Economic Forum.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768809984.0160165
+  },
+  "9f999765f79e304aecadd8c165d524ab": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A resolves on a specific event (Katie Pavlich Tonight) related to Donald Trump's election process, while Market B resolves on an unspecified event (World Economic Forum address). The events differ in their context and the individuals involved.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810044.2787192
+  },
+  "5e643d091d32657068843ac58fb1b2f4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A is about a specific event involving Donald Trump discussing Venezuela with Katie Pavlich, while Market B is about an unspecified address by Trump at the World Economic Forum on January 21, 2026.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810103.9452918
+  },
+  "706f8005b47e9ac85ca0513d5c2571aa": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.985,
+      "reason": "Market A resolves to 'Yes' due to the specific event and resolution source provided, while Market B is about a general speech address at an unspecified WEF session on January 21, 2026.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810168.1407304
+  },
+  "741681c7b7010b738795b2e7a0707c11": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.85,
+      "reason": "Both markets involve Donald Trump, and the events are related to his scheduled speaking engagements.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810225.519155
+  },
+  "ac958446d2bbae2520053703367d0250": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both questions refer to Donald Trump's appearance at the World Economic Forum in Davos on January 21, 2026, where he will be delivering a special address involving terms like 'Election' or 'Expert'. The resolutions are based on similar criteria and focus on specific mentions of certain words during this particular event.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810292.8605978
+  },
+  "7729e6e0b4a142c55f1e355646e0da09": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A is about Donald Trump's appearance on a specific program (Katie Pavlich Tonight), while Market B is about Donald Trump's address at the WEF meeting (How can we cooperate in a more contested world? session). These events are related but not identical, and their resolutions would likely be different based on whether Trump actually uses the phrase 'Green New Scam' during his appearance.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810364.1146402
+  },
+  "a4e1d45c1272f1f48570eb4e57a9a4c4": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.75,
+      "reason": "Market A is about Donald Trump's comments during a specific television program segment while Market B pertains to his speech at the World Economic Forum (WEF) event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810414.1847007
+  },
+  "328cd43b18346f61a316c7b91ec92b93": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9,
+      "reason": "Market A and Market B resolve on different real-world events with conflicting criteria.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810458.7913458
+  },
+  "1d723e0b33b47a5963c0cdae5adaedb7": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A focuses on Bernie Sanders' statement during The Late Show with Stephen Colbert, while Market B involves Donald Trump's speech at the World Economic Forum (WEF). Although both deal with statements by prominent US figures and potentially involve political terms, they pertain to different events and individuals.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810513.5168743
+  },
+  "e1cbb3a880b4d9c22abb8cf4ac92bec5": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.95,
+      "reason": "Both markets are predicting an event that Donald Trump is scheduled to attend and speak at in the future.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810561.8890238
+  },
+  "f506ff1a893643650a4b2232fa8a6bd6": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "Market A is about a specific question for Katie Pavlich Tonight, while Market B is about a scheduled address at the World Economic Forum (WEF). The events are different and not directly related to each other.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810612.4354289
+  },
+  "0f3d7c0b0b7b4d229908755ee8e90c35": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A resolves to Bernie Sanders and Trump's comments during The Late Show with Stephen Colbert and Donald Trump's speech at the World Economic Forum respectively. These events are not scheduled to occur on the same day, hence they do not resolve on the same real-world event using the same criteria.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810669.640108
+  },
+  "e21ddda3eeaad776de1a7ceb1ae1a83c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A resolves on a specific event (Katie Pavlich Tonight), while Market B resolves on the WEF Address event in Davos.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810720.160623
+  },
+  "4dfc2c840c118bc417e607640e1a8cf9": {
+    "result": {
+      "same_event": true,
+      "confidence": 0.98,
+      "reason": "Both questions reference the same event (Katie Pavlich Tonight) and Donald Trump's appearance.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810767.2310658
+  },
+  "245f530fe3288ece51bbbea5a313b402": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "The events described are distinct and unrelated.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810814.543222
+  },
+  "2dedc8c444760281ab417fe75ae442a3": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A involves Bernie Sanders speaking during The Late Show with Stephen Colbert, while Market B concerns Donald Trump delivering a speech at the WEF Annual Meeting on January 21st. These are two different events with potentially unrelated real-world outcomes.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810865.2848582
+  },
+  "6593eb760a8e9626dbbde39c020442c0": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.98,
+      "reason": "Market A deals with a specific event related to Donald Trump's interview on Katie Pavlich Tonight (Greenland) while Market B is about an unspecified event (Globalist vs Global) at the World Economic Forum (WEF). The events are different and not directly tied by Kalshi Official resolution.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810920.4694376
+  },
+  "2cae1f7204ff74c8965830efb1acb0dc": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A is about a specific event (The Late Show with Stephen Colbert) where Bernie Sanders will make an appearance during a talk show, while Market B discusses Donald Trump's speech at the World Economic Forum in Davos on January 21, 2026.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768810982.4531717
+  },
+  "b6e32c37f3e7804fb5986716f2da31d3": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A is about a specific event (Katie Pavlich Tonight) during which Donald Trump will likely say 'Fraud', while Market B pertains to a future address at the World Economic Forum, focusing on whether he will say either 'Crypto' or 'Bitcoin'. The events described are distinct and do not resolve on the same real-world event using the same criteria.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811048.3735
+  },
+  "5300daaf02cf372e7497fdb935d20588": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.75,
+      "reason": "Market A and Market B resolve on different real-world events.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811099.3777204
+  },
+  "20f978d70c05a41573d53f4cb1ab2753": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.85,
+      "reason": "The events in Market A and Market B are different real-world events with no overlap or relation.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811156.7331798
+  },
+  "c32c2559406a5a2a00ddb606ea80a5af": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.9857142857142857,
+      "reason": "The markets are resolved on different real-world events with the following differences: \n- Market A resolves based on a specific TV show featuring Donald Trump.\n- Market B is about a special address by Donald Trump at a business conference session, which does not necessarily include mentions of or reactions to TV shows featuring him.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811223.3475206
+  },
+  "70eb11a33a14bac30c9dee734056e5de": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A discusses Donald Trump's potential comments during a specific event (Kalshi Official), while Market B is about Donald Trump giving an address at the World Economic Forum (WEF). The events are not explicitly stated to be in conflict, but they occur on different days and have distinct purposes.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811286.1077309
+  },
+  "8f197363d8921603109e03db559141c6": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A resolves based on a hypothetical question about Bernie Sanders' comments during a specific event (The Late Show with Stephen Colbert), while Market B is about Donald Trump's predicted speech at a conference (the World Economic Forum). The events are separate and do not resolve on the same real-world occurrence.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811351.8199549
+  },
+  "8b779700e42c5801a8e5919d00d8652b": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.0,
+      "reason": "Market A and Market B do not resolve on the same real-world event.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811396.487738
+  },
+  "ec3ac9893d4fb60dcdfa21ecfe0634a5": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A is about Donald Trump giving a statement during a live broadcast of Katie Pavlich Tonight, while Market B is about Donald Trump giving an address at the World Economic Forum (WEF) in Davos.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811461.2072322
+  },
+  "292f133ac78db40bf70ebd69078c767c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.985,
+      "reason": "The markets reference different events and entities.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811526.3707082
+  },
+  "7100810a65e5fa0da4001f7a392f1f89": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A and Market B both reference the same event (Katie Pavlich Tonight), but they differ in their specific criteria for determining resolution.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811596.2483032
+  },
+  "8106c87f71c44d74819157b221479d87": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "The markets refer to different real-world events with distinct criteria.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811647.678151
+  },
+  "2a858aeb640e736b94be1846632a445a": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A involves predicting a specific remark by Bernie Sanders from The Late Show with Stephen Colbert, while Market B is about Donald Trump's remarks at the WEF address on January 21. These events are different in nature and timing.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811713.7713013
+  },
+  "30ef64d923053a69e3b718098e39a6ce": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A is about Will Smith's response during a specific episode of Jimmy Fallon's show, while Market B is about Netflix mentioning the term 'Warner Bros' in their earnings call. These events are unrelated and take place at different times.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811765.499261
+  },
+  "268d9398ed162262c89a98de821bd6b1": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.67,
+      "reason": "Market A is about Will Smith during a specific TV show segment, while Market B is about Netflix's earnings call which occurs at a fixed time and date.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811810.7611601
+  },
+  "712ca0ce51ec1a568b703bf0b49c7630": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A asks about Will Smith's statement during a specific event on Jimmy Fallon, while Market B focuses on Donald Trump's speech at the World Economic Forum in Davos.",
+      "resolution_source": "Kalshi Official",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Kalshi Official",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811867.7789571
+  },
+  "7f989c48a537ddee6d229e2b6cc70839": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A and Market B are unrelated in the context of real-world events. Market A focuses on a live event during a TV show, while Market B is about an earnings call for Netflix.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811914.3252127
+  },
+  "c6d1c02f06aa9295e195306ba4da6efe": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "The events are unrelated as Market A involves Will Smith during a TV show and Movie/Show Title (Disney / Disney+ / Hulu) while Market B pertains to Netflix's earnings call with the term 'Subscribers'. There is no overlap in context or actual event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768811960.9994955
+  },
+  "ae921aa2e788079e3ce124f4aa95289c": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A is about Will Smith's potential statement during a specific show, while Market B is about Donald Trump delivering a special address at the World Economic Forum (WEF). The subjects and events are unrelated.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812019.0666862
+  },
+  "4ca20f938a802aee39c6478cf69b0126": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "The events described in the two markets are unrelated. Market A is about a hypothetical TV show appearance by Will Smith, while Market B pertains to an event featuring Donald Trump speaking at the World Economic Forum.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812076.8545833
+  },
+  "a37a8dcc5ce85c99130e0d4c8f6bfd5a": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A is about Will Smith's statements during a specific TV show appearance, while Market B is about Donald Trump making a special speech at the WEF in Davos.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812137.3065538
+  },
+  "a0f258c971c667fca11ab6cf2052143d": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.985,
+      "reason": "Market A resolves based on a specific statement by Will Smith during a TV show appearance, while Market B is about Donald Trump making the specified word (ass) during an event.",
+      "resolution_source": "Not specified",
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": "Not specified",
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812192.7750762
+  },
+  "e227426b7327dc1a67b3598c582cede1": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.5,
+      "reason": "Market A is about Will Smith's potential comment on a Tonight Show, while Market B is about Donald Trump's speech at the World Economic Forum in Davos. The events are different and do not resolve on the same real-world event.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812257.0781164
+  },
+  "209fd9e942f29c863d35afe6bbe3f3ca": {
+    "result": {
+      "same_event": false,
+      "confidence": 0.95,
+      "reason": "Market A focuses on Will Smith's comments during Jimmy Fallon's show, while Market B discusses Donald Trump's speech at the World Economic Forum (WEF). The events and individuals involved are distinctly different.",
+      "resolution_source": null,
+      "resolution_date": null,
+      "key_fields": {
+        "resolution_source": null,
+        "resolution_date": null
+      }
+    },
+    "timestamp": 1768812317.3522162
   }
 }

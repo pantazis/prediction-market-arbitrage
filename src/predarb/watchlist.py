@@ -399,6 +399,8 @@ def scan_watchlist(
                         k_quote.bid_size_usd = bid_size
                     if ask_size:
                         k_quote.ask_size_usd = ask_size
+                    # IMPORTANT: Update timestamp since we just fetched fresh data
+                    k_quote.ts = _utc_now().timestamp()
 
                 p_raw = orderbook_fetcher("polymarket", p_market, p_outcome)
                 if p_raw:
@@ -415,6 +417,8 @@ def scan_watchlist(
                         p_quote.bid_size_usd = bid_size
                     if ask_size:
                         p_quote.ask_size_usd = ask_size
+                    # IMPORTANT: Update timestamp since we just fetched fresh data
+                    p_quote.ts = _utc_now().timestamp()
 
             quote_snapshots.append(
                 {
@@ -445,8 +449,10 @@ def scan_watchlist(
                 continue
 
             edge_gross = float(k_quote.bid) - float(p_quote.ask)
+            
             cfg = FilterConfig(
                 min_depth_usd=row.min_depth_usd,
+                min_leg_usd=row.min_depth_usd,  # Match execution size to depth requirement
                 max_staleness_sec=row.max_age_sec,
                 min_edge=row.min_edge,
                 fee_bps_a=fee_bps_kalshi,
@@ -470,6 +476,8 @@ def scan_watchlist(
                         "reason": report.fail_filter or "filter_failed",
                         "detail": report.fail_reason,
                         "outcome": outcome,
+                        "k_question": row.k_question,
+                        "p_question": row.p_question,
                     }
                 )
                 continue

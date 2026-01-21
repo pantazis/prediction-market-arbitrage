@@ -77,7 +77,7 @@ detectors:
 
 # ==================== TELEGRAM NOTIFICATIONS ==================== #
 telegram:
-  enabled: false  # Set to true if you want notifications
+  enabled: true   # Set to true if you want notifications
   bot_token: ""   # Set via TELEGRAM_BOT_TOKEN env var
   chat_id: ""     # Set via TELEGRAM_CHAT_ID env var
 

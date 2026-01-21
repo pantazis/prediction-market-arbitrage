@@ -5,6 +5,8 @@ import hashlib
 import json
 import logging
 import time
+import threading
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
@@ -21,7 +23,7 @@ def _isoformat(dt: Optional[datetime]) -> str:
 
 from predarb.broker import PaperBroker
 from predarb.config import AppConfig
-from predarb.models import Market, Opportunity
+from predarb.models import Market, Opportunity, Outcome
 from predarb.models import TradeAction
 from predarb.market_client_base import MarketClient
 from predarb.polymarket_client import PolymarketClient
@@ -169,6 +171,261 @@ class Engine:
             self.llm_verifier: Optional[LLMVerifier] = LLMVerifier(llm_config)
         else:
             self.llm_verifier = None
+        
+        # STATE TRACKING for Notifications
+        self.opportunity_states: Dict[str, Dict[str, Any]] = {}
+
+        # FAST LOOP THREADING
+        self.running = True
+        self.fast_thread: Optional[threading.Thread] = None
+        self.fast_markets_kalshi: Dict[str, Market] = {}
+        self.fast_markets_poly: Dict[str, Market] = {}
+
+    def _load_fast_markets_from_csv(self):
+        """
+        Load 'Stub' markets from watchlist CSV to populate self.fast_markets_* 
+        so the Fast Loop can run immediately without waiting for full universe fetch.
+        """
+        watch_cfg = getattr(self.config, "watchlist", None)
+        if not watch_cfg or not getattr(watch_cfg, "enabled", False):
+            return
+
+        try:
+            from predarb.watchlist import load_watchlist_csv
+            if not Path(watch_cfg.csv_path).exists():
+                return
+                
+            rows = load_watchlist_csv(watch_cfg.csv_path)
+            count = 0
+            for row in rows:
+                # 1. Kalshi Stub
+                if row.k_ticker and row.k_ticker not in self.fast_markets_kalshi:
+                    # Create stub with just enough info for fetch_orderbook
+                    self.fast_markets_kalshi[row.k_ticker] = Market(
+                        id=row.k_ticker, # ID matches ticker for stub
+                        question=row.k_question,
+                        outcomes=[Outcome(id="yes", label="Yes", price=0.5), Outcome(id="no", label="No", price=0.5)],
+                        end_date=datetime.fromisoformat(row.k_expiration_time.replace("Z", "+00:00")) if row.k_expiration_time else None
+                    )
+                    count += 1
+
+                # 2. Polymarket Stub
+                if row.p_market_id and row.p_market_id not in self.fast_markets_poly:
+                    outcomes = []
+                    if row.p_yes_token_id:
+                        outcomes.append(Outcome(id=row.p_yes_token_id, label="Yes", price=0.5))
+                    if row.p_no_token_id:
+                        outcomes.append(Outcome(id=row.p_no_token_id, label="No", price=0.5))
+                    
+                    self.fast_markets_poly[row.p_market_id] = Market(
+                        id=row.p_market_id,
+                        question=row.p_question,
+                        outcomes=outcomes,
+                        end_date=datetime.fromisoformat(row.p_endDate.replace("Z", "+00:00")) if row.p_endDate else None
+                    )
+                    count += 1
+            
+            logger.info(f"Loaded {count} stub markets from CSV for immediate Fast Loop startup.")
+            
+        except Exception as e:
+            logger.warning(f"Failed to load fast markets from CSV: {e}")
+
+    def _fetch_orderbook_instance(self, venue: str, market: Market, outcome_label: str) -> Optional[Dict[str, Any]]:
+        """
+        Instance method for fetching orderbooks, used by the Fast Loop thread.
+        Utilizes self.clients/self.fast_markets_* caches if needed (though caches here are per-call usually).
+        """
+        watch_cfg = getattr(self.config, "watchlist", None)
+        timeout = float(getattr(watch_cfg, "orderbook_timeout_s", 2.5))
+        
+        if venue == "kalshi":
+            # Kalshi: ticker is the ID part after colon if present
+            ticker = market.id.split(":")[-1] 
+            client = self._get_client_by_exchange("kalshi")
+            if client and hasattr(client, "fetch_orderbook"):
+                raw = client.fetch_orderbook(ticker, timeout_s=timeout)
+                # Normalize Kalshi list-of-lists [[price, qty], ...] to [{'price': p, 'size': q}, ...]
+                # AND reshape to {'bids': ..., 'asks': ...} for the specific outcome
+                if raw and "orderbook" in raw:
+                    ob = raw["orderbook"]
+                    
+                    # 1. Normalize both sides first
+                    norm = {}
+                    for side in ["yes", "no"]:
+                        norm[side] = []
+                        if side in ob and isinstance(ob[side], list):
+                            for item in ob[side]:
+                                if isinstance(item, list) and len(item) >= 2:
+                                    # Convert cents to probability (0.01 - 0.99)
+                                    price_prob = float(item[0]) / 100.0
+                                    norm[side].append({"price": price_prob, "size": item[1]})
+                    
+                    # 2. Map to bids/asks based on requested outcome
+                    target = outcome_label.lower()
+                    contra = "no" if target == "yes" else "yes"
+                    
+                    bids = norm.get(target, [])
+                    
+                    # Asks are derived from contra-side bids (1.0 - price)
+                    asks = []
+                    for row in norm.get(contra, []):
+                        p = row["price"]
+                        s = row["size"]
+                        # Filter invalid prices just in case
+                        if 0 < p < 1.0:
+                            asks.append({"price": 1.0 - p, "size": s})
+                    
+                    # IMPORTANT: Sort Bids DESC (best first) and Asks ASC (best first)
+                    bids.sort(key=lambda x: x["price"], reverse=True)
+                    asks.sort(key=lambda x: x["price"])
+
+                    # Construct the dict expected by extract_best_bid_ask_from_orderbook
+                    final_ob = {"bids": bids, "asks": asks}
+                    return final_ob
+
+                return None
+                
+        elif venue == "polymarket":
+            # Polymarket: need token ID for the outcome
+            client = self._get_client_by_exchange("polymarket")
+            if client and hasattr(client, "fetch_orderbook"):
+                # Find outcome by label in the market object
+                outcome = next((o for o in market.outcomes if o.label.lower() == outcome_label.lower()), None)
+                if outcome:
+                    return client.fetch_orderbook(str(outcome.id), timeout_s=timeout)
+                    
+        return None
+
+    def _run_fast_scan_loop(self):
+        """
+        Background thread that fetches orderbooks and scans the watchlist 
+        continuously, independent of the slow universe discovery loop.
+        """
+        logger.info("⚡ Fast Loop Thread STARTED")
+        
+        watch_cfg = getattr(self.config, "watchlist", None)
+        if not watch_cfg or not getattr(watch_cfg, "enabled", False):
+            logger.info("Fast Loop disabled in config.")
+            return
+
+        from predarb.watchlist import load_watchlist_csv, scan_watchlist, append_jsonl
+        
+        while self.running:
+            try:
+                # 1. Reload Watchlist (to pick up new pairs added by Slow Loop)
+                if not Path(watch_cfg.csv_path).exists():
+                    time.sleep(1)
+                    continue
+                    
+                current_list = load_watchlist_csv(watch_cfg.csv_path)
+                if not current_list:
+                    time.sleep(1)
+                    continue
+
+                # 2. Convert dicts to lists for scan_watchlist
+                # Merge fast_markets (stubs) with any full markets we might have
+                # For now, fast_markets should populate valid Market objects
+                k_markets = list(self.fast_markets_kalshi.values())
+                p_markets = list(self.fast_markets_poly.values())
+
+                if not k_markets or not p_markets:
+                    time.sleep(1)
+                    continue
+
+                # 3. SCAN
+                scan_output = scan_watchlist(
+                    current_list,
+                    kalshi_markets=k_markets,
+                    polymarket_markets=p_markets,
+                    fee_bps_kalshi=self._fee_bps_for_exchange("kalshi"),
+                    fee_bps_polymarket=self._fee_bps_for_exchange("polymarket"),
+                    slippage_bps=float(self.config.broker.slippage_bps),
+                    depth_fraction=float(watch_cfg.depth_fraction),
+                    orderbook_fetcher=self._fetch_orderbook_instance,
+                )
+
+                # 4. Logging & Notification (Stateful Logic)
+                if scan_output.scan_log: append_jsonl(watch_cfg.scan_log_path, [scan_output.scan_log])
+                # Filter rejects/approve logging if needed, or keep it minimal
+                
+                # --- STATEFUL NOTIFICATION LOGIC ---
+                current_ts = _utc_now().timestamp()
+                
+                # Process REJECTS
+                for reject in scan_output.rejects:
+                    pair_id = reject.get("pair_id")
+                    if not pair_id: continue
+                    new_state = {
+                        "step": 4, "status": "FAIL", 
+                        "reason": f"{reject.get('reason')} {reject.get('detail')} | K: {reject.get('k_question')} P: {reject.get('p_question')}", 
+                        "edge": 0.0, "ts": current_ts
+                    }
+                    self._handle_state_notification(pair_id, new_state, {})
+
+                # Process APPROVALS
+                market_lookup_all = {**self.fast_markets_kalshi, **self.fast_markets_poly}
+                max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
+                executed_count = 0
+
+                for packet in scan_output.approve_packets:
+                    pair_id = packet.get("pair_id")
+                    edge_net = packet.get("edge_net", 0.0)
+                    metadata = {
+                        "side": packet.get("side", "ARB"),
+                        "k_ticker": packet.get("kalshi", {}).get("ticker", ""),
+                        "p_market_id": packet.get("polymarket", {}).get("market_id", "")
+                    }
+                    
+                    opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
+                    if not opp: continue # Should not happen if markets exist
+
+                    # Step 5: Risk
+                    if not self.risk.approve(market_lookup_all, opp):
+                        new_state = {"step": 5, "status": "FAIL", "reason": "Risk Rejected", "edge": edge_net, "ts": current_ts}
+                        self._handle_state_notification(pair_id, new_state, metadata)
+                        continue
+
+                    # Step 6: Execution
+                    was_traded = False
+                    trades = []
+                    if getattr(watch_cfg, "execute_paper_trades", False) and executed_count < max_trades:
+                        trades = self.broker.execute(market_lookup_all, opp)
+                        was_traded = True
+                        executed_count += 1
+                    
+                    if was_traded:
+                        new_state = {"step": 6, "status": "PASS", "reason": "Executed", "edge": edge_net, "ts": current_ts}
+                        metadata["trade_details"] = f"{len(trades)} legs"
+                    else:
+                        new_state = {"step": 5, "status": "PASS", "reason": "Risk Approved (Pending)", "edge": edge_net, "ts": current_ts}
+                    
+                    self._handle_state_notification(pair_id, new_state, metadata)
+
+                # Sleep before next scan
+                scan_interval = float(getattr(watch_cfg, "max_age_sec", 15))
+                # If we have very few items, we can scan faster, but adhere to config
+                time.sleep(scan_interval)
+
+            except Exception as e:
+                logger.error(f"Error in Fast Loop Thread: {e}")
+                time.sleep(5) # Backoff on error
+
+    def _handle_state_notification(self, pair_id: str, new_state: dict, metadata: dict):
+        """Helper to check state change and notify."""
+        old_state = self.opportunity_states.get(pair_id, {})
+        should_notify = (
+            old_state.get("step") != new_state["step"] or 
+            old_state.get("status") != new_state["status"] or
+            abs(old_state.get("edge", 0) - new_state["edge"]) > 0.005
+        )
+        if new_state["step"] == 6 and new_state["status"] == "PASS":
+            should_notify = True
+
+        if should_notify:
+            if self.notifier and hasattr(self.notifier, "notify_state_change"):
+                self.notifier.notify_state_change(pair_id, old_state, new_state, metadata)
+        
+        self.opportunity_states[pair_id] = new_state
 
     def _fee_bps_for_exchange(self, name: str) -> float:
         for client in self.clients:
@@ -343,6 +600,22 @@ class Engine:
                 logger.error(f"Failed to fetch markets from {client.get_exchange_name()}: {e}")
         
         logger.info(f"Total markets across all exchanges: {len(all_markets)}")
+
+        # SYNC: Update Fast Loop Market Cache IMMEDIATELY with Real Data
+        # This ensures Fast Loop has the objects before we write any new pairs to CSV
+        if kalshi_markets:
+            for m in kalshi_markets:
+                self.fast_markets_kalshi[m.id] = m
+                # Also index by ticker if needed
+                ticker = m.id.split(":")[-1]
+                if ticker != m.id:
+                    self.fast_markets_kalshi[ticker] = m
+                    
+        if poly_markets:
+            for m in poly_markets:
+                self.fast_markets_poly[m.id] = m
+        
+        logger.info(f"Synced {len(kalshi_markets or [])} Kalshi & {len(poly_markets or [])} Poly markets to Fast Loop cache.")
 
         # SNAPSHOT: Save all markets to JSON for inspection (User Request)
         try:
@@ -529,160 +802,6 @@ class Engine:
                             from predarb.watchlist import upsert_watchlist_rows
                             upsert_watchlist_rows(watch_cfg.csv_path, pairs_to_add)
                             logger.info(f"Batch {batch_num}: Added {len(pairs_to_add)} pairs to watchlist")
-                            
-                            # FAST LOOP: Scan Watchlist IMMEDIATELY
-                            if watch_cfg and getattr(watch_cfg, "enabled", False):
-                                logger.info(f"Batch {batch_num}: Scanning watchlist for arb (Fast Loop)...")
-                                try:
-                                    from predarb.watchlist import load_watchlist_csv, scan_watchlist, append_jsonl
-                                    # Reload full watchlist to include new items
-                                    current_list = load_watchlist_csv(watch_cfg.csv_path)
-                                    
-                                    scan_output = scan_watchlist(
-                                        current_list,
-                                        kalshi_markets=kalshi_markets,
-                                        polymarket_markets=poly_markets,
-                                        fee_bps_kalshi=self._fee_bps_for_exchange("kalshi"),
-                                        fee_bps_polymarket=self._fee_bps_for_exchange("polymarket"),
-                                        slippage_bps=float(self.config.broker.slippage_bps),
-                                        depth_fraction=float(watch_cfg.depth_fraction),
-                                        orderbook_fetcher=orderbook_fetcher,
-                                    )
-                                    if scan_output.scan_log: append_jsonl(watch_cfg.scan_log_path, [scan_output.scan_log])
-                                    if scan_output.rejects: append_jsonl(watch_cfg.reject_log_path, scan_output.rejects)
-                                    if scan_output.approve_packets: append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
-                                    
-                                    if scan_output.approve_packets: append_jsonl(watch_cfg.approve_log_path, scan_output.approve_packets)
-                                    
-                                    # --- STATEFUL NOTIFICATION LOGIC ---
-                                    current_ts = _utc_now().timestamp()
-                                    
-                                    # 1. Process REJECTS (Failed at Step 4: Filters)
-                                    for reject in scan_output.rejects:
-                                        pair_id = reject.get("pair_id")
-                                        if not pair_id: continue
-                                        
-                                        reason = reject.get("reason", "unknown")
-                                        detail = reject.get("detail", {})
-                                        
-                                        # Construct state: Step 4 (Filter) -> FAIL
-                                        new_state = {
-                                            "step": 4,
-                                            "status": "FAIL",
-                                            "reason": f"{reason} {detail}",
-                                            "edge": 0.0, # Usually 0 if rejected early
-                                            "ts": current_ts
-                                        }
-                                        
-                                        old_state = self.opportunity_states.get(pair_id, {})
-                                        # Notify if state changed OR if it's the first time seeing it (optional, maybe too noisy? User said "on change")
-                                        # Let's notify if status/step changed.
-                                        if old_state.get("status") != "FAIL" or old_state.get("step") != 4:
-                                            if self.notifier and hasattr(self.notifier, "notify_state_change"):
-                                                 self.notifier.notify_state_change(
-                                                     pair_id, old_state, new_state, 
-                                                     {"side": "CHECK", "k_ticker": "?", "p_market_id": "?"}
-                                                 )
-                                        self.opportunity_states[pair_id] = new_state
-
-                                    # 2. Process APPROVALS (Passed Step 4, moving to 5 & 6)
-                                    market_lookup_all: Dict[str, Market] = {m.id: m for m in all_markets}
-                                    max_trades = max(int(getattr(watch_cfg, "max_trades_per_loop", 1)), 0)
-                                    executed_count = 0
-
-                                    for packet in scan_output.approve_packets:
-                                        pair_id = packet.get("pair_id")
-                                        edge_net = packet.get("edge_net", 0.0)
-                                        metadata = {
-                                            "side": packet.get("side", "ARB"),
-                                            "k_ticker": packet.get("kalshi", {}).get("ticker", ""),
-                                            "p_market_id": packet.get("polymarket", {}).get("market_id", "")
-                                        }
-
-                                        # Current State Candidate: Step 4 -> PASS
-                                        # But we immediately check Risk (Step 5)
-                                        
-                                        opp = self._build_cross_venue_opportunity_from_approve_packet(packet, market_lookup_all)
-                                        if not opp:
-                                             # Failed to build? Should match logic above
-                                             continue
-                                        
-                                        # Check RISK (Step 5)
-                                        risk_passed = self.risk.approve(market_lookup_all, opp)
-                                        if not risk_passed:
-                                            new_state = {
-                                                "step": 5,
-                                                "status": "FAIL",
-                                                "reason": "Risk Rejected",
-                                                "edge": edge_net,
-                                                "ts": current_ts
-                                            }
-                                        else:
-                                            # Risk PASSED
-                                            # Check EXECUTION (Step 6)
-                                            # Trigger paper trade if configured
-                                            was_traded = False
-                                            trades = []
-                                            if getattr(watch_cfg, "execute_paper_trades", False) and executed_count < max_trades:
-                                                trades = self.broker.execute(market_lookup_all, opp)
-                                                was_traded = True
-                                                executed_count += 1
-                                                # Update metadata
-                                                opp.metadata["trades"] = [{"market_id": t.market_id, "side": t.side, "amount": t.amount, "price": t.price, "realized_pnl": t.realized_pnl} for t in trades]
-                                            
-                                            if was_traded:
-                                                new_state = {
-                                                    "step": 6,
-                                                    "status": "PASS",
-                                                    "reason": "Executed",
-                                                    "edge": edge_net,
-                                                    "ts": current_ts
-                                                }
-                                                metadata["trade_details"] = f"{len(trades)} legs"
-                                            else:
-                                                # Just Risk Approved (Ready / Paper trade disabled or limit reached)
-                                                new_state = {
-                                                    "step": 5,
-                                                    "status": "PASS",
-                                                    "reason": "Risk Approved (Pending Trade)",
-                                                    "edge": edge_net,
-                                                    "ts": current_ts
-                                                }
-
-                                        # Compare and Notify
-                                        old_state = self.opportunity_states.get(pair_id, {})
-                                        
-                                        # Logic: Notify if Step changed (4->5->6) OR Status changed (Pass<->Fail) OR Edge Check
-                                        should_notify = (
-                                            old_state.get("step") != new_state["step"] or 
-                                            old_state.get("status") != new_state["status"] or
-                                            abs(old_state.get("edge", 0) - new_state["edge"]) > 0.005 # Notify on 0.5% edge moves
-                                        )
-                                        
-                                        # Always notify on TRADES (Step 6 PASS)
-                                        if new_state["step"] == 6 and new_state["status"] == "PASS":
-                                            should_notify = True
-
-                                        if should_notify:
-                                            if self.notifier and hasattr(self.notifier, "notify_state_change"):
-                                                self.notifier.notify_state_change(pair_id, old_state, new_state, metadata)
-                                        
-                                        # Update State
-                                        self.opportunity_states[pair_id] = new_state
-
-                                    # Remove old states? (Optional cleanup, maybe later)
-                                    
-                                    # Execute Paper Trades (Legacy block removed as it's integrated above)
-                                    # We integrated execution into the loop above to capture state correctly.
-                                    
-                                    if scan_output.quote_snapshots:
-                                        # (Optional) Quote snapshot logic if needed inside loop
-                                        pass
-
-                                except Exception as e:
-                                    logger.error(f"Fast Loop Scan failed: {e}")
-                                    logger.exception("Traceback:")
-
                         except Exception as e:
                             logger.error(f"Failed to write batch to CSV: {e}")
 
@@ -691,6 +810,12 @@ class Engine:
 
         # End of Loop
         logger.info("Batch processing complete.")
+        
+        if poly_markets:
+            for m in poly_markets:
+                self.fast_markets_poly[m.id] = m
+        
+        logger.info(f"Synced {len(kalshi_markets or [])} Kalshi & {len(poly_markets or [])} Poly markets to Fast Loop cache.")
 
         
         # Scan ALL markets for opportunities (no pre-filtering)
@@ -881,15 +1006,45 @@ class Engine:
             self.notifier.notify_trade_summary(len(opportunities))
         return opportunities
 
-    def run(self):
-        for i in range(self.config.engine.iterations):
-            logger.info("Iteration %s", i + 1)
-            self.run_once()
-            # Generate incremental report (appends only if data changed)
-            self.reporter.report_iteration(
-                iteration=i + 1,
-                all_markets=self._last_markets,
-                detected_opportunities=self._last_detected,
-                approved_opportunities=self._last_approved,
-            )
-            time.sleep(self.config.engine.refresh_seconds)
+    def run(self, max_iterations: Optional[int] = None):
+        """
+        Main entry point for the engine.
+        Now starts the Fast Loop Thread immediately, then proceeds with the Slow Loop.
+        """
+        logger.info("Starting Arbitrage Engine...")
+        if self.notifier:
+            self.notifier.notify_startup(f"Engine Started (Threaded Fast Loop Enabled)")
+
+        # 1. Load Stub Markets for Fast Loop
+        self._load_fast_markets_from_csv()
+
+        # 2. Start Fast Loop Thread
+        self.running = True
+        self.fast_thread = threading.Thread(target=self._run_fast_scan_loop, daemon=True)
+        self.fast_thread.start()
+
+        iteration = 0
+        try:
+            while True:
+                if max_iterations is not None and iteration >= max_iterations:
+                    logger.info("Max iterations reached, stopping.")
+                    break
+                
+                iteration += 1
+                logger.info(f"--- Slow Loop Iteration {iteration} ---")
+                
+                self.run_once()
+                
+                # Sleep is handled inside run_once or config
+                # Actually run_once doesn't sleep usually, we should sleep here or rely on fetch delays
+                sleep_sec = float(self.config.engine.refresh_seconds)
+                logger.info(f"Sleeping {sleep_sec}s before next Slow Loop cycle...")
+                time.sleep(sleep_sec)
+
+        except KeyboardInterrupt:
+            logger.info("Stopping engine...")
+        finally:
+            self.running = False
+            if self.fast_thread:
+                self.fast_thread.join(timeout=5)
+            logger.info("Engine stopped.")

@@ -308,6 +308,9 @@ def main():
         from predarb.api import app
         print(f"Starting API server on {args.host}:{args.port}")
         uvicorn.run(app, host=args.host, port=args.port)
+    elif args.command == "pipeline":
+        from predarb.pipeline import run_pipeline
+        run_pipeline()
     else:
         engine.run()
 

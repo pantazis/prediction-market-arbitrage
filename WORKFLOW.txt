@@ -1,0 +1,146 @@
+================================================================================
+PREDICTION MARKET ARBITRAGE - COMPLETE WORKFLOW
+================================================================================
+
+PHASE 1: DISCOVERY & MATCHING (Slow Loop - Runs periodically)
+================================================================================
+
+1️⃣  FETCH
+    - Fetch markets from Kalshi API
+    - Fetch markets from Polymarket API
+    - Save combined data → data/markets_snapshot.json
+    
+2️⃣  TAG FILTER
+    - Load data/category_map.csv
+    - Filter: Only match Politics vs Politics, Sports vs Sports, etc.
+    - Reject cross-category pairs (e.g., Politics vs Crypto)
+    
+3️⃣  VECTORIZE
+    - Load SentenceTransformer model (all-MiniLM-L6-v2)
+    - Create AI embeddings for market questions
+    - Semantic similarity scoring
+    
+4️⃣  MATCH
+    - Find semantically similar pairs (min similarity: 0.60)
+    - Check date proximity (max 24 hours difference)
+    - Generate candidate pairs
+    
+5️⃣  LLM VERIFICATION
+    - For high-confidence matches (similarity > 0.75):
+      - Send to LLM (GPT/Gemini/Mock)
+      - Verify: Same event? Same resolution criteria?
+      - Check confidence score (> 0.7 to pass)
+    - Save verified pairs → data/watchlist_pairs.csv
+    
+    CSV Schema:
+    - pair_id, k_ticker, p_market_id
+    - p_yes_token_id, p_no_token_id
+    - polarity, k_question, p_question
+    - k_expiration_time, p_endDate
+    - min_edge, min_depth_usd, max_age_sec
+    - status, last_verified_at
+
+================================================================================
+PHASE 2: EXECUTION & TRADING (Fast Loop - Runs continuously)
+================================================================================
+
+6️⃣  SERVE API
+    Command: python3 -m src.predarb.cli serve
+    
+    Endpoints:
+    - GET /watchlist          → Returns watchlist_pairs.csv
+    - GET /watchlist/live     → Watchlist with live orderbook data
+    - GET /check_orderbook    → Live check for specific pair
+    - GET /markets/snapshot   → Latest market snapshot
+
+7️⃣  LIVE ORDERBOOK FETCH (Per pair in watchlist)
+    - Fetch Kalshi orderbook (bid/ask for YES/NO)
+    - Fetch Polymarket orderbook (bid/ask for YES/NO)
+    - Extract best bid/ask prices
+    - Calculate spread
+
+🧮 8️⃣  ARBITRAGE CASE GENERATION
+    - For each outcome (YES/NO):
+      - Kalshi BID vs Polymarket ASK
+      - Calculate gross edge = K_bid - P_ask
+      - Apply fees (Kalshi: 7bps, Polymarket: 10bps)
+      - Apply slippage (10bps)
+      - Calculate net edge
+      - Estimate max executable size (using depth_fraction: 10%)
+
+🧪 9️⃣  FILTER CHECKS
+    - Min Edge Check: edge_net >= min_edge (default: 0.01)
+    - Min Depth Check: bid_size >= min_depth_usd (default: $50)
+    - Staleness Check: quote age <= max_age_sec (default: 30s)
+    - Price Validity: bid/ask within valid range (0.0-1.0)
+    
+    Result: PASS → Continue | FAIL → Reject with reason
+
+✅ 🔟  RISK APPROVAL
+    - Check broker position limits
+    - Verify account equity sufficient
+    - Ensure max exposure per event not exceeded
+    - Validate trade doesn't violate risk rules
+    
+    Result: APPROVED → Execute | REJECTED → Log rejection
+
+🧾 1️⃣1️⃣  PAPER TRADE EXECUTION
+    - If execute_paper_trades=true:
+      - Generate TradeAction objects:
+        * Kalshi: SELL outcome at bid price
+        * Polymarket: BUY outcome at ask price
+      - Submit to PaperBroker
+      - Log trades to unified reporter
+      - Update broker positions
+    - Notify via Telegram (if configured)
+    
+    Trade Log Format:
+    {
+      "step": 6,
+      "status": "PASS",
+      "reason": "Executed",
+      "edge_net": 0.0234,
+      "pair_id": "abc123...",
+      "trades": [
+        {"venue": "kalshi", "action": "SELL YES", "price": 0.56},
+        {"venue": "polymarket", "action": "BUY YES", "price": 0.52}
+      ]
+    }
+
+================================================================================
+MONITORING & REPORTING
+================================================================================
+
+📊 Reports Generated:
+    - data/scan_log.jsonl       → Fast loop scan history
+    - reports/unified_report.json → Comprehensive report
+    - data/watchlist_pairs.csv   → Active watchlist
+
+📈 Metrics Tracked:
+    - Pairs checked per loop
+    - Opportunities detected
+    - Filter pass/fail rates
+    - Risk approval rates
+    - Paper trades executed
+    - Edge captured (gross/net)
+
+================================================================================
+QUICK START COMMANDS
+================================================================================
+
+# Step 1: Run Discovery Pipeline (generates watchlist)
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+python3 -m predarb.pipeline
+
+# Step 2: Start API Server (serves watchlist + live data)
+python3 -m predarb.cli serve --host 0.0.0.0 --port 8000
+
+# Step 3: Run Execution Engine (monitors watchlist, executes trades)
+python3 -m predarb.cli run --config config.yml --iterations 100
+
+# Alternative: Run once (for testing)
+python3 -m predarb.cli once --config config.yml
+
+================================================================================
+END OF WORKFLOW
+================================================================================

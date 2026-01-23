@@ -41,6 +41,12 @@ class Market(BaseModel):
     description: Optional[str] = Field(default=None, alias="resolution_rules")
     best_bid: Dict[str, float] = Field(default_factory=dict)
     best_ask: Dict[str, float] = Field(default_factory=dict)
+    
+    # New Metadata for Category-First Matching
+    series_id: Optional[str] = None  # e.g. "GT-CPI" or "fed-rates"
+    category: Optional[str] = None   # e.g. "Economics", "Sports"
+    slug: Optional[str] = None       # e.g. "inflation-jan-2025"
+    
     trades_1h: Optional[int] = None
     updated_at: Optional[datetime] = None
     

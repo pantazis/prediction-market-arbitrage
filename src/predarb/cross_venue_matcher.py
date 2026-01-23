@@ -145,6 +145,9 @@ class CrossVenueMatcher:
         self.encode_batch_size = encode_batch_size
         self._model: Optional[SentenceTransformer] = None
         
+        # Load Category Map (Bridge Table)
+        self.category_buckets: Dict[str, Dict[str, List[str]]] = self._load_category_map()
+        
         if not SEMANTIC_AVAILABLE and enabled:
             logger.warning(
                 "sentence-transformers not available. "
@@ -152,6 +155,64 @@ class CrossVenueMatcher:
                 "Install: pip install sentence-transformers"
             )
             self.enabled = False
+
+    def _load_category_map(self) -> Dict[str, Dict[str, List[str]]]:
+        """
+        Load logical buckets from data/category_map.csv
+        Returns: {
+            "BUCKET_NAME": {
+                "kalshi": ["Category1", "Category2"],
+                "polymarket": ["Tag1", "Tag2"]
+            }
+        }
+        """
+        buckets: Dict[str, Dict[str, List[str]]] = {}
+        try:
+            path = Path("data/category_map.csv")
+            if not path.exists():
+                return {}
+            
+            import csv
+            with path.open("r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    bucket = row["bucket_name"].strip().upper()
+                    k_cats = [x.strip().lower() for x in row["kalshi_category"].split("|") if x.strip()]
+                    p_tags = [x.strip().lower() for x in row["polymarket_tag"].split("|") if x.strip()]
+                    
+                    if bucket not in buckets:
+                        buckets[bucket] = {"kalshi": [], "polymarket": []}
+                    
+                    buckets[bucket]["kalshi"].extend(k_cats)
+                    buckets[bucket]["polymarket"].extend(p_tags)
+            
+            logger.info(f"Loaded {len(buckets)} category buckets: {list(buckets.keys())}")
+            return buckets
+        except Exception as e:
+            logger.error(f"Failed to load category map: {e}")
+            return {}
+
+    def _assign_bucket(self, market: Market) -> Optional[str]:
+        """Assign a market to a high-level bucket based on metadata."""
+        if not self.category_buckets:
+            return None
+        
+        # Check Kalshi Category
+        if market.exchange == "kalshi" and market.category:
+            cat = market.category.strip().lower()
+            for bucket, rules in self.category_buckets.items():
+                if cat in rules["kalshi"]:
+                    return bucket
+        
+        # Check Polymarket Tags
+        if market.exchange == "polymarket" and market.tags:
+            tags = [t.strip().lower() for t in market.tags]
+            for bucket, rules in self.category_buckets.items():
+                # If ANY tag matches the bucket's whitelist
+                if not set(tags).isdisjoint(set(rules["polymarket"])):
+                    return bucket
+                    
+        return None
     
     def _load_model(self):
         """Lazy load the sentence transformer model."""
@@ -317,147 +378,85 @@ class CrossVenueMatcher:
             # But duplicate embedding is what we want to avoid.
             pass
 
-        # Group Kalshi markets by category to batch process efficiently
-        k_by_category: Dict[str, List[Market]] = {}
-        total_k = len(k_binary)
-        logger.info(f"Categorizing {total_k} Kalshi markets (AI Phase)...")
+        # Group Kalshi markets by BUCKET
+        k_by_bucket: Dict[str, List[Market]] = {}
+        uncategorized_k: List[Market] = []
         
-        for idx, m in enumerate(k_binary, 1):
-            # Log progress every 10% or every 50 items
-            if idx % 50 == 0 or idx == total_k:
-                pct = (idx / total_k) * 100
-                logger.info(f"Categorizing: {idx}/{total_k} ({pct:.1f}%) complete...")
+        total_k = len(k_binary)
+        logger.info(f"Bucketing {total_k} Kalshi markets...")
+        
+        for m in k_binary:
+            bucket = self._assign_bucket(m)
+            if bucket:
+                if bucket not in k_by_bucket:
+                    k_by_bucket[bucket] = []
+                k_by_bucket[bucket].append(m)
+            else:
+                uncategorized_k.append(m)
+                
+        # Also group Polymarket by BUCKET for fast retrieval
+        p_by_bucket: Dict[str, List[Market]] = {}
+        uncategorized_p: List[Market] = []
+        
+        for m in p_binary:
+            bucket = self._assign_bucket(m)
+            if bucket:
+                if bucket not in p_by_bucket:
+                    p_by_bucket[bucket] = []
+                p_by_bucket[bucket].append(m)
+            else:
+                uncategorized_p.append(m)
 
-            cat = str(m.category) if hasattr(m, "category") and m.category else "Uncategorized"
-            
-            # Smart Categorization: If Uncategorized, ask LLM
-            if cat == "Uncategorized" or not cat:
-                if verifier.config.enabled:
-                    cat = verifier.classify_market(m)
-                    # Update the market object so it sticks for this run
-                    if hasattr(m, "category"):
-                        m.category = cat
-                    else:
-                        object.__setattr__(m, "category", cat)
-            
-            if cat not in k_by_category:
-                k_by_category[cat] = []
-            k_by_category[cat].append(m)
-            
         pairs: List[Tuple[Market, Market, float]] = []
         
-        try:
-            # Process each category
-            total_cats = len(k_by_category)
-            for cat_idx, (category, k_list) in enumerate(k_by_category.items(), 1):
-                # 1. Get relevant Polymarket subset
-                p_subset = self._get_polymarket_subset(category, p_binary)
+        # 1. Process STRICT Buckets
+        for bucket, k_list in k_by_bucket.items():
+            p_subset = p_by_bucket.get(bucket, [])
+            if not p_subset:
+                continue
                 
-                if not p_subset:
-                    logger.debug(f"No Polymarket candidates for Kalshi category '{category}'")
-                    continue
-                    
-                logger.info(f"Matching Category '{category}' ({cat_idx}/{total_cats}): {len(k_list)} Kalshi vs {len(p_subset)} Poly")
+            logger.info(f"Matching Bucket '{bucket}': {len(k_list)} Kalshi vs {len(p_subset)} Poly")
+            
+            # Encode just the subset? Or use precomputed?
+            # For simplicity & correctness with bridge table logic, strict subset matching is best.
+            # We must encode P subset on the fly (or extract from giant tensor).
+            # On-the-fly is safer for ensuring we match the right subset.
+            
+            # Encode K
+            k_texts = [_get_text_blob(m) for m in k_list]
+            k_emb = model.encode(k_texts, convert_to_tensor=True)
+            
+            # Encode P
+            p_texts = [_get_text_blob(m) for m in p_subset]
+            p_emb = model.encode(p_texts, convert_to_tensor=True)
+            
+            # Cosine similarity
+            scores = util.cos_sim(k_emb, p_emb)
+            
+            # Find best matches
+            for i in range(len(k_list)):
+                best_indices = scores[i].topk(min(self.top_k, len(p_subset))).indices
+                best_scores = scores[i].topk(min(self.top_k, len(p_subset))).values
                 
-                # 2. Encode Polymarket subset
-                if p_emb_all is not None:
-                     # Filter embeddings from precomputed tensor
-                     # This requires mapping indices, which is complex if we filtered by category.
-                     # SIMPLIFICATION: If we use pre-computed, we engage "Global Search" or we still filter?
-                     # Better Plan: Even with pre-computed, we can filter using the market objects.
-                     # But current CATEGORY_MAP logic filters markets first.
-                     
-                     # If we have pre-computed ALL Polymarket embeddings, we should rely on their indices.
-                     # Let's subset the embeddings based on the category filter.
-                     
-                     # Get indices of p_subset within p_subset_all
-                     # This is slow if O(N^2).
-                     # Optimization: For Batch Mode, we assume we want to match against ALL relevant Polymarkets.
-                     # Actually, reusing the 'category filter' is good, but requires subsets.
-                     
-                     # Simple approach for Batch Mode:
-                     # If we have precomputed embeddings, skipping the category textual filter might be faster?
-                     # No, filtering is 1000x faster than vector search.
-                     
-                     # Efficient Subsetting:
-                     # Create a map of ID -> Index from p_subset_all
-                     p_id_to_idx = {m.id: i for i, m in enumerate(p_subset_all)}
-                     
-                     # Find indices for p_subset (polymarkets matching category)
-                     valid_indices = []
-                     final_p_subset = []
-                     for pm in p_subset:
-                         if pm.id in p_id_to_idx:
-                             valid_indices.append(p_id_to_idx[pm.id])
-                             final_p_subset.append(pm)
-                             
-                     if not valid_indices:
-                         continue
-                         
-                     # Sub-select embeddings
-                     # p_emb is a Tensor
-                     import torch
-                     p_emb = p_emb_all[valid_indices]
-                     p_subset = final_p_subset # Update to ensure alignment
-                     
-                else:
-                    # Fallback: Compute fresh
-                    logger.info(f"  Vectorizing {len(p_subset)} Polymarket items...")
-                    p_texts = [_get_text_blob(m) for m in p_subset]
-                    p_emb = model.encode(
-                        p_texts,
-                        convert_to_tensor=True,
-                        normalize_embeddings=True,
-                        show_progress_bar=False,
-                        batch_size=self.encode_batch_size,
-                    )
-                
-                # 3. Process Kalshi markets in this category
-                logger.info(f"  Vectorizing {len(k_list)} Kalshi items...")
-                k_texts = [_get_text_blob(m) for m in k_list]
-                k_emb = model.encode(
-                    k_texts,
-                    convert_to_tensor=True,
-                    normalize_embeddings=True,
-                    show_progress_bar=False,
-                    batch_size=self.encode_batch_size,
-                )
-                
-                # 4. Search
-                logger.info("  Computing vector similarities (Semantic Search)...")
-                top_k = min(self.top_k, len(p_subset))
-                hits = util.semantic_search(k_emb, p_emb, top_k=top_k)
-                
-                for k_local_idx, hit_list in enumerate(hits):
-                    k_market = k_list[k_local_idx]
-                    
-                    for hit in hit_list:
-                        score = hit['score']
-                        if score < self.min_similarity:
-                            continue
+                for j, score_tensor in zip(best_indices, best_scores):
+                    score = float(score_tensor.item())
+                    if score >= self.min_similarity:
+                        # Time diff check
+                        if self.max_hours_diff > 0:
+                            hrs = _time_diff_hours(k_list[i], p_subset[j])
+                            if hrs is not None and hrs > self.max_hours_diff:
+                                continue
                         
-                        p_idx = hit['corpus_id']
-                        p_market = p_subset[p_idx]
-                        
-                        # Date proximity check
-                        time_diff = _time_diff_hours(k_market, p_market)
-                        if time_diff is None or time_diff > self.max_hours_diff:
-                            continue
-                        
-                        pairs.append((k_market, p_market, float(score)))
+                        pairs.append((k_list[i], p_subset[j], score))
 
-            logger.info(f"Batch processing complete. Found {len(pairs)} matches total.")
-                
-        except Exception as e:
-            logger.error(f"Embedding/search failed: {e}")
-            return []
-
-        
-        # Sort by similarity descending
+        # 2. Process Uncategorized? 
+        # User requested: "Only attempt to match markets within the same Bucket"
+        # So we SKIP uncategorized for now to reduce noise.
+        if uncategorized_k:
+            logger.info(f"Skipping {len(uncategorized_k)} uncategorized Kalshi markets (strict bucketing).")
+            
+        # Sort by score desc
         pairs.sort(key=lambda x: x[2], reverse=True)
-        
-        logger.info(f"Found {len(pairs)} cross-venue pairs (min_sim={self.min_similarity})")
-        
         return pairs
     
     def get_paired_markets(

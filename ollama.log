@@ -1,7 +1,0 @@
-nohup: ignoring input
-Couldn't find '/root/.ollama/id_ed25519'. Generating new private key.
-Your new public key is: 
-
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMDuhNp286oPcMmoJUVgbfaiZN8/FW4QCdVUOmeZqshI
-
-Error: listen tcp 127.0.0.1:11434: bind: address already in use

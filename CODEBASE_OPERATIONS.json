@@ -32,11 +32,31 @@
         },
         "kalshi_client_level": {
           "sports_prefixes": [
-            "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
-            "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA",
-            "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL",
-            "KXMVESPORTSMULTIGAME", "KXMVENFLSINGLEGAME", "KXMVESPORTS", "KXMVENFL",
-            "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
+            "KXNBA",
+            "KXNFL",
+            "KXNHL",
+            "KXPGATOUR",
+            "KXATPMATCH",
+            "KXWTAMATCH",
+            "KXNCAAWBGAME",
+            "KXNCAAMB",
+            "KXLALIGA",
+            "KXLIGUE1",
+            "KXBUNDESLIGA",
+            "KXTGLMATCH",
+            "KXCOACH",
+            "KXNYG",
+            "KXNEXT",
+            "KXDOTA2",
+            "KXLOL",
+            "KXMVESPORTSMULTIGAME",
+            "KXMVENFLSINGLEGAME",
+            "KXMVESPORTS",
+            "KXMVENFL",
+            "KXMVENBA",
+            "KXMVEMLB",
+            "KXMVENHL",
+            "KXMVESOCCER"
           ],
           "description": "Filters out sports betting categories after fetching",
           "effect": "Removes NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching markets"
@@ -89,7 +109,7 @@
         ],
         "notes": [
           "Removed min_liquidity_usd filter from KalshiClient",
-          "Removed min_days_to_expiry filter from KalshiClient", 
+          "Removed min_days_to_expiry filter from KalshiClient",
           "All quality control delegated to smart_matcher.py semantic similarity + date proximity",
           "Sports filtering kept at client level for performance"
         ]
@@ -421,37 +441,40 @@
         "manual_interrupt": "Ctrl+C for graceful shutdown"
       },
       "commands": {
-        "automated_setup": {
-          "command": "./run_live_paper_setup.sh",
-          "description": "One-command setup: installs deps, validates config, tests API, runs bot",
-          "options": [
-            "--duration HOURS - Run duration (default 8.0)",
-            "--capital USDC - Starting capital (default 500.0)",
-            "--log-level LEVEL - DEBUG|INFO|WARNING|ERROR"
-          ]
-        },
         "direct_execution": {
-          "command": "python3 run_live_paper.py",
-          "description": "Run live paper trading with real-time data",
+          "command": "python -m predarb run --config config_live_paper.yml --iterations N",
+          "description": "Run live paper trading with real-time data using CLI",
+          "config_file": "config_live_paper.yml",
+          "refresh_interval": "900 seconds (15 minutes per scan)",
+          "calculation": "iterations = (hours × 60) ÷ 15",
           "options": [
-            "--duration HOURS - How long to run (default 8.0)",
-            "--capital USDC - Starting balance (default 500.0)",
-            "--config PATH - Config file (default config_live_paper.yml)",
-            "--log-level LEVEL - Logging verbosity"
+            "--config PATH - Config file (default config.yml)",
+            "--iterations N - Number of scan iterations (overrides config)"
           ],
           "examples": [
-            "python3 run_live_paper.py --duration 0.1  # Quick 6-minute test",
-            "python3 run_live_paper.py --duration 4 --capital 1000  # 4 hours, 1000 USDC",
-            "python3 run_live_paper.py --log-level DEBUG  # Debug mode"
+            "python -m predarb run --config config_live_paper.yml --iterations 4    # 1 hour (4 × 15min)",
+            "python -m predarb run --config config_live_paper.yml --iterations 32   # 8 hours (32 × 15min)",
+            "python -m predarb run --config config_live_paper.yml --iterations 96   # 24 hours / 1 day",
+            "python -m predarb run --config config_live_paper.yml --iterations 480  # 5 days (120h)",
+            "python -m predarb run --config config_live_paper.yml --iterations 672  # 7 days (168h)"
           ]
         },
-        "validation": {
-          "command": "python3 validate_live_paper_setup.py",
-          "description": "Pre-flight validation: checks Python, deps, config, API, files",
-          "exit_codes": {
-            "0": "All checks passed, ready to run",
-            "1": "One or more checks failed"
-          }
+        "background_execution": {
+          "command": "nohup ./.venv/bin/python3 -m predarb run --config config_live_paper.yml --iterations N > bot_dryrun.log 2>&1 & echo $!",
+          "description": "Run in background with log file, returns PID",
+          "examples": [
+            "nohup ./.venv/bin/python3 -m predarb run --config config_live_paper.yml --iterations 480 > bot_5day.log 2>&1 & echo $!",
+            "nohup ./.venv/bin/python3 -m predarb run --config config_live_paper.yml --iterations 96 > bot_1day.log 2>&1 & echo $!"
+          ],
+          "monitoring": [
+            "tail -f bot_dryrun.log - View live logs",
+            "ps aux | grep 'predarb run' - Check if running",
+            "kill <PID> - Stop the bot"
+          ]
+        },
+        "quick_test": {
+          "command": "python -m predarb run --config config_live_paper.yml --iterations 1",
+          "description": "Single iteration test (15 minutes)"
         }
       },
       "outputs": {
@@ -674,7 +697,13 @@
         "unit_tests": "pytest tests/test_dual_injection.py tests/test_cross_venue_scenarios.py -v",
         "integration_test": "python run_all_scenarios.py",
         "total_tests": 47,
-        "coverage": ["injection", "scenarios", "validation", "determinism", "CLI"]
+        "coverage": [
+          "injection",
+          "scenarios",
+          "validation",
+          "determinism",
+          "CLI"
+        ]
       }
     },
     "strict_ab_validation": {
@@ -693,13 +722,23 @@
         "venue_a_kalshi": {
           "name": "kalshi",
           "supports_shorting": true,
-          "allowed_actions": ["BUY", "SELL-TO-OPEN", "SELL-TO-CLOSE"]
+          "allowed_actions": [
+            "BUY",
+            "SELL-TO-OPEN",
+            "SELL-TO-CLOSE"
+          ]
         },
         "venue_b_polymarket": {
           "name": "polymarket",
           "supports_shorting": false,
-          "allowed_actions": ["BUY", "SELL-TO-CLOSE"],
-          "forbidden_actions": ["SELL-TO-OPEN", "SHORT"]
+          "allowed_actions": [
+            "BUY",
+            "SELL-TO-CLOSE"
+          ],
+          "forbidden_actions": [
+            "SELL-TO-OPEN",
+            "SHORT"
+          ]
         }
       },
       "commands": {
@@ -814,7 +853,13 @@
       "configuration": {
         "config_file": "config_strict_ab.yml",
         "settings": {
-          "detectors": ["parity", "ladder", "exclusive_sum", "consistency", "composite"],
+          "detectors": [
+            "parity",
+            "ladder",
+            "exclusive_sum",
+            "consistency",
+            "composite"
+          ],
           "duplicate_disabled": "Explicitly disabled (requires short selling)",
           "min_gross_edge": "5% (strict threshold)",
           "min_liquidity": "5000 USD",
@@ -837,7 +882,7 @@
         "config_strict_ab.yml": "Strict mode configuration"
       },
       "example_output": {
-        "console": "================================================================================\nSTRICT A+B MODE VALIDATION\n✓ Generated 19 Polymarket + 14 Kalshi markets\n✓ Generated 18 test scenarios\n✓ Total detected: 13 opportunities\n✓ Valid A+B: 4, Rejected: 9 (69.2%)\n  Rejections: insufficient_venues=9\n  Valid types: LADDER=1, COMPOSITE=3\n✅ VALIDATION PASSED\n================================================================================" ,
+        "console": "================================================================================\nSTRICT A+B MODE VALIDATION\n✓ Generated 19 Polymarket + 14 Kalshi markets\n✓ Generated 18 test scenarios\n✓ Total detected: 13 opportunities\n✓ Valid A+B: 4, Rejected: 9 (69.2%)\n  Rejections: insufficient_venues=9\n  Valid types: LADDER=1, COMPOSITE=3\n✅ VALIDATION PASSED\n================================================================================",
         "json_fields": "timestamp, seed, config, validation_mode, summary, validation_results, scenarios, test_results"
       },
       "test_scenarios_expanded": {
@@ -894,7 +939,10 @@
       "description": "Multi-exchange support with Kalshi as second market source alongside Polymarket",
       "architecture": {
         "interface": "MarketClient (abstract base class)",
-        "implementations": ["PolymarketClient", "KalshiClient"],
+        "implementations": [
+          "PolymarketClient",
+          "KalshiClient"
+        ],
         "authentication": "RSA-SHA256 request signing for Kalshi",
         "security": "NO hardcoded credentials - all from environment variables"
       },
@@ -915,9 +963,23 @@
           "sports_exclusion": "Client-level filter: Excludes all sports betting categories (NBA, NFL, NHL, tennis, soccer, NCAA, esports, coaching)"
         },
         "excluded_sports_prefixes": [
-          "KXNBA", "KXNFL", "KXNHL", "KXPGATOUR", "KXATPMATCH", "KXWTAMATCH",
-          "KXNCAAWBGAME", "KXNCAAMB", "KXLALIGA", "KXLIGUE1", "KXBUNDESLIGA",
-          "KXTGLMATCH", "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL"
+          "KXNBA",
+          "KXNFL",
+          "KXNHL",
+          "KXPGATOUR",
+          "KXATPMATCH",
+          "KXWTAMATCH",
+          "KXNCAAWBGAME",
+          "KXNCAAMB",
+          "KXLALIGA",
+          "KXLIGUE1",
+          "KXBUNDESLIGA",
+          "KXTGLMATCH",
+          "KXCOACH",
+          "KXNYG",
+          "KXNEXT",
+          "KXDOTA2",
+          "KXLOL"
         ]
       },
       "market_normalization": {
@@ -936,8 +998,18 @@
       "testing": {
         "fake_client": "tests/fake_kalshi_client.py (NO network calls)",
         "test_suite": "tests/test_kalshi_integration.py (15 tests passing)",
-        "fixtures": ["default (2 markets)", "high_volume (50 markets)", "parity_arb", "empty"],
-        "coverage": ["normalization", "multi-exchange engine", "configuration", "security"]
+        "fixtures": [
+          "default (2 markets)",
+          "high_volume (50 markets)",
+          "parity_arb",
+          "empty"
+        ],
+        "coverage": [
+          "normalization",
+          "multi-exchange engine",
+          "configuration",
+          "security"
+        ]
       },
       "backward_compatibility": "FULLY COMPATIBLE - existing single-client code unchanged",
       "documentation": "KALSHI_INTEGRATION.md"
@@ -1065,7 +1137,11 @@
             "description": "Start infinite loop: detect arbs → execute trades → sleep → repeat",
             "config": "Reads config.yml (can override with --config PATH)",
             "iterations": "Infinite (--iterations N to set limit)",
-            "env_requirements": ["POLYMARKET_API_KEY", "POLYMARKET_SECRET", "POLYMARKET_PASSPHRASE"],
+            "env_requirements": [
+              "POLYMARKET_API_KEY",
+              "POLYMARKET_SECRET",
+              "POLYMARKET_PASSPHRASE"
+            ],
             "output": "Logs to stdout + writes reports/paper_trades.csv + sends Telegram notifications (if enabled)",
             "when_to_use": "Production / continuous monitoring"
           },
@@ -1106,7 +1182,15 @@
               {
                 "arg": "--scenario NAME",
                 "description": "Use built-in stress scenario (shorthand for --inject scenario:NAME)",
-                "examples": ["high_volume", "many_risk_rejections", "partial_fill", "happy_path", "latency_freshness", "fee_slippage", "semantic_clustering"]
+                "examples": [
+                  "high_volume",
+                  "many_risk_rejections",
+                  "partial_fill",
+                  "happy_path",
+                  "latency_freshness",
+                  "fee_slippage",
+                  "semantic_clustering"
+                ]
               },
               {
                 "arg": "--inject SPEC",
@@ -1222,7 +1306,15 @@
           {
             "arg": "--scenario NAME",
             "default": "high_volume",
-            "choices": ["high_volume", "happy_path", "many_risk_rejections", "partial_fill", "latency_freshness", "fee_slippage", "semantic_clustering"],
+            "choices": [
+              "high_volume",
+              "happy_path",
+              "many_risk_rejections",
+              "partial_fill",
+              "latency_freshness",
+              "fee_slippage",
+              "semantic_clustering"
+            ],
             "description": "Stress scenario to inject alongside real data"
           },
           {
@@ -1277,7 +1369,11 @@
           ],
           "stop": "kill $(cat bot.pid)"
         },
-        "env_requirements": ["POLYMARKET_API_KEY", "POLYMARKET_SECRET", "POLYMARKET_PASSPHRASE"],
+        "env_requirements": [
+          "POLYMARKET_API_KEY",
+          "POLYMARKET_SECRET",
+          "POLYMARKET_PASSPHRASE"
+        ],
         "notes": [
           "Runs for specified duration, then auto-exits",
           "Combines real market volatility with controlled stress scenarios",
@@ -1425,15 +1521,15 @@
             "CUSTOM - opens config.yml in editor"
           ]
         },
-          {
-            "script": "python -c \"from src.predarb.unified_reporter import read_unified_report; data = read_unified_report(); print(f'Iterations: {len(data.get(\\\"iterations\\\", []))}, Opportunities: {len(data.get(\\\"opportunity_executions\\\", []))}')\"",
-            "purpose": "Read and summarize reports/unified_report.json (unified JSON reporting)",
-            "notes": "No network calls; replaces legacy CSV reading"
-          },
-          {
-            "script": "python -c \"from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()\"",
-            "purpose": "Export legacy CSV files from unified_report.json for backward compatibility",
-            "notes": "Generates live_summary.csv and paper_trades.csv from unified JSON"
+        {
+          "script": "python -c \"from src.predarb.unified_reporter import read_unified_report; data = read_unified_report(); print(f'Iterations: {len(data.get(\\\"iterations\\\", []))}, Opportunities: {len(data.get(\\\"opportunity_executions\\\", []))}')\"",
+          "purpose": "Read and summarize reports/unified_report.json (unified JSON reporting)",
+          "notes": "No network calls; replaces legacy CSV reading"
+        },
+        {
+          "script": "python -c \"from src.predarb.unified_reporter import export_legacy_csv; export_legacy_csv()\"",
+          "purpose": "Export legacy CSV files from unified_report.json for backward compatibility",
+          "notes": "Generates live_summary.csv and paper_trades.csv from unified JSON"
         }
       ]
     },
@@ -1533,7 +1629,12 @@
           "provider": {
             "type": "str",
             "default": "mock",
-            "options": ["mock", "openai", "gemini", "ollama"],
+            "options": [
+              "mock",
+              "openai",
+              "gemini",
+              "ollama"
+            ],
             "description": "LLM provider to use. 'mock' for testing (no API calls), 'openai' for GPT-3.5, 'ollama' for local models"
           },
           "model": {
@@ -1569,7 +1670,10 @@
           "fail_mode": {
             "type": "str",
             "default": "fail_open",
-            "options": ["fail_open", "fail_closed"],
+            "options": [
+              "fail_open",
+              "fail_closed"
+            ],
             "description": "On timeout/error: 'fail_open'=assume same event, 'fail_closed'=assume different"
           }
         }
@@ -1595,11 +1699,20 @@
         },
         "VerificationResult": {
           "description": "Result of verifying two markets",
-          "fields": ["same_event (bool)", "confidence (0..1)", "reason (str)", "resolution_source (optional)", "resolution_date (optional)"]
+          "fields": [
+            "same_event (bool)",
+            "confidence (0..1)",
+            "reason (str)",
+            "resolution_source (optional)",
+            "resolution_date (optional)"
+          ]
         },
         "LLMProvider": {
           "description": "Abstract interface for LLM backends",
-          "implementations": ["OpenAIChatProvider (real API)", "MockLLMProvider (deterministic testing)"]
+          "implementations": [
+            "OpenAIChatProvider (real API)",
+            "MockLLMProvider (deterministic testing)"
+          ]
         }
       },
       "integration": {
@@ -1986,7 +2099,11 @@
             "users": [
               {
                 "user_id": "int",
-                "roles": ["read_status", "execute_action", "admin"]
+                "roles": [
+                  "read_status",
+                  "execute_action",
+                  "admin"
+                ]
               }
             ]
           },
@@ -2370,7 +2487,19 @@
         "purpose": "Legacy CSV summary (can be exported from unified_report.json)",
         "status": "DEPRECATED - Use unified_report.json instead",
         "columns": [
-          "TIMESTAMP","READABLE_TIME","ITERATION","MARKETS","MARKETS_Δ","DETECTED","DETECTED_Δ","APPROVED","APPROVED_Δ","APPROVAL%","STATUS","MARKET_HASH","OPP_HASH"
+          "TIMESTAMP",
+          "READABLE_TIME",
+          "ITERATION",
+          "MARKETS",
+          "MARKETS_Δ",
+          "DETECTED",
+          "DETECTED_Δ",
+          "APPROVED",
+          "APPROVED_Δ",
+          "APPROVAL%",
+          "STATUS",
+          "MARKET_HASH",
+          "OPP_HASH"
         ],
         "export_function": "export_legacy_csv() in unified_reporter.py"
       },
@@ -2406,6 +2535,128 @@
       "testing": [
         "pytest - test framework",
         "pytest-asyncio - async test support"
+      ]
+    },
+    "codebase_file_structure": {
+      "status": "GENERATED",
+      "version": "1.0",
+      "generated_at": "2026-01-23T11:37:44Z",
+      "description": "Focused listing of core project files from codebase_minimal_schema.json",
+      "source": "scripts/generate_minimal_schema.py",
+      "scope": "core_project_files",
+      "total_files": 105,
+      "excluded": [
+        ".git/",
+        ".venv/",
+        "node_modules/",
+        "__pycache__/",
+        ".pytest_cache/",
+        "market_dumps/",
+        "reports/",
+        "data/markets_*",
+        "test_* files",
+        "tests/ directory"
+      ],
+      "categories": {
+        "configs": 6,
+        "docs": 9,
+        "scripts": 8,
+        "source_core": 35,
+        "source_detectors": 7,
+        "source_notifiers": 2,
+        "source_testing": 6
+      },
+      "key_files": {
+        "configs": [
+          ".env.example - Environment variable template",
+          "AI_EXECUTION_RULES.json - AI agent execution rules",
+          "CODEBASE_OPERATIONS.json - This operational reference document",
+          "config.yml - Main application configuration",
+          "config_live_paper.yml - Live paper trading configuration",
+          "config_strict_ab.yml - Strict A+B mode validation configuration"
+        ],
+        "docs": [
+          "WORKFLOW.txt - Project workflow documentation",
+          "requirements.txt - Python dependencies"
+        ],
+        "scripts": [
+          "scripts/download_markets.py - Market data downloader",
+          "scripts/export_codebase_schema.py - Schema exporter",
+          "scripts/fetch_metadata_tree.py - Metadata fetcher",
+          "scripts/generate_minimal_schema.py - Minimal schema generator",
+          "scripts/inspect_api_raw.py - API inspector",
+          "scripts/verify_pipeline_logic.py - Pipeline logic verifier",
+          "scripts/verify_real_orderbook_fetch.py - Orderbook fetch verifier",
+          "scripts/verify_watchlist_scan.py - Watchlist scan verifier"
+        ],
+        "source_core": [
+          "src/predarb/__init__.py - Package initialization",
+          "src/predarb/__main__.py - CLI entry point",
+          "src/predarb/ab_filters.py - A+B filtering logic",
+          "src/predarb/api.py - FastAPI service endpoints",
+          "src/predarb/broker.py - Paper trading broker",
+          "src/predarb/category_mapper.py - Category mapping for market compatibility",
+          "src/predarb/cli.py - Command-line interface",
+          "src/predarb/config.py - Configuration management",
+          "src/predarb/cross_venue_matcher.py - Semantic cross-venue matching",
+          "src/predarb/cross_venue_scenarios.py - Cross-venue test scenarios",
+          "src/predarb/dual_injection.py - Dual-venue data injection",
+          "src/predarb/engine.py - Main arbitrage detection engine",
+          "src/predarb/exec_logger.py - Execution logger",
+          "src/predarb/extractors.py - Data extractors",
+          "src/predarb/filtering.py - Market filtering",
+          "src/predarb/injection.py - Data injection framework",
+          "src/predarb/kalshi_client.py - Kalshi API client",
+          "src/predarb/llm_verifier.py - LLM-based pair verification",
+          "src/predarb/market_client_base.py - Base market client interface",
+          "src/predarb/matcher.py - Market matching logic",
+          "src/predarb/matchers.py - Additional matchers",
+          "src/predarb/models.py - Data models",
+          "src/predarb/normalize.py - Data normalization",
+          "src/predarb/notifier.py - Notification dispatcher",
+          "src/predarb/pipeline.py - End-to-end arbitrage pipeline",
+          "src/predarb/polymarket_client.py - Polymarket API client",
+          "src/predarb/report.py - Reporting utilities",
+          "src/predarb/reporter.py - Report generation",
+          "src/predarb/risk.py - Risk management",
+          "src/predarb/stress_scenarios.py - Stress test scenarios",
+          "src/predarb/strict_ab_scenarios.py - Strict A+B test scenarios",
+          "src/predarb/strict_ab_validator.py - Strict A+B validator",
+          "src/predarb/watchlist.py - Watchlist management"
+        ],
+        "source_detectors": [
+          "src/predarb/detectors/composite.py - Composite arbitrage detector",
+          "src/predarb/detectors/consistency.py - Consistency violation detector",
+          "src/predarb/detectors/duplicates.py - Duplicate market detector",
+          "src/predarb/detectors/exclusivesum.py - Exclusive sum detector",
+          "src/predarb/detectors/ladder.py - Ladder arbitrage detector",
+          "src/predarb/detectors/parity.py - Parity violation detector",
+          "src/predarb/detectors/timelag.py - Time lag arbitrage detector"
+        ],
+        "source_notifiers": [
+          "src/predarb/notifiers/__init__.py - Notifier initialization",
+          "src/predarb/notifiers/telegram.py - Telegram notification integration"
+        ],
+        "source_testing": [
+          "src/predarb/testing/__init__.py - Testing utilities initialization",
+          "src/predarb/testing/factory.py - Test factory",
+          "src/predarb/testing/fixtures.py - Test fixtures",
+          "src/predarb/testing/mock_orderbook.py - Mock orderbook data",
+          "src/predarb/testing/test_filtering.py - Filtering tests",
+          "src/predarb/testing/test_matchers.py - Matcher tests"
+        ]
+      },
+      "usage": {
+        "view_full_schema": "cat codebase_minimal_schema.json | python -m json.tool | head -n 100",
+        "view_focused_schema": "cat codebase_focused.json | python -m json.tool",
+        "regenerate_minimal_schema": "python3 scripts/generate_minimal_schema.py --include-env",
+        "file_count": "Total: 54,082 files in repo → Filtered to 105 core project files"
+      },
+      "notes": [
+        "Full schema in codebase_minimal_schema.json (1.4M+ lines, 35MB)",
+        "Focused schema in codebase_focused.json (2.3K lines, 53KB)",
+        "Excludes .git/, .venv/, test files, and generated data",
+        "Python files include imports, classes, functions, and variables metadata"
       ]
     },
     "quick_reference": {

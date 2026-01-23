@@ -1,7 +1,7 @@
 {
   "mandatory_pre_read": [
     "CODEBASE_OPERATIONS.json",
-    "codebase_schema.js"
+    "codebase_minimal_schema.json"
   ],
   "authority_order": [
     "CODEBASE_OPERATIONS.json",

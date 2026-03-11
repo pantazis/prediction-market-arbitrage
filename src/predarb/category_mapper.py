@@ -12,16 +12,19 @@ from typing import Dict, List, Set, Optional
 from predarb.models import Market
 
 class CategoryMapper:
-    def __init__(self, map_file: str = "data/category_map.csv"):
+    def __init__(self, map_file: str = "data/category_map.csv", rolling_logger=None):
         self.map_file = Path(map_file)
         self.bucket_map: Dict[str, str] = {} # keyword -> bucket
         self.buckets: Set[str] = set()
+        self.rolling_logger = rolling_logger
         
         self._load_map()
 
     def _load_map(self):
         if not self.map_file.exists():
             print(f"Warning: Category map file {self.map_file} not found.")
+            if self.rolling_logger:
+                self.rolling_logger.warning("TAG_FILTER", f"Category map file {self.map_file} not found")
             return
 
         with self.map_file.open("r", encoding="utf-8") as f:
@@ -45,6 +48,28 @@ class CategoryMapper:
                     t = tag.strip().lower()
                     if t:
                         self.bucket_map[t] = bucket
+        if self.rolling_logger:
+            self.rolling_logger.info("TAG_FILTER", f"Loaded category map: {len(self.buckets)} buckets, {len(self.bucket_map)} keywords")
+            
+            # Detailed dump of the map for verification
+            self.rolling_logger.info("TAG_FILTER", "--- CATEGORY MAP DUMP ---")
+            
+            # Re-read to log structure or reconstruct from loaded map (re-reading is cleaner for row-by-row logging)
+            # Or better, just group our bucket_map by bucket for logging
+            from collections import defaultdict
+            bucket_groups = defaultdict(list)
+            for k, v in self.bucket_map.items():
+                bucket_groups[v].append(k)
+            
+            for bucket, keywords in sorted(bucket_groups.items()):
+                self.rolling_logger.info("TAG_FILTER", f"BUCKET: {bucket}")
+                # Log keywords in chunks of 10 to keep lines readable
+                sorted_kws = sorted(keywords)
+                for i in range(0, len(sorted_kws), 10):
+                    chunk = ", ".join(sorted_kws[i:i+10])
+                    self.rolling_logger.info("TAG_FILTER", f"  Tags: {chunk}")
+            
+            self.rolling_logger.info("TAG_FILTER", "--- END DUMP ---")
     
     def get_bucket(self, market: Market, source: str) -> str:
         """
@@ -65,8 +90,11 @@ class CategoryMapper:
         if market.category:
             search_terms.add(str(market.category).lower())
             
-        # Maybe check title words if heavily needed, but tags/category usually suffice
-        # For Kalshi, market.category is often the series name or similar.
+        # Add title keywords
+        if market.question:
+            # We add the full title to search terms.
+            # The fallback loop (if keyword in term) will catch keywords inside the title.
+            search_terms.add(str(market.question).lower())
         
         # Check against map
         # Priority: Exact match logic could be improved, but this is a greedy match
@@ -91,9 +119,14 @@ class CategoryMapper:
         b2 = self.get_bucket(m2, source2)
         
         if b1 == "OTHER" or b2 == "OTHER":
-            # If we assume strict filtering, we might return False.
-            # But "OTHER" matches "OTHER" is risky. 
-            # Let's say False if either is OTHER for safety in this strict mode.
+            # REVISION: User requested to EXCLUDE "OTHER" folder.
+            # Strict filtering: We only match if both are known and identical.
+            if self.rolling_logger:
+                self.rolling_logger.debug("TAG_FILTER", f"Rejected: {m1.id} ({b1}) <-> {m2.id} ({b2}) - excluding OTHER bucket")
             return False
+        
+        compatible = b1 == b2
+        if self.rolling_logger and not compatible:
+            self.rolling_logger.debug("TAG_FILTER", f"Rejected: {m1.id} ({b1}) <-> {m2.id} ({b2}) - category mismatch")
             
-        return b1 == b2
+        return compatible

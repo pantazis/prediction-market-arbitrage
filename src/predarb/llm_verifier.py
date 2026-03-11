@@ -10,6 +10,7 @@ Features:
   - Timeout-safe (fail_open or fail_closed)
   - Network-free testing with MockLLMProvider
   - Strict JSON response parsing
+  - Structured error logging for debugging
 """
 
 from __future__ import annotations
@@ -21,6 +22,9 @@ import os
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
@@ -33,6 +37,57 @@ from predarb.models import Market
 logger = logging.getLogger(__name__)
 
 PROMPT_VERSION = "v1"
+
+
+class LLMErrorType(str, Enum):
+    """Types of LLM verification errors."""
+    TOKEN_LIMIT = "token_limit"
+    API_ERROR = "api_error"
+    TIMEOUT = "timeout"
+    PARSE_ERROR = "parse_error"
+    RATE_LIMIT = "rate_limit"
+
+
+@dataclass
+class LLMVerificationError:
+    """
+    Structured error for LLM verification failures.
+    
+    Used for logging and reporting when LLM verification fails.
+    """
+    error_type: LLMErrorType
+    error_message: str
+    market_a_id: str
+    market_b_id: str
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    raw_error: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "error_type": self.error_type.value,
+            "error_message": self.error_message,
+            "market_a_id": self.market_a_id,
+            "market_b_id": self.market_b_id,
+            "timestamp": self.timestamp.isoformat(),
+            "raw_error": self.raw_error,
+        }
+
+
+def _log_verification_error(error: LLMVerificationError) -> None:
+    """
+    Log LLM verification error with full context for debugging.
+    
+    Logs ERROR level with market IDs and error type.
+    Logs DEBUG level with raw error details.
+    """
+    logger.error(
+        f"LLM verification failed: {error.error_type.value} | "
+        f"Markets: {error.market_a_id} <-> {error.market_b_id} | "
+        f"Message: {error.error_message}"
+    )
+    if error.raw_error:
+        logger.debug(f"Raw error: {error.raw_error}")
 
 
 class VerificationResult(BaseModel):
@@ -698,12 +753,27 @@ Respond with ONLY valid JSON in this exact format:
         # Call provider with timeout
         try:
             response_json = self._call_with_timeout(prompt)
-        except TimeoutError:
-            logger.warning(f"Verification timeout for markets {market_a.id}, {market_b.id}")
+        except TimeoutError as e:
+            error = LLMVerificationError(
+                error_type=LLMErrorType.TIMEOUT,
+                error_message=f"Request timed out after {self.config.timeout_s}s",
+                market_a_id=market_a.id,
+                market_b_id=market_b.id,
+                raw_error=str(e),
+            )
+            _log_verification_error(error)
+            self._last_error = error
             return self._handle_timeout()
 
         if not response_json:
-            logger.warning(f"Empty verification response for markets {market_a.id}, {market_b.id}")
+            error = LLMVerificationError(
+                error_type=LLMErrorType.API_ERROR,
+                error_message="Empty response from LLM provider",
+                market_a_id=market_a.id,
+                market_b_id=market_b.id,
+            )
+            _log_verification_error(error)
+            self._last_error = error
             return VerificationResult(
                 same_event=True if self.config.fail_mode == "fail_open" else False,
                 confidence=0.0,
@@ -714,13 +784,26 @@ Respond with ONLY valid JSON in this exact format:
         try:
             result = self._parse_response(response_json)
         except Exception as e:
-            logger.error(f"Failed to parse verification response: {e}")
+            error = LLMVerificationError(
+                error_type=LLMErrorType.PARSE_ERROR,
+                error_message=f"Failed to parse LLM response: {str(e)[:100]}",
+                market_a_id=market_a.id,
+                market_b_id=market_b.id,
+                raw_error=str(e),
+            )
+            _log_verification_error(error)
+            self._last_error = error
             return self._handle_parse_error()
 
         # Cache and return
         self._cache[cache_key] = (result, time.time())
         self._save_cache()
+        self._last_error = None
         return result
+    
+    def get_last_error(self) -> Optional[LLMVerificationError]:
+        """Get the last verification error, if any."""
+        return getattr(self, '_last_error', None)
 
     def evaluate_arbitrage_cases(
         self,

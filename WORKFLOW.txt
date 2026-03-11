@@ -40,6 +40,19 @@ PHASE 1: DISCOVERY & MATCHING (Slow Loop - Runs periodically)
     - min_edge, min_depth_usd, max_age_sec
     - status, last_verified_at
 
+    /opt/prediction-market-arbitrage/
+├── log/                          # New directory
+│   ├── fetch.log                 # Markets loading logs
+│   ├── tag_filter.log            # Category filtering logs
+│   ├── vectorize.log             # Embedding creation logs
+│   ├── match.log                 # Similarity matching logs
+│   └── llm_verification.log      # LLM verification logs
+└── src/predarb/
+    ├── rolling_logger.py         # New utility class
+    ├── pipeline.py               # Modified
+    ├── matcher.py                # Modified
+    └── category_mapper.py        # Modified
+
 ================================================================================
 PHASE 2: EXECUTION & TRADING (Fast Loop - Runs continuously)
 ================================================================================

@@ -12,8 +12,16 @@ from pathlib import Path
 from typing import List
 
 from predarb.models import Market
-from predarb.matcher import SmartMatcher
+from predarb.match_pipeline import MatchPipeline, MatchCandidate
+from predarb.ticker_parser import TickerParser
+from predarb.extractors import ThresholdExtractor
+from predarb.asset_normalizer import AssetNormalizer
+from predarb.category_inferrer import CategoryInferrer
+from predarb.confidence_scorer import ConfidenceScorer
+from predarb.duplicate_preventer import DuplicatePreventer
+from predarb.match_reporter import MatchReporter
 from predarb.llm_verifier import LLMVerifier, LLMVerifierConfig
+from predarb.rolling_logger import get_logger
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -99,12 +107,16 @@ def run_pipeline(
     verify: bool = True
 ):
     logger.info("Starting pipeline...")
+    rolling_logger = get_logger()
     
-    # 1. Load Data
+    # 1. FETCH - Load Data
+    rolling_logger.info("FETCH", f"Starting market data load from {snapshot_path}")
     all_markets = load_markets(snapshot_path)
     logger.info(f"Loaded {len(all_markets)} markets.")
+    rolling_logger.info("FETCH", f"Loaded {len(all_markets)} total markets from snapshot")
 
-    # Split by Exchange (Assuming 'exchange' field or source inference)
+    # 2. TAG FILTER - Split by Exchange
+    rolling_logger.info("TAG_FILTER", "Starting exchange categorization")
     # The models.py has 'exchange' field.
     # If explicit exchange field is missing, we might need a backup heuristic or ensure snapshot has it.
     kalshi_markets = [m for m in all_markets if m.exchange == 'kalshi']
@@ -122,21 +134,28 @@ def run_pipeline(
         # But let's assume valid data for now.
     
     logger.info(f"Kalshi: {len(kalshi_markets)} | Polymarket: {len(poly_markets)}")
+    rolling_logger.info("TAG_FILTER", f"Categorized markets: Kalshi={len(kalshi_markets)}, Polymarket={len(poly_markets)}")
 
-    # 2. Match
-    matcher = SmartMatcher()
+    # 3. VECTORIZE & 4. MATCH - Semantic matching with embeddings
+    rolling_logger.info("VECTORIZE", "Initializing SmartMatcher with SentenceTransformer")
+    matcher = SmartMatcher(rolling_logger=rolling_logger)
+    rolling_logger.info("MATCH", f"Finding matches between {len(kalshi_markets)} Kalshi and {len(poly_markets)} Polymarket markets")
     candidates = matcher.find_matches(kalshi_markets, poly_markets)
     logger.info(f"Found {len(candidates)} raw candidates.")
+    rolling_logger.info("MATCH", f"Found {len(candidates)} candidate pairs after semantic matching")
 
-    # 3. Verify
+    # 5. LLM VERIFICATION
     verified_pairs = []
     if verify:
+        rolling_logger.info("LLM_VERIFICATION", "Starting LLM verification for high-confidence matches")
         # Config LLM (Mock for now or real if env var set)
         # Using mock default or strict config
         config = LLMVerifierConfig(enabled=True, provider="mock") # Use Mock for safety/speed in dev
         verifier = LLMVerifier(config)
         
         logger.info("Running LLM Verification...")
+        rolling_logger.info("LLM_VERIFICATION", f"Filtering {len(candidates)} candidates for similarity >= 0.75")
+        verified_count = 0
         for cand in candidates:
             # We only verify high semantic matches
             if cand['similarity_score'] < 0.75: # Strict pre-filter for LLM cost
@@ -145,20 +164,25 @@ def run_pipeline(
             k_m = cand['kalshi_market']
             p_m = cand['polymarket_market']
             
+            rolling_logger.debug("LLM_VERIFICATION", f"Verifying pair: {k_m.id} <-> {p_m.id} (similarity={cand['similarity_score']:.3f})")
             res = verifier.verify_pair(k_m, p_m)
             
             cand['verification'] = res.dict()
             
             if res.same_event and res.confidence > 0.7:
                  verified_pairs.append(cand)
+                 verified_count += 1
+                 rolling_logger.info("LLM_VERIFICATION", f"Verified pair #{verified_count}: confidence={res.confidence:.2f}, reason={res.reason}")
     else:
         verified_pairs = candidates
 
     logger.info(f"Verified {len(verified_pairs)} pairs.")
+    rolling_logger.info("LLM_VERIFICATION", f"Total verified pairs: {len(verified_pairs)}")
 
-    # 4. Save
+    # Save Results
     save_watchlist(verified_pairs, watchlist_path)
     logger.info("Pipeline complete.")
+    rolling_logger.info("FETCH", f"Pipeline complete - saved {len(verified_pairs)} pairs to {watchlist_path}")
 
 if __name__ == "__main__":
     run_pipeline()

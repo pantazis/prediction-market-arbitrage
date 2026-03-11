@@ -96,7 +96,7 @@ cross_venue_matcher:
   enabled: true                    # Enable semantic matching between Kalshi and Polymarket
   model_name: "all-mpnet-base-v2"   # Sentence-BERT model (improved accuracy)
   min_similarity: 0.40             # 0.50-0.80 range (higher = stricter matching)
-  max_hours_diff: 24               # Maximum hours between market expiry dates
+  max_hours_diff: 120               # Maximum hours between market expiry dates (5 days)
   batch_size: 50                   # Process in batches to avoid memory issues
 
 # ==================== WATCHLIST FAST SCAN ==================== #

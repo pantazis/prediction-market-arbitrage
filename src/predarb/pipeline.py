@@ -23,6 +23,20 @@ from predarb.match_reporter import MatchReporter
 from predarb.llm_verifier import LLMVerifier, LLMVerifierConfig
 from predarb.rolling_logger import get_logger
 
+
+def _candidate_to_dict(candidate: MatchCandidate, confidence: float) -> dict:
+    """Convert a MatchCandidate to the dict format expected by save_watchlist."""
+    return {
+        "kalshi_id": candidate.kalshi_market.id,
+        "polymarket_id": candidate.polymarket_market.id,
+        "kalshi_market": candidate.kalshi_market,
+        "polymarket_market": candidate.polymarket_market,
+        "similarity_score": candidate.semantic_score,
+        "confidence": confidence,
+        "structural_matches": candidate.structural_matches,
+        "verification": {},
+    }
+
 # Setup Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("predarb.pipeline")
@@ -54,7 +68,6 @@ def save_watchlist(pairs: List[dict], file_path: Path):
         return
 
     # Flatten for CSV
-    # We want: kalshi_ticker, polymarket_id, similarity, confidence, reason, ...
     rows = []
     for p in pairs:
         k_m = p["kalshi_market"]
@@ -69,8 +82,10 @@ def save_watchlist(pairs: List[dict], file_path: Path):
         if y_o: poly_yes_id = y_o.id
         if n_o: poly_no_id = n_o.id
         
+        # Get structural match info
+        structural = p.get("structural_matches", {})
+        
         # Create Pair ID (Deterministic)
-        # Using simple headers matching watchlist.py expectations
         row = {
             "pair_id": hashlib.sha256(f"{p['kalshi_id']}|{p['polymarket_id']}|normal".encode()).hexdigest()[:16],
             "k_ticker": p["kalshi_id"].split(":")[-1],
@@ -87,9 +102,14 @@ def save_watchlist(pairs: List[dict], file_path: Path):
             "max_age_sec": 30,
             "status": "active",
             "last_verified_at": datetime.now().isoformat(),
-            # Extra debug info
-            "similarity_score": p["similarity_score"],
-            "confidence": p.get("verification", {}).get("confidence"),
+            # Match quality info
+            "similarity_score": p.get("similarity_score", 0),
+            "confidence": p.get("confidence", 0),
+            "llm_confidence": p.get("verification", {}).get("confidence"),
+            # Structural match flags
+            "asset_match": structural.get("asset", False),
+            "threshold_match": structural.get("threshold", False),
+            "date_match": structural.get("date", False),
         }
         rows.append(row)
 
@@ -136,45 +156,86 @@ def run_pipeline(
     logger.info(f"Kalshi: {len(kalshi_markets)} | Polymarket: {len(poly_markets)}")
     rolling_logger.info("TAG_FILTER", f"Categorized markets: Kalshi={len(kalshi_markets)}, Polymarket={len(poly_markets)}")
 
-    # 3. VECTORIZE & 4. MATCH - Semantic matching with embeddings
-    rolling_logger.info("VECTORIZE", "Initializing SmartMatcher with SentenceTransformer")
-    matcher = SmartMatcher(rolling_logger=rolling_logger)
-    rolling_logger.info("MATCH", f"Finding matches between {len(kalshi_markets)} Kalshi and {len(poly_markets)} Polymarket markets")
-    candidates = matcher.find_matches(kalshi_markets, poly_markets)
-    logger.info(f"Found {len(candidates)} raw candidates.")
-    rolling_logger.info("MATCH", f"Found {len(candidates)} candidate pairs after semantic matching")
+    # 3. VECTORIZE & 4. MATCH - Multi-stage pipeline with structural + semantic matching
+    rolling_logger.info("VECTORIZE", "Initializing MatchPipeline with structural extractors")
+    
+    # Initialize pipeline components
+    ticker_parser = TickerParser()
+    threshold_extractor = ThresholdExtractor()
+    asset_normalizer = AssetNormalizer()
+    category_inferrer = CategoryInferrer()
+    confidence_scorer = ConfidenceScorer()
+    duplicate_preventer = DuplicatePreventer()
+    
+    # Create the multi-stage pipeline
+    pipeline = MatchPipeline(
+        ticker_parser=ticker_parser,
+        threshold_extractor=threshold_extractor,
+        asset_normalizer=asset_normalizer,
+        category_inferrer=category_inferrer,
+    )
+    
+    rolling_logger.info("MATCH", f"Running 5-stage pipeline on {len(kalshi_markets)} Kalshi x {len(poly_markets)} Polymarket markets")
+    candidates = pipeline.process(kalshi_markets, poly_markets)
+    logger.info(f"Found {len(candidates)} raw candidates after pipeline filtering.")
+    
+    # Log rejection summary
+    rejection_summary = pipeline.get_rejection_summary()
+    rolling_logger.info("MATCH", f"Pipeline rejections: {rejection_summary}")
+    
+    # Deduplicate - ensure one Kalshi per Polymarket
+    candidates = duplicate_preventer.deduplicate(candidates)
+    logger.info(f"After deduplication: {len(candidates)} candidates.")
+    rolling_logger.info("MATCH", f"After deduplication: {len(candidates)} unique pairs")
 
-    # 5. LLM VERIFICATION
+    # 5. LLM VERIFICATION (only for low-confidence matches)
     verified_pairs = []
     if verify:
-        rolling_logger.info("LLM_VERIFICATION", "Starting LLM verification for high-confidence matches")
-        # Config LLM (Mock for now or real if env var set)
-        # Using mock default or strict config
-        config = LLMVerifierConfig(enabled=True, provider="mock") # Use Mock for safety/speed in dev
+        rolling_logger.info("LLM_VERIFICATION", "Starting LLM verification for low-confidence matches")
+        config = LLMVerifierConfig(enabled=True, provider="mock")
         verifier = LLMVerifier(config)
         
-        logger.info("Running LLM Verification...")
-        rolling_logger.info("LLM_VERIFICATION", f"Filtering {len(candidates)} candidates for similarity >= 0.75")
+        logger.info("Running LLM Verification on low-confidence matches...")
         verified_count = 0
+        skipped_high_confidence = 0
+        
         for cand in candidates:
-            # We only verify high semantic matches
-            if cand['similarity_score'] < 0.75: # Strict pre-filter for LLM cost
+            # Use confidence scorer to determine if LLM verification needed
+            confidence = confidence_scorer.score(cand)
+            
+            if not confidence_scorer.needs_llm_verification(confidence):
+                # High confidence - skip LLM verification
+                skipped_high_confidence += 1
+                verified_pairs.append(_candidate_to_dict(cand, confidence))
+                verified_count += 1
+                rolling_logger.info("LLM_VERIFICATION", 
+                    f"High-confidence match #{verified_count}: {cand.kalshi_market.id} <-> {cand.polymarket_market.id} "
+                    f"(confidence={confidence:.3f}, skipped LLM)")
                 continue
 
-            k_m = cand['kalshi_market']
-            p_m = cand['polymarket_market']
+            # Low confidence - run LLM verification
+            k_m = cand.kalshi_market
+            p_m = cand.polymarket_market
             
-            rolling_logger.debug("LLM_VERIFICATION", f"Verifying pair: {k_m.id} <-> {p_m.id} (similarity={cand['similarity_score']:.3f})")
+            rolling_logger.debug("LLM_VERIFICATION", 
+                f"Verifying low-confidence pair: {k_m.id} <-> {p_m.id} (confidence={confidence:.3f})")
             res = verifier.verify_pair(k_m, p_m)
             
-            cand['verification'] = res.dict()
-            
             if res.same_event and res.confidence > 0.7:
-                 verified_pairs.append(cand)
-                 verified_count += 1
-                 rolling_logger.info("LLM_VERIFICATION", f"Verified pair #{verified_count}: confidence={res.confidence:.2f}, reason={res.reason}")
+                pair_dict = _candidate_to_dict(cand, confidence)
+                pair_dict['verification'] = res.dict()
+                verified_pairs.append(pair_dict)
+                verified_count += 1
+                rolling_logger.info("LLM_VERIFICATION", 
+                    f"LLM verified pair #{verified_count}: confidence={res.confidence:.2f}, reason={res.reason}")
+        
+        rolling_logger.info("LLM_VERIFICATION", 
+            f"Skipped LLM for {skipped_high_confidence} high-confidence matches")
     else:
-        verified_pairs = candidates
+        # No verification - convert all candidates to dict format
+        for cand in candidates:
+            confidence = confidence_scorer.score(cand)
+            verified_pairs.append(_candidate_to_dict(cand, confidence))
 
     logger.info(f"Verified {len(verified_pairs)} pairs.")
     rolling_logger.info("LLM_VERIFICATION", f"Total verified pairs: {len(verified_pairs)}")

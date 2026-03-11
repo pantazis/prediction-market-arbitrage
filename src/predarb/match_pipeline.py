@@ -324,9 +324,15 @@ class MatchPipeline:
         return f"Incompatible categories: {kalshi_data['category']} vs {poly_data['category']}"
     
     def _asset_filter(self, kalshi: "Market", poly: "Market") -> bool:
-        """Stage 2: Require matching normalized assets when both available."""
+        """Stage 2: Require matching normalized assets when both available (financial markets only)."""
         kalshi_data = self._get_market_data(kalshi)
         poly_data = self._get_market_data(poly)
+        
+        # Skip asset matching for non-financial categories (politics, sports, etc.)
+        # These don't have tradeable assets in the financial sense
+        non_financial_categories = {"POLITICS", "SPORTS", "CULTURE", "SCIENCE", "CLIMATE", "OTHER"}
+        if kalshi_data["category"] in non_financial_categories or poly_data["category"] in non_financial_categories:
+            return True  # Pass through - rely on semantic matching
         
         asset1 = kalshi_data["asset"]
         asset2 = poly_data["asset"]
@@ -345,9 +351,14 @@ class MatchPipeline:
         return f"Asset mismatch: {kalshi_data['asset']} vs {poly_data['asset']}"
     
     def _threshold_filter(self, kalshi: "Market", poly: "Market") -> bool:
-        """Stage 3: Require thresholds within 0.1% when both available."""
+        """Stage 3: Require thresholds within 0.1% when both available (financial markets only)."""
         kalshi_data = self._get_market_data(kalshi)
         poly_data = self._get_market_data(poly)
+        
+        # Skip threshold matching for non-financial categories
+        non_financial_categories = {"POLITICS", "SPORTS", "CULTURE", "SCIENCE", "CLIMATE", "OTHER"}
+        if kalshi_data["category"] in non_financial_categories or poly_data["category"] in non_financial_categories:
+            return True  # Pass through - rely on semantic matching
         
         t1 = kalshi_data["threshold"]
         t2 = poly_data["threshold"]

@@ -1,8 +1,13 @@
 """
 Cross-venue semantic matcher for finding arbitrage candidates.
 
-Integrates smart_matcher.py logic into the engine lifecycle.
-Automatically pairs Kalshi and Polymarket markets using semantic similarity.
+Integrates MatchPipeline for multi-stage filtering with structural + semantic matching.
+Automatically pairs Kalshi and Polymarket markets using:
+1. Category filtering
+2. Asset normalization
+3. Threshold matching
+4. Date filtering
+5. Semantic similarity
 """
 
 from __future__ import annotations
@@ -12,9 +17,15 @@ import re
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
-import yaml
 
 from predarb.models import Market
+from predarb.match_pipeline import MatchPipeline, MatchCandidate
+from predarb.ticker_parser import TickerParser
+from predarb.extractors import ThresholdExtractor
+from predarb.asset_normalizer import AssetNormalizer
+from predarb.category_inferrer import CategoryInferrer
+from predarb.confidence_scorer import ConfidenceScorer
+from predarb.duplicate_preventer import DuplicatePreventer
 
 logger = logging.getLogger(__name__)
 
@@ -109,23 +120,28 @@ def _time_diff_hours(m1: Market, m2: Market) -> Optional[float]:
 
 class CrossVenueMatcher:
     """
-    Semantic matcher for finding cross-venue arbitrage pairs.
+    Multi-stage matcher for finding cross-venue arbitrage pairs.
     
-    Uses Sentence-BERT embeddings to match markets across Kalshi and Polymarket.
+    Uses MatchPipeline with 5-stage filtering:
+    1. Category filter - check category compatibility
+    2. Asset filter - require matching normalized assets
+    3. Threshold filter - require thresholds within 0.1%
+    4. Date filter - require dates within 2 hours
+    5. Semantic similarity - SBERT embeddings
     """
     
     def __init__(
         self,
-        model_name: str = 'all-mpnet-base-v2',  # Upgraded model
-        min_similarity: float = 0.10,
-        max_hours_diff: int = 24,
+        model_name: str = 'all-MiniLM-L6-v2',  # Faster model for pipeline
+        min_similarity: float = 0.60,
+        max_hours_diff: int = 2,  # Stricter default
         enabled: bool = True,
         batch_size: int = 50,
         top_k: int = 5,
         encode_batch_size: int = 32,
     ):
         """
-        Initialize cross-venue matcher.
+        Initialize cross-venue matcher with MatchPipeline.
         
         Args:
             model_name: Sentence-transformers model name
@@ -145,7 +161,18 @@ class CrossVenueMatcher:
         self.encode_batch_size = encode_batch_size
         self._model: Optional[SentenceTransformer] = None
         
-        # Load Category Map (Bridge Table)
+        # Initialize new pipeline components
+        self.ticker_parser = TickerParser()
+        self.threshold_extractor = ThresholdExtractor()
+        self.asset_normalizer = AssetNormalizer()
+        self.category_inferrer = CategoryInferrer()
+        self.confidence_scorer = ConfidenceScorer()
+        self.duplicate_preventer = DuplicatePreventer()
+        
+        # Pipeline will be created lazily with the model
+        self._pipeline: Optional[MatchPipeline] = None
+        
+        # Load Category Map (Bridge Table) - kept for backward compatibility
         self.category_buckets: Dict[str, Dict[str, List[str]]] = self._load_category_map()
         
         if not SEMANTIC_AVAILABLE and enabled:
@@ -215,7 +242,7 @@ class CrossVenueMatcher:
         return None
     
     def _load_model(self):
-        """Lazy load the sentence transformer model."""
+        """Lazy load the sentence transformer model and create pipeline."""
         global _semantic_model
         
         if not SEMANTIC_AVAILABLE:
@@ -230,6 +257,16 @@ class CrossVenueMatcher:
                 logger.error(f"Failed to load model: {e}")
                 self.enabled = False
                 return None
+        
+        # Create pipeline with the loaded model
+        if self._pipeline is None:
+            self._pipeline = MatchPipeline(
+                ticker_parser=self.ticker_parser,
+                threshold_extractor=self.threshold_extractor,
+                asset_normalizer=self.asset_normalizer,
+                category_inferrer=self.category_inferrer,
+                embedding_model=_semantic_model,
+            )
         
         return _semantic_model
     
@@ -307,10 +344,17 @@ class CrossVenueMatcher:
         """
         Find semantic matches between Kalshi and Polymarket markets.
         
+        Uses the new MatchPipeline with 5-stage filtering:
+        1. Category filter
+        2. Asset filter (BTC must match BTC)
+        3. Threshold filter ($95k must match $95k)
+        4. Date filter (expiry within 2 hours)
+        5. Semantic similarity
+        
         Args:
             kalshi_markets: List of Kalshi Market objects
-            poly_markets: List of Polymarket Market objects (ignored if precomputed_poly is matched)
-            precomputed_poly: Optional dict from precompute_embeddings(poly_markets)
+            poly_markets: List of Polymarket Market objects
+            precomputed_poly: Optional dict (ignored, kept for backward compatibility)
         
         Returns:
             List of (kalshi_market, poly_market, similarity_score) tuples
@@ -335,129 +379,129 @@ class CrossVenueMatcher:
             f"Cross-venue matching: {len(k_binary)} Kalshi × {len(p_binary)} Poly"
         )
         
-        # Load model
+        # Load model and create pipeline
         model = self._load_model()
-        if model is None:
+        if model is None or self._pipeline is None:
             return []
-            
-        # Initialize verifier for classification if needed
-        # In a real app, this should be passed in via dependency injection, but we'll lazy-init here
-        from predarb.llm_verifier import LLMVerifier, LLMVerifierConfig
         
-        # We need a config to init verifier. For now, create a default one or load from env?
-        # A bit hacky to init here, but efficient for this step.
-        # Ideally, CrossVenueMatcher should receive the verifier in __init__.
-        # Let's assume we can create one quickly.
-        config_path = Path("config_live_paper.yml")
-        verifier_config = None
-        if config_path.exists():
-            import yaml
-            with open(config_path) as f:
-                cfg = yaml.safe_load(f)
-                llm_cfg = cfg.get("llm_verification", {})
-                verifier_config = LLMVerifierConfig(**llm_cfg)
-        
-        if not verifier_config:
-            verifier_config = LLMVerifierConfig(enabled=False) # Fallback
-            
-        verifier = LLMVerifier(verifier_config)
-
-        # Prepare Polymarket data (use cache if available)
-        p_subset_all: List[Market] = []
-        p_emb_all = None
-        
-        if precomputed_poly and "markets" in precomputed_poly and "embeddings" in precomputed_poly:
-            p_subset_all = precomputed_poly["markets"]  # type: ignore
-            p_emb_all = precomputed_poly["embeddings"]
-            logger.debug(f"Using pre-computed Polymarket embeddings for {len(p_subset_all)} items")
-        else:
-            # Fallback to standard flow
-            p_subset_all = p_binary
-            # We will compute embeddings on demand or all at once?
-            # To match original logic, we filter by category then embed.
-            # But duplicate embedding is what we want to avoid.
-            pass
-
-        # Group Kalshi markets by BUCKET
-        k_by_bucket: Dict[str, List[Market]] = {}
-        uncategorized_k: List[Market] = []
-        
-        total_k = len(k_binary)
-        logger.info(f"Bucketing {total_k} Kalshi markets...")
+        # PRE-FILTER: Group markets by extracted asset OR category to reduce search space
+        # This is a major optimization - only compare BTC markets with BTC markets, etc.
+        k_by_group: Dict[str, List[Market]] = {}
+        p_by_group: Dict[str, List[Market]] = {}
         
         for m in k_binary:
-            bucket = self._assign_bucket(m)
-            if bucket:
-                if bucket not in k_by_bucket:
-                    k_by_bucket[bucket] = []
-                k_by_bucket[bucket].append(m)
-            else:
-                uncategorized_k.append(m)
-                
-        # Also group Polymarket by BUCKET for fast retrieval
-        p_by_bucket: Dict[str, List[Market]] = {}
-        uncategorized_p: List[Market] = []
+            group = self._get_market_group(m)
+            if group:
+                if group not in k_by_group:
+                    k_by_group[group] = []
+                k_by_group[group].append(m)
         
         for m in p_binary:
-            bucket = self._assign_bucket(m)
-            if bucket:
-                if bucket not in p_by_bucket:
-                    p_by_bucket[bucket] = []
-                p_by_bucket[bucket].append(m)
-            else:
-                uncategorized_p.append(m)
-
-        pairs: List[Tuple[Market, Market, float]] = []
+            group = self._get_market_group(m)
+            if group:
+                if group not in p_by_group:
+                    p_by_group[group] = []
+                p_by_group[group].append(m)
         
-        # 1. Process STRICT Buckets
-        for bucket, k_list in k_by_bucket.items():
-            p_subset = p_by_bucket.get(bucket, [])
-            if not p_subset:
-                continue
-                
-            logger.info(f"Matching Bucket '{bucket}': {len(k_list)} Kalshi vs {len(p_subset)} Poly")
+        logger.info(f"Market groups - Kalshi: {list(k_by_group.keys())}, Poly: {list(p_by_group.keys())}")
+        
+        # Find common groups
+        common_groups = set(k_by_group.keys()) & set(p_by_group.keys())
+        if not common_groups:
+            logger.info("No common groups found between venues")
+            return []
+        
+        logger.info(f"Common groups to match: {common_groups}")
+        
+        # Run pipeline only on markets with matching groups
+        all_candidates: List[MatchCandidate] = []
+        
+        for group in common_groups:
+            k_subset = k_by_group[group]
+            p_subset = p_by_group[group]
             
-            # Encode just the subset? Or use precomputed?
-            # For simplicity & correctness with bridge table logic, strict subset matching is best.
-            # We must encode P subset on the fly (or extract from giant tensor).
-            # On-the-fly is safer for ensuring we match the right subset.
+            logger.info(f"Matching group '{group}': {len(k_subset)} Kalshi × {len(p_subset)} Poly")
             
-            # Encode K
-            k_texts = [_get_text_blob(m) for m in k_list]
-            k_emb = model.encode(k_texts, convert_to_tensor=True)
+            # Run the multi-stage pipeline on this subset
+            candidates = self._pipeline.process(k_subset, p_subset)
+            all_candidates.extend(candidates)
             
-            # Encode P
-            p_texts = [_get_text_blob(m) for m in p_subset]
-            p_emb = model.encode(p_texts, convert_to_tensor=True)
-            
-            # Cosine similarity
-            scores = util.cos_sim(k_emb, p_emb)
-            
-            # Find best matches
-            for i in range(len(k_list)):
-                best_indices = scores[i].topk(min(self.top_k, len(p_subset))).indices
-                best_scores = scores[i].topk(min(self.top_k, len(p_subset))).values
-                
-                for j, score_tensor in zip(best_indices, best_scores):
-                    score = float(score_tensor.item())
-                    if score >= self.min_similarity:
-                        # Time diff check
-                        if self.max_hours_diff > 0:
-                            hrs = _time_diff_hours(k_list[i], p_subset[j])
-                            if hrs is not None and hrs > self.max_hours_diff:
-                                continue
-                        
-                        pairs.append((k_list[i], p_subset[j], score))
-
-        # 2. Process Uncategorized? 
-        # User requested: "Only attempt to match markets within the same Bucket"
-        # So we SKIP uncategorized for now to reduce noise.
-        if uncategorized_k:
-            logger.info(f"Skipping {len(uncategorized_k)} uncategorized Kalshi markets (strict bucketing).")
-            
+            # Log rejection summary for this group
+            rejection_summary = self._pipeline.get_rejection_summary()
+            logger.info(f"  Rejections for {group}: {rejection_summary}")
+        
+        logger.info(f"Total candidates from all assets: {len(all_candidates)}")
+        
+        # Deduplicate - ensure one Kalshi per Polymarket
+        all_candidates = self.duplicate_preventer.deduplicate(all_candidates)
+        logger.info(f"After deduplication: {len(all_candidates)} unique pairs")
+        
+        # Convert MatchCandidate to tuple format for backward compatibility
+        pairs: List[Tuple[Market, Market, float]] = []
+        for cand in all_candidates:
+            # Use confidence score (combines structural + semantic)
+            confidence = self.confidence_scorer.score(cand)
+            pairs.append((cand.kalshi_market, cand.polymarket_market, confidence))
+        
         # Sort by score desc
         pairs.sort(key=lambda x: x[2], reverse=True)
+        
+        # Log the matches found
+        for k, p, score in pairs:
+            logger.info(f"Match: {k.id} <-> {p.id} (confidence={score:.3f})")
+        
         return pairs
+    
+    def _extract_asset(self, market: Market) -> Optional[str]:
+        """Extract normalized asset from market for pre-filtering."""
+        # Try ticker parsing first (Kalshi)
+        ticker = getattr(market, "slug", None) or market.id
+        parsed = self.ticker_parser.parse(ticker)
+        if parsed and parsed.asset:
+            return self.asset_normalizer.normalize(parsed.asset)
+        
+        # Try text extraction
+        text = market.question.lower() if market.question else ""
+        
+        # Check for known assets
+        asset_keywords = {
+            'bitcoin': 'bitcoin', 'btc': 'bitcoin',
+            'ethereum': 'ethereum', 'eth': 'ethereum', 'ether': 'ethereum',
+            'solana': 'solana', 'sol': 'solana',
+            'dogecoin': 'dogecoin', 'doge': 'dogecoin',
+            'xrp': 'xrp', 'ripple': 'xrp',
+            's&p': 'sp500', 's&p 500': 'sp500', 'sp500': 'sp500', 'spx': 'sp500',
+        }
+        
+        for keyword, asset in asset_keywords.items():
+            if keyword in text:
+                return asset
+        
+        return None
+    
+    def _get_market_group(self, market: Market) -> Optional[str]:
+        """
+        Get the grouping key for a market (asset or category).
+        
+        For financial markets (crypto, stocks): returns asset name (bitcoin, ethereum, sp500)
+        For other markets (politics, sports): returns category name
+        """
+        # First try to extract asset (for crypto/financial markets)
+        asset = self._extract_asset(market)
+        if asset:
+            return f"asset:{asset}"
+        
+        # Fall back to category inference (for politics, sports, etc.)
+        category = self.category_inferrer.infer_if_needed(market)
+        if category and category != "OTHER":
+            return f"category:{category}"
+        
+        # Also check the bucket assignment from category_map.csv
+        bucket = self._assign_bucket(market)
+        if bucket:
+            return f"bucket:{bucket}"
+        
+        return None
     
     def get_paired_markets(
         self,

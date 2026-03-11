@@ -155,7 +155,7 @@ This implementation enhances the cross-venue market matching system by adding st
     - _Requirements: Design Error Handling section_
 
 - [ ] 10. Integrate Components into SmartMatcher
-  - [~] 10.1 Update SmartMatcher in `src/predarb/matcher.py`
+  - [ ] 10.1 Update SmartMatcher in `src/predarb/matcher.py`
     - Inject TickerParser, ThresholdExtractor, AssetNormalizer, CategoryInferrer
     - Replace current matching logic with MatchPipeline
     - Add ConfidenceScorer and DuplicatePreventer to post-processing
@@ -163,7 +163,7 @@ This implementation enhances the cross-venue market matching system by adding st
     - Maintain backward compatibility with existing `find_matches()` signature
     - _Requirements: All_
 
-  - [~] 10.2 Update Market model in `src/predarb/models.py`
+  - [ ] 10.2 Update Market model in `src/predarb/models.py`
     - Add `parsed_ticker: Optional[ParsedTicker]` field
     - Add `inferred_category: Optional[str]` field
     - Add `threshold_unit: Optional[str]` field

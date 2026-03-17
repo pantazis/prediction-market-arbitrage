@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import yaml
 from dotenv import load_dotenv
@@ -118,6 +118,7 @@ class DetectorConfig(BaseModel):
     enable_timelag: bool = True
     enable_consistency: bool = True
     enable_composite: bool = True
+    enable_cross_venue: bool = False  # Cross-venue arbitrage detection
 
 
 class LLMVerificationConfig(BaseModel):
@@ -164,6 +165,34 @@ class CrossVenueMatcherConfig(BaseModel):
     encode_batch_size: int = 32  # Embedding batch size
 
 
+class CrossVenueDetectorConfig(BaseModel):
+    """Configuration for cross-venue arbitrage detection."""
+
+    enabled: bool = False  # Disabled by default
+
+    # Price discrepancy detection
+    min_price_diff_threshold: float = 0.02  # 2% minimum price difference
+
+    # Fee configuration (basis points)
+    kalshi_fee_bps: float = 7.0
+    polymarket_fee_bps: float = 10.0
+
+    # Slippage configuration
+    slippage_bps: float = 20.0
+
+    # Staleness filtering
+    staleness_threshold_seconds: int = 300  # 5 minutes
+
+    # Liquidity filtering
+    min_liquidity_usd: float = 100.0
+
+    # Range bucket detection
+    bucket_sum_threshold: float = 0.02  # 2% difference threshold
+
+
+
+
+
 class WatchlistConfig(BaseModel):
     """Configuration for watchlist polling after LLM PASS."""
 
@@ -183,6 +212,112 @@ class WatchlistConfig(BaseModel):
     max_trades_per_loop: int = 1
 
 
+class WebBrowsingLLMConfig(BaseModel):
+    """Configuration for web-browsing LLM (Stage 1 of topic selector).
+    
+    Supports LLMs with web search/browsing capabilities like Gemini with
+    Google Search grounding or Perplexity with online search.
+    """
+
+    provider: str = "gemini"  # "gemini", "perplexity"
+    model: str = "gemini-1.5-pro"
+    api_key_env: str = "GEMINI_API_KEY"
+    timeout_s: float = 60.0
+    max_retries: int = 3
+
+    @field_validator("provider")
+    @classmethod
+    def _validate_provider(cls, v: str) -> str:
+        valid_providers = ("gemini", "perplexity")
+        if v not in valid_providers:
+            raise ValueError(f"provider must be one of {valid_providers}, got {v}")
+        return v
+
+    @field_validator("timeout_s")
+    @classmethod
+    def _validate_timeout(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError(f"timeout_s must be positive, got {v}")
+        return v
+
+    @field_validator("max_retries")
+    @classmethod
+    def _validate_max_retries(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError(f"max_retries must be non-negative, got {v}")
+        return v
+
+
+class PairVerificationConfig(BaseModel):
+    """Configuration for pair verification (Stage 2 of topic selector).
+    
+    Uses internal LLM (via existing llm_verifier infrastructure) to verify
+    that candidate market pairs are truly equivalent for arbitrage purposes.
+    """
+
+    min_confidence: float = 0.7
+    use_existing_verifier: bool = True  # Use llm_verifier infrastructure
+    cache_results: bool = True
+
+    @field_validator("min_confidence")
+    @classmethod
+    def _validate_min_confidence(cls, v: float) -> float:
+        if not 0.0 <= v <= 1.0:
+            raise ValueError(f"min_confidence must be in [0.0, 1.0], got {v}")
+        return v
+
+
+class TopicSelectorConfig(BaseModel):
+    """Configuration for daily category/topic selector.
+    
+    Two-stage LLM system for discovering hot topics across Polymarket and Kalshi:
+    - Stage 1: Web browsing LLM discovers trending topics on both platforms
+    - Stage 2: Internal LLM verifies market pair equivalence for arbitrage
+    """
+
+    enabled: bool = False
+    execution_time_utc: str = "00:00"  # Daily execution time (HH:MM format)
+    output_path: str = "data/daily_hot_topics.json"
+    usage_stats_path: str = "data/topic_selector_usage.json"
+    prompt_path: str = "data/topic_selector_prompt.txt"
+    verification_prompt_path: str = "data/pair_verification_prompt.txt"
+    max_hot_topics: int = 10
+    default_fallback_category: str = "Politics"
+    excluded_categories: List[str] = Field(default_factory=lambda: ["Sports"])
+
+    # Stage 1 config
+    llm: WebBrowsingLLMConfig = Field(default_factory=WebBrowsingLLMConfig)
+
+    # Stage 2 config
+    verification: PairVerificationConfig = Field(default_factory=PairVerificationConfig)
+
+    # Target URLs
+    polymarket_url: str = "polymarket.com"
+    kalshi_url: str = "kalshi.com"
+
+    @field_validator("execution_time_utc")
+    @classmethod
+    def _validate_execution_time(cls, v: str) -> str:
+        # Validate HH:MM format
+        parts = v.split(":")
+        if len(parts) != 2:
+            raise ValueError(f"execution_time_utc must be in HH:MM format, got {v}")
+        try:
+            hour, minute = int(parts[0]), int(parts[1])
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise ValueError(f"Invalid time: hour must be 0-23, minute must be 0-59")
+        except ValueError as e:
+            raise ValueError(f"execution_time_utc must be in HH:MM format, got {v}: {e}")
+        return v
+
+    @field_validator("max_hot_topics")
+    @classmethod
+    def _validate_max_hot_topics(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError(f"max_hot_topics must be at least 1, got {v}")
+        return v
+
+
 class AppConfig(BaseModel):
     polymarket: PolymarketConfig = Field(default_factory=PolymarketConfig)
     kalshi: KalshiConfig = Field(default_factory=KalshiConfig)
@@ -195,6 +330,8 @@ class AppConfig(BaseModel):
     llm_verification: LLMVerificationConfig = Field(default_factory=LLMVerificationConfig)
     cross_venue_matcher: CrossVenueMatcherConfig = Field(default_factory=CrossVenueMatcherConfig)
     watchlist: WatchlistConfig = Field(default_factory=WatchlistConfig)
+    cross_venue_detector: CrossVenueDetectorConfig = Field(default_factory=CrossVenueDetectorConfig)
+    topic_selector: TopicSelectorConfig = Field(default_factory=TopicSelectorConfig)
 
 
 def load_config(path: str | Path) -> AppConfig:

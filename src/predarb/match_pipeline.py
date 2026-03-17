@@ -120,8 +120,13 @@ class MatchPipeline:
     STRUCTURAL_MATCH_THRESHOLD = 0.60
     SEMANTIC_ONLY_THRESHOLD = 0.85
     
-    # Date tolerance in seconds (2 hours)
-    DATE_TOLERANCE_SECONDS = 2 * 60 * 60
+    # Date tolerance settings
+    # Daily markets: same calendar day (handles UTC vs ET midnight shifts)
+    # Weekly/Monthly: ±6 hours (venues differ on "Friday close" vs "Sunday close")
+    # Event-based: same day (specific hour matters less than the date)
+    DATE_TOLERANCE_DAILY_HOURS = 24  # Same calendar day
+    DATE_TOLERANCE_WEEKLY_HOURS = 6  # ±6 hours for weekly/monthly
+    DATE_TOLERANCE_SECONDS = 24 * 60 * 60  # Default: same day
     
     # Threshold tolerance (0.1%)
     THRESHOLD_TOLERANCE = 0.001
@@ -268,7 +273,15 @@ class MatchPipeline:
         data["category"] = self.category_inferrer.infer_if_needed(market)
         
         # Try to parse Kalshi ticker first
+        # Kalshi market ID format: kalshi:EVENT_TICKER:TICKER
         ticker = getattr(market, "slug", None) or market.id
+        
+        # Extract ticker from Kalshi market ID
+        if market.id.startswith("kalshi:"):
+            parts = market.id.split(":")
+            if len(parts) >= 3:
+                ticker = parts[2]  # Get the actual ticker (e.g., KXBTC-26MAR1605-B80875)
+        
         parsed_ticker = self.ticker_parser.parse(ticker)
         
         if parsed_ticker:
@@ -351,7 +364,12 @@ class MatchPipeline:
         return f"Asset mismatch: {kalshi_data['asset']} vs {poly_data['asset']}"
     
     def _threshold_filter(self, kalshi: "Market", poly: "Market") -> bool:
-        """Stage 3: Require thresholds within 0.1% when both available (financial markets only)."""
+        """
+        Stage 3: Require thresholds to match for financial markets.
+        
+        For crypto/financial markets: REQUIRE both thresholds and match within 0.1%
+        For non-financial (politics, etc.): Pass through to semantic matching
+        """
         kalshi_data = self._get_market_data(kalshi)
         poly_data = self._get_market_data(poly)
         
@@ -363,11 +381,12 @@ class MatchPipeline:
         t1 = kalshi_data["threshold"]
         t2 = poly_data["threshold"]
         
-        # If either is missing, pass (can't compare)
+        # For financial markets (crypto, indices), REQUIRE both thresholds
+        # This prevents matching "price range" markets with "above $X" markets
         if t1 is None or t2 is None:
-            return True
+            return False  # Reject if either threshold is missing for financial markets
         
-        # Both have thresholds - check tolerance
+        # Both have thresholds - check tolerance (0.1%)
         if t1 == 0 and t2 == 0:
             return True
         if t1 == 0 or t2 == 0:
@@ -388,7 +407,16 @@ class MatchPipeline:
         return f"Threshold mismatch: {t1} vs {t2}"
     
     def _date_filter(self, kalshi: "Market", poly: "Market") -> bool:
-        """Stage 4: Require dates within 2 hours, exclude if missing."""
+        """
+        Stage 4: Date matching with smart tolerance based on market type.
+        
+        Strategy:
+        - Daily markets: Same calendar day (±24h) - handles UTC vs ET midnight shifts
+        - Weekly/Monthly: ±6 hours - venues differ on close times
+        - Event-based: Same day - specific hour matters less than the date
+        
+        Rejects if either date is missing (per Req 5.4).
+        """
         kalshi_data = self._get_market_data(kalshi)
         poly_data = self._get_market_data(poly)
         
@@ -403,7 +431,17 @@ class MatchPipeline:
         date1_utc = self._normalize_to_utc(date1)
         date2_utc = self._normalize_to_utc(date2)
         
-        # Check if within 2 hours
+        # Check if same calendar day (most common case for daily crypto markets)
+        same_day = (
+            date1_utc.year == date2_utc.year and
+            date1_utc.month == date2_utc.month and
+            date1_utc.day == date2_utc.day
+        )
+        
+        if same_day:
+            return True
+        
+        # For different days, check if within 24 hours (handles timezone edge cases)
         diff_seconds = abs((date1_utc - date2_utc).total_seconds())
         return diff_seconds <= self.DATE_TOLERANCE_SECONDS
     

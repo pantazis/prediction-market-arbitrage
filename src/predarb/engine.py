@@ -38,6 +38,7 @@ from predarb.detectors.exclusivesum import ExclusiveSumDetector
 from predarb.detectors.timelag import TimeLagDetector
 from predarb.detectors.consistency import ConsistencyDetector
 from predarb.detectors.composite import CompositeDetector
+from predarb.detectors.cross_venue import CrossVenueDetector
 from predarb.notifier import TelegramNotifier
 from predarb.filtering import filter_markets, rank_markets, FilterSettings
 from .unified_reporter import UnifiedReporter
@@ -147,6 +148,17 @@ class Engine:
             self.detectors.append(ConsistencyDetector(config.detectors))
         if config.detectors.enable_composite:
             self.detectors.append(CompositeDetector(config.detectors))
+        
+        # Initialize cross-venue detector (separate from regular detectors as it
+        # operates on matched pairs rather than individual markets)
+        if config.detectors.enable_cross_venue:
+            self.cross_venue_detector = CrossVenueDetector(
+                config.cross_venue_detector,
+                config.broker,
+            )
+            logger.info("Cross-venue arbitrage detector enabled")
+        else:
+            self.cross_venue_detector = None
         
         self.report_path = Path(config.engine.report_path)
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -631,6 +643,7 @@ class Engine:
         
         # Apply cross-venue semantic matching if enabled
         # Apply cross-venue semantic matching if enabled
+        cross_venue_verified_pairs: List[tuple] = []  # Collect verified pairs for CrossVenueDetector
         if self.cross_venue_matcher.enabled and kalshi_markets and poly_markets:
             try:
                 # --- START BATCH PRUNING ---
@@ -756,6 +769,9 @@ class Engine:
                     pairs_to_add = []
                     for k, p, score, result in batch_verification_results:
                         if result.same_event:
+                            # Collect verified pair for CrossVenueDetector
+                            cross_venue_verified_pairs.append((k, p, score))
+                            
                             # Add to watchlist IMMEDIATELY
                             if watch_cfg and getattr(watch_cfg, "enabled", False):
                                 try:
@@ -829,6 +845,18 @@ class Engine:
                 logger.exception("Detector %s failed: %s", detector.__class__.__name__, e)
                 if self.notifier:
                     self.notifier.notify_error(str(e), detector.__class__.__name__)
+        
+        # Run CrossVenueDetector on verified matched pairs
+        if self.cross_venue_detector and cross_venue_verified_pairs:
+            try:
+                cross_venue_opps = self.cross_venue_detector.detect(cross_venue_verified_pairs)
+                if cross_venue_opps:
+                    logger.info(f"CrossVenueDetector found {len(cross_venue_opps)} opportunities from {len(cross_venue_verified_pairs)} matched pairs")
+                    all_detected_opportunities.extend(cross_venue_opps)
+            except Exception as e:
+                logger.exception("CrossVenueDetector failed: %s", e)
+                if self.notifier:
+                    self.notifier.notify_error(str(e), "CrossVenueDetector")
         
         if len(all_detected_opportunities) > 1:
             def _edge_per_day(opp: Opportunity) -> float:

@@ -120,8 +120,8 @@ class CategoryInferrer:
         Infer category only if the market lacks tags and category.
         
         If the market already has a category set, returns that category.
-        If the market has tags but no category, returns "OTHER" (let CategoryMapper handle it).
-        Otherwise, performs inference.
+        If the market has tags, check if any match known categories.
+        Otherwise, performs inference from question text.
         
         Args:
             market: The Market object to process.
@@ -133,7 +133,16 @@ class CategoryInferrer:
             return market.category.upper()
         
         if market.tags:
-            # Has tags but no category - let CategoryMapper handle via tags
+            # Check if any tag matches a known category
+            for tag in market.tags:
+                tag_upper = tag.upper()
+                if tag_upper in self.KEYWORD_CATEGORIES:
+                    return tag_upper
+                # Also check if tag is a keyword for a category
+                tag_lower = tag.lower()
+                if tag_lower in self._keyword_to_category:
+                    return self._keyword_to_category[tag_lower]
+            # Tags exist but don't match known categories
             return "OTHER"
         
         return self.infer(market)

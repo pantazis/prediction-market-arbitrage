@@ -26,6 +26,7 @@ from predarb.asset_normalizer import AssetNormalizer
 from predarb.category_inferrer import CategoryInferrer
 from predarb.confidence_scorer import ConfidenceScorer
 from predarb.duplicate_preventer import DuplicatePreventer
+from predarb.series_mapper import get_asset_tag, get_category_tag
 
 logger = logging.getLogger(__name__)
 
@@ -454,16 +455,26 @@ class CrossVenueMatcher:
     
     def _extract_asset(self, market: Market) -> Optional[str]:
         """Extract normalized asset from market for pre-filtering."""
-        # Try ticker parsing first (Kalshi)
+        # For Kalshi markets, try series_mapper first (most reliable)
+        if market.id.startswith("kalshi:"):
+            # Extract event_ticker from ID format: kalshi:EVENT_TICKER:TICKER
+            parts = market.id.split(":")
+            if len(parts) >= 2:
+                event_ticker = parts[1]
+                asset = get_asset_tag(event_ticker)
+                if asset:
+                    return asset
+        
+        # Try ticker parsing (for other formats)
         ticker = getattr(market, "slug", None) or market.id
         parsed = self.ticker_parser.parse(ticker)
         if parsed and parsed.asset:
             return self.asset_normalizer.normalize(parsed.asset)
         
-        # Try text extraction
+        # Try text extraction from question
         text = market.question.lower() if market.question else ""
         
-        # Check for known assets
+        # Check for known assets in text
         asset_keywords = {
             'bitcoin': 'bitcoin', 'btc': 'bitcoin',
             'ethereum': 'ethereum', 'eth': 'ethereum', 'ether': 'ethereum',
@@ -484,9 +495,27 @@ class CrossVenueMatcher:
         Get the grouping key for a market (asset or category).
         
         For financial markets (crypto, stocks): returns asset name (bitcoin, ethereum, sp500)
-        For other markets (politics, sports): returns category name
+        For other markets (politics, economics, weather): returns category name
+        
+        Property 6 (Idempotency): Returns same value regardless of fetch method.
         """
-        # First try to extract asset (for crypto/financial markets)
+        # For Kalshi markets, try series_mapper first (most reliable)
+        if market.id.startswith("kalshi:"):
+            parts = market.id.split(":")
+            if len(parts) >= 2:
+                event_ticker = parts[1]
+                # Get both category and asset
+                category = get_category_tag(event_ticker)
+                asset = get_asset_tag(event_ticker)
+                
+                # For crypto category, return asset (more specific)
+                if category == "crypto" and asset:
+                    return f"asset:{asset}"
+                # For non-crypto categories (politics, economics, weather), return category
+                elif category:
+                    return f"category:{category}"
+        
+        # For Polymarket or fallback: try to extract asset
         asset = self._extract_asset(market)
         if asset:
             return f"asset:{asset}"

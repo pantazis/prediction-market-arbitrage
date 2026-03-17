@@ -32,6 +32,7 @@ from cryptography.hazmat.backends import default_backend
 
 from predarb.market_client_base import MarketClient
 from predarb.models import Market, Outcome
+from predarb.series_mapper import get_category_tag
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,9 @@ class KalshiClient(MarketClient):
             "KXCOACH", "KXNYG", "KXNEXT", "KXDOTA2", "KXLOL",  # Coaching and esports
             # Multivariate sports (parlays/combinations)
             "KXMVESPORTSMULTIGAME", "KXMVENFLSINGLEGAME", "KXMVESPORTS", "KXMVENFL",
-            "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER"
+            "KXMVENBA", "KXMVEMLB", "KXMVENHL", "KXMVESOCCER",
+            # Cross-category parlays (mostly sports)
+            "KXMVECROSSCATEGORY"
         }
         
         # Session for connection pooling
@@ -469,6 +472,15 @@ class KalshiClient(MarketClient):
                 best_ask["no"] = _nz(no_ask)
 
             # Build market
+            # Infer category from event_ticker if API doesn't provide it
+            api_category = data.get("category", "")
+            if api_category:
+                tags = [t.strip() for t in api_category.split(",") if t.strip()]
+            else:
+                # Use series_mapper to infer category from event_ticker
+                inferred_category = get_category_tag(event_ticker)
+                tags = [inferred_category] if inferred_category else []
+            
             market = Market(
                 id=f"kalshi:{event_ticker}:{ticker}",
                 question=title,
@@ -478,7 +490,7 @@ class KalshiClient(MarketClient):
                 updated_at=updated_at,
                 liquidity=liquidity,
                 volume=volume,
-                tags=data.get("category", "").split(",") if data.get("category") else [],
+                tags=tags,
                 description=data.get("rules_primary", "") or data.get("subtitle", ""),
                 resolution_source="Kalshi Official",
                 best_bid=best_bid,

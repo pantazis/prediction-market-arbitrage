@@ -25,9 +25,12 @@ class AssetNormalizer:
     """
     
     ALIASES: Dict[str, List[str]] = {
-        "ethereum": ["eth", "ethereum", "ether"],
-        "bitcoin": ["btc", "bitcoin"],
-        "sp500": ["s&p 500", "spx", "sp500", "s&p500", "s&p"],
+        # Crypto assets - include Kalshi ticker variants (btcd=daily, btc15m=15min, etc.)
+        "ethereum": ["eth", "ethereum", "ether", "ethd", "eth15m", "ethh", "ethw"],
+        "bitcoin": ["btc", "bitcoin", "btcd", "btc15m", "btch", "btcw"],
+        "solana": ["sol", "solana", "sold", "sol15m"],
+        # Traditional assets
+        "sp500": ["s&p 500", "spx", "sp500", "s&p500", "s&p", "inx", "inxd", "inxw"],
         "gold": ["gold", "xau", "gld"],
         "oil": ["oil", "wti", "crude", "brent"],
     }

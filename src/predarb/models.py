@@ -155,6 +155,52 @@ class Market(BaseModel):
 
 
 @dataclass
+class NormalizedMarket:
+    """Unified market representation with normalized prices.
+
+    This dataclass provides a common format for comparing markets across
+    different venues (Polymarket, Kalshi). All prices are normalized to
+    the [0.0-1.0] probability range.
+
+    Attributes:
+        market_id: Unique identifier for the market
+        exchange: Exchange name ("kalshi" or "polymarket")
+        question: Market question/title
+        yes_bid: Best bid price for YES outcome [0.0-1.0]
+        yes_ask: Best ask price for YES outcome [0.0-1.0]
+        no_bid: Best bid price for NO outcome [0.0-1.0]
+        no_ask: Best ask price for NO outcome [0.0-1.0]
+        liquidity_usd: Available liquidity in USD
+        updated_at: Timestamp of last price update (for staleness checking)
+        original: Reference to the original Market object
+        is_tradeable: Whether the market can be traded
+        non_tradeable_reason: Reason if market is not tradeable
+    """
+    market_id: str
+    exchange: str  # "kalshi" or "polymarket"
+    question: str
+
+    # Normalized prices in [0.0-1.0] range
+    yes_bid: float
+    yes_ask: float
+    no_bid: float
+    no_ask: float
+
+    # Liquidity in USD
+    liquidity_usd: float
+
+    # Timestamp for staleness checking
+    updated_at: Optional[datetime] = None
+
+    # Original market reference
+    original: Optional["Market"] = None
+
+    # Tradeable flag
+    is_tradeable: bool = True
+    non_tradeable_reason: Optional[str] = None
+
+
+@dataclass
 class TradeAction:
     market_id: str
     outcome_id: str

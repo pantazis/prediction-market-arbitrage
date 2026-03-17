@@ -22,9 +22,9 @@ from predarb.config import (
 )
 
 
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(collection_path, config):
     # Ignore legacy tests from previous implementation to focus on new predarb suite
-    basename = Path(path).name
+    basename = collection_path.name
     legacy = {"test_components.py", "test_polymarket_client.py", "test_telegram_notifier.py"}
     if basename in legacy:
         return True
